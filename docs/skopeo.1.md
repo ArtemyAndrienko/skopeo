@@ -59,6 +59,8 @@ Most commands refer to container images, using a _transport_`:`_details_ format.
 
 Copy an image (manifest, filesystem layers, signatures) from one location to another.
 
+Uses the system's signature verification policy to validate images, refuses to copy images rejected by the policy.
+
   _source-image_ use the "image name" format described above
 
   _destination-image_ use the "image name" format described above
