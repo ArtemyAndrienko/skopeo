@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/containers/image/signature"
 	"github.com/projectatomic/skopeo/version"
 	"github.com/urfave/cli"
 )
@@ -50,6 +51,11 @@ func createApp() *cli.App {
 			Name:  "tls-verify",
 			Usage: "verify certificates",
 		},
+		cli.StringFlag{
+			Name:  "policy",
+			Value: "",
+			Usage: "Path to a signature verification policy file",
+		},
 	}
 	app.Before = func(c *cli.Context) error {
 		if c.GlobalBool("debug") {
@@ -74,4 +80,20 @@ func main() {
 	if err := app.Run(os.Args); err != nil {
 		logrus.Fatal(err)
 	}
+}
+
+// getPolicyContext handles the global "policy" flag.
+func getPolicyContext(c *cli.Context) (*signature.PolicyContext, error) {
+	policyPath := c.GlobalString("policy")
+	var policy *signature.Policy // This could be cached across calls, if we had an application context.
+	var err error
+	if policyPath == "" {
+		policy, err = signature.DefaultPolicy(nil)
+	} else {
+		policy, err = signature.NewPolicyFromFile(policyPath)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return signature.NewPolicyContext(policy)
 }
