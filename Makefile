@@ -25,8 +25,18 @@ GIT_COMMIT := $(shell git rev-parse HEAD 2> /dev/null || true)
 
 all: binary
 
-binary:
-	go build -ldflags "-X main.gitCommit=${GIT_COMMIT}" -o ${DEST}skopeo ./cmd/skopeo
+binary: skopeo
+
+# Build a docker image (skopeobuild) that has everything we need to build.
+# Then do the build and the output (skopeo) should appear in current dir
+skopeo: cmd/skopeo
+	docker build ${DOCKER_BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
+	docker run --rm -v ${PWD}:/src/github.com/projectatomic/skopeo \
+		skopeobuildimage make binary-local
+
+# Build w/o using Docker containers
+binary-local:
+	go build -ldflags "-X main.gitCommit=${GIT_COMMIT}" -o skopeo ./cmd/skopeo
 
 build-container:
 	docker build ${DOCKER_BUILD_ARGS} -t "$(DOCKER_IMAGE)" .
