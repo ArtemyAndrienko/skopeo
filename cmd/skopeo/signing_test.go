@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/projectatomic/skopeo/signature"
+	"github.com/containers/image/signature"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

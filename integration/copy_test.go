@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/containers/image/manifest"
 	"github.com/go-check/check"
-	"github.com/projectatomic/skopeo/manifest"
 )
 
 func init() {

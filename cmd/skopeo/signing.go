@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/projectatomic/skopeo/signature"
+	"github.com/containers/image/signature"
 	"github.com/urfave/cli"
 )
 

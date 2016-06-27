@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/projectatomic/skopeo/docker"
-	"github.com/projectatomic/skopeo/manifest"
+	"github.com/containers/image/docker"
+	"github.com/containers/image/manifest"
 	"github.com/urfave/cli"
 )
 
