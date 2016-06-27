@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/projectatomic/skopeo/directory"
-	"github.com/projectatomic/skopeo/docker"
-	"github.com/projectatomic/skopeo/image"
-	"github.com/projectatomic/skopeo/openshift"
-	"github.com/projectatomic/skopeo/types"
+	"github.com/containers/image/directory"
+	"github.com/containers/image/docker"
+	"github.com/containers/image/image"
+	"github.com/containers/image/openshift"
+	"github.com/containers/image/types"
 	"github.com/urfave/cli"
 )
 

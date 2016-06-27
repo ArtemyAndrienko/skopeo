@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/projectatomic/skopeo/image"
-	"github.com/projectatomic/skopeo/signature"
+	"github.com/containers/image/image"
+	"github.com/containers/image/signature"
 	"github.com/urfave/cli"
 )
 

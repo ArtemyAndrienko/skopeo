@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/projectatomic/skopeo/version"
+	"github.com/containers/image/version"
 	"github.com/urfave/cli"
 )
 
