@@ -26,24 +26,24 @@ func copyHandler(context *cli.Context) error {
 	}
 	signBy := context.String("sign-by")
 
-	manifest, err := src.Manifest()
+	manifest, _, err := src.Manifest()
 	if err != nil {
 		return fmt.Errorf("Error reading manifest: %v", err)
 	}
 
-	layers, err := src.LayerDigests()
+	blobDigests, err := src.BlobDigests()
 	if err != nil {
 		return fmt.Errorf("Error parsing manifest: %v", err)
 	}
-	for _, layer := range layers {
+	for _, digest := range blobDigests {
 		// TODO(mitr): do not ignore the size param returned here
-		stream, _, err := rawSource.GetBlob(layer)
+		stream, _, err := rawSource.GetBlob(digest)
 		if err != nil {
-			return fmt.Errorf("Error reading layer %s: %v", layer, err)
+			return fmt.Errorf("Error reading blob %s: %v", digest, err)
 		}
 		defer stream.Close()
-		if err := dest.PutBlob(layer, stream); err != nil {
-			return fmt.Errorf("Error writing layer: %v", err)
+		if err := dest.PutBlob(digest, stream); err != nil {
+			return fmt.Errorf("Error writing blob: %v", err)
 		}
 	}
 

@@ -19,35 +19,35 @@ var layersCmd = cli.Command{
 			return err
 		}
 		src := image.FromSource(rawSource)
-		layers := c.Args().Tail()
-		if len(layers) == 0 {
-			ls, err := src.LayerDigests()
+		blobDigests := c.Args().Tail()
+		if len(blobDigests) == 0 {
+			b, err := src.BlobDigests()
 			if err != nil {
 				return err
 			}
-			layers = ls
+			blobDigests = b
 		}
 		tmpDir, err := ioutil.TempDir(".", "layers-")
 		if err != nil {
 			return err
 		}
 		dest := directory.NewDirImageDestination(tmpDir)
-		manifest, err := src.Manifest()
+		manifest, _, err := src.Manifest()
 		if err != nil {
 			return err
 		}
 		if err := dest.PutManifest(manifest); err != nil {
 			return err
 		}
-		for _, l := range layers {
-			if !strings.HasPrefix(l, "sha256:") {
-				l = "sha256:" + l
+		for _, digest := range blobDigests {
+			if !strings.HasPrefix(digest, "sha256:") {
+				digest = "sha256:" + digest
 			}
-			r, _, err := rawSource.GetBlob(l)
+			r, _, err := rawSource.GetBlob(digest)
 			if err != nil {
 				return err
 			}
-			if err := dest.PutBlob(l, r); err != nil {
+			if err := dest.PutBlob(digest, r); err != nil {
 				r.Close()
 				return err
 			}
