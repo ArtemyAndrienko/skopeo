@@ -6,6 +6,7 @@ import (
 
 	"github.com/containers/image/image"
 	"github.com/containers/image/signature"
+	"github.com/containers/image/transports"
 	"github.com/urfave/cli"
 )
 
@@ -58,9 +59,9 @@ func copyHandler(context *cli.Context) error {
 		if err != nil {
 			return fmt.Errorf("Error initializing GPG: %v", err)
 		}
-		dockerReference := dest.CanonicalDockerReference()
+		dockerReference := dest.Reference().DockerReference()
 		if dockerReference == nil {
-			return errors.New("Destination image does not have an associated Docker reference")
+			return fmt.Errorf("Cannot determine canonical Docker reference for destination %s", transports.ImageName(dest.Reference()))
 		}
 
 		newSig, err := signature.SignDockerManifest(manifest, dockerReference.String(), mech, signBy)
