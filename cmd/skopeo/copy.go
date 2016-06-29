@@ -14,16 +14,17 @@ func copyHandler(context *cli.Context) error {
 		return errors.New("Usage: copy source destination")
 	}
 
-	rawSource, err := parseImageSource(context, context.Args()[0])
-	if err != nil {
-		return fmt.Errorf("Error initializing %s: %v", context.Args()[0], err)
-	}
-	src := image.FromSource(rawSource)
-
 	dest, err := parseImageDestination(context, context.Args()[1])
 	if err != nil {
 		return fmt.Errorf("Error initializing %s: %v", context.Args()[1], err)
 	}
+
+	rawSource, err := parseImageSource(context, context.Args()[0])
+	if err != nil {
+		return fmt.Errorf("Error initializing %s: %v", context.Args()[0], err)
+	}
+	src := image.FromSource(rawSource, dest.SupportedManifestMIMETypes())
+
 	signBy := context.String("sign-by")
 
 	manifest, _, err := src.Manifest()

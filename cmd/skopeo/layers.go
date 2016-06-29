@@ -6,6 +6,7 @@ import (
 
 	"github.com/containers/image/directory"
 	"github.com/containers/image/image"
+	"github.com/containers/image/manifest"
 	"github.com/urfave/cli"
 )
 
@@ -18,7 +19,12 @@ var layersCmd = cli.Command{
 		if err != nil {
 			return err
 		}
-		src := image.FromSource(rawSource)
+		src := image.FromSource(rawSource, []string{
+			// TODO: skopeo layers only support these now
+			// eventually we'll remove this command altogether...
+			manifest.DockerV2Schema1SignedMIMEType,
+			manifest.DockerV2Schema1MIMEType,
+		})
 		blobDigests := c.Args().Tail()
 		if len(blobDigests) == 0 {
 			b, err := src.BlobDigests()
