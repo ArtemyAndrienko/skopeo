@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/go-check/check"
+	"github.com/projectatomic/skopeo/version"
 )
 
 const (
@@ -70,7 +71,7 @@ func (s *SkopeoSuite) TearDownTest(c *check.C) {
 //func skopeoCmd()
 
 func (s *SkopeoSuite) TestVersion(c *check.C) {
-	wanted := fmt.Sprintf(".*%s version .*", skopeoBinary)
+	wanted := fmt.Sprintf(".*%s version %s .*", skopeoBinary, version.Version)
 	assertSkopeoSucceeds(c, wanted, "--version")
 }
 
