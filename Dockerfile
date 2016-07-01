@@ -44,7 +44,8 @@ RUN set -x \
 	&& yum install -y which git tar wget hostname util-linux bsdtar socat ethtool device-mapper iptables tree findutils nmap-ncat e2fsprogs xfsprogs lsof docker iproute \
 	&& export GOPATH=$(mktemp -d) \
 	# && git clone git://github.com/openshift/origin "$GOPATH/src/github.com/openshift/origin" \
-	&& git clone -b image-signatures-rest git://github.com/miminar/origin "$GOPATH/src/github.com/openshift/origin" \
+	# && git clone -b image-signatures-rest git://github.com/miminar/origin "$GOPATH/src/github.com/openshift/origin" \
+	&& git clone -b image-signatures-rest-backup git://github.com/mtrmac/origin "$GOPATH/src/github.com/openshift/origin" \
 	&& (cd "$GOPATH/src/github.com/openshift/origin" && make clean build && make all WHAT=cmd/dockerregistry) \
 	&& cp -a "$GOPATH/src/github.com/openshift/origin/_output/local/bin/linux"/*/* /usr/local/bin \
 	&& cp "$GOPATH/src/github.com/openshift/origin/images/dockerregistry/config.yml" /atomic-registry-config.yml \
