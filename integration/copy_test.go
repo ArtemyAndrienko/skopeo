@@ -55,13 +55,22 @@ func (s *CopySuite) TestCopySimple(c *check.C) {
 
 	// FIXME: It would be nice to use one of the local Docker registries instead of neeeding an Internet connection.
 	// "pull": docker: → dir:
-	assertSkopeoSucceeds(c, "", "copy", "docker://busybox:latest", "dir:"+dir1)
+	assertSkopeoSucceeds(c, "", "copy", "docker://estesp/busybox:latest", "dir:"+dir1)
 	// "push": dir: → atomic:
 	assertSkopeoSucceeds(c, "", "--debug", "copy", "dir:"+dir1, "atomic:myns/unsigned:unsigned")
 	// The result of pushing and pulling is an unmodified image.
 	assertSkopeoSucceeds(c, "", "copy", "atomic:myns/unsigned:unsigned", "dir:"+dir2)
 	out := combinedOutputOfCommand(c, "diff", "-urN", dir1, dir2)
 	c.Assert(out, check.Equals, "")
+
+	// docker v2s2 -> OCI image layout
+	// ociDest will be created by oci: if it doesn't exist
+	// so don't create it here to exercise auto-creation
+	ociDest := "busybox-latest"
+	defer os.RemoveAll(ociDest)
+	assertSkopeoSucceeds(c, "", "copy", "docker://busybox:latest", "oci:"+ociDest)
+	_, err = os.Stat(ociDest)
+	c.Assert(err, check.IsNil)
 
 	// FIXME: Also check pushing to docker://
 }
@@ -77,9 +86,9 @@ func (s *CopySuite) TestCopyStreaming(c *check.C) {
 
 	// FIXME: It would be nice to use one of the local Docker registries instead of neeeding an Internet connection.
 	// streaming: docker: → atomic:
-	assertSkopeoSucceeds(c, "", "--debug", "copy", "docker://busybox:1-glibc", "atomic:myns/unsigned:streaming")
+	assertSkopeoSucceeds(c, "", "--debug", "copy", "docker://estesp/busybox:amd64", "atomic:myns/unsigned:streaming")
 	// Compare (copies of) the original and the copy:
-	assertSkopeoSucceeds(c, "", "copy", "docker://busybox:1-glibc", "dir:"+dir1)
+	assertSkopeoSucceeds(c, "", "copy", "docker://estesp/busybox:amd64", "dir:"+dir1)
 	assertSkopeoSucceeds(c, "", "copy", "atomic:myns/unsigned:streaming", "dir:"+dir2)
 	// The manifests will have different JWS signatures; so, compare the manifests by digests, which
 	// strips the signatures, and remove them, comparing the rest file by file.

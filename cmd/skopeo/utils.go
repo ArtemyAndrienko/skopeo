@@ -8,6 +8,7 @@ import (
 	"github.com/containers/image/directory"
 	"github.com/containers/image/docker"
 	"github.com/containers/image/image"
+	"github.com/containers/image/oci"
 	"github.com/containers/image/openshift"
 	"github.com/containers/image/types"
 	"github.com/urfave/cli"
@@ -20,6 +21,8 @@ const (
 	dockerPrefix = "docker://"
 	// directoryPrefix is the URL-like schema prefix used for local directories (for debugging)
 	directoryPrefix = "dir:"
+	// ociPrefix is the URL-like schema prefix used for OCI images.
+	ociPrefix = "oci:"
 )
 
 // ParseImage converts image URL-like string to an initialized handler for that image.
@@ -36,7 +39,7 @@ func parseImage(c *cli.Context) (types.Image, error) {
 		//
 	case strings.HasPrefix(imgName, directoryPrefix):
 		src := directory.NewDirImageSource(strings.TrimPrefix(imgName, directoryPrefix))
-		return image.FromSource(src), nil
+		return image.FromSource(src, nil), nil
 	}
 	return nil, errors.New("no valid prefix provided")
 }
@@ -71,6 +74,8 @@ func parseImageDestination(c *cli.Context, name string) (types.ImageDestination,
 		return openshift.NewOpenshiftImageDestination(strings.TrimPrefix(name, atomicPrefix), certPath, tlsVerify)
 	case strings.HasPrefix(name, directoryPrefix):
 		return directory.NewDirImageDestination(strings.TrimPrefix(name, directoryPrefix)), nil
+	case strings.HasPrefix(name, ociPrefix):
+		return oci.NewOCIImageDestination(strings.TrimPrefix(name, ociPrefix))
 	}
 	return nil, fmt.Errorf("Unrecognized image reference %s", name)
 }
