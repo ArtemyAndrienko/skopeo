@@ -1,13 +1,13 @@
-package reference // COPY WITH EDITS FROM DOCKER/DOCKER
+package reference
 
 import (
 	"errors"
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/docker/distribution/digest"
 	distreference "github.com/docker/distribution/reference"
+	"github.com/docker/docker/image/v1"
 )
 
 const (
@@ -55,7 +55,7 @@ type Canonical interface {
 func ParseNamed(s string) (Named, error) {
 	named, err := distreference.ParseNamed(s)
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing reference: %q is not a valid repository/tag: %s", s, err.Error())
+		return nil, fmt.Errorf("Error parsing reference: %q is not a valid repository/tag", s)
 	}
 	r, err := WithName(named.Name())
 	if err != nil {
@@ -155,6 +155,19 @@ func IsNameOnly(ref Named) bool {
 	return true
 }
 
+// ParseIDOrReference parses string for a image ID or a reference. ID can be
+// without a default prefix.
+func ParseIDOrReference(idOrRef string) (digest.Digest, Named, error) {
+	if err := v1.ValidateID(idOrRef); err == nil {
+		idOrRef = "sha256:" + idOrRef
+	}
+	if dgst, err := digest.ParseDigest(idOrRef); err == nil {
+		return dgst, nil, nil
+	}
+	ref, err := ParseNamed(idOrRef)
+	return "", ref, err
+}
+
 // splitHostname splits a repository name to hostname and remotename string.
 // If no valid hostname is found, the default hostname is used. Repository name
 // needs to be already validated before.
@@ -190,21 +203,9 @@ func normalize(name string) (string, error) {
 	return name, nil
 }
 
-// EDIT FROM DOCKER/DOCKER TO NOT IMPORT IMAGE.V1
-
 func validateName(name string) error {
-	if err := ValidateIDV1(name); err == nil {
+	if err := v1.ValidateID(name); err == nil {
 		return fmt.Errorf("Invalid repository name (%s), cannot specify 64-byte hexadecimal strings", name)
-	}
-	return nil
-}
-
-var validHex = regexp.MustCompile(`^([a-f0-9]{64})$`)
-
-// ValidateIDV1 checks whether an ID string is a valid image ID.
-func ValidateIDV1(id string) error {
-	if ok := validHex.MatchString(id); !ok {
-		return fmt.Errorf("image ID %q is invalid", id)
 	}
 	return nil
 }
