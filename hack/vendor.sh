@@ -12,7 +12,15 @@ clone git github.com/go-check/check v1
 clone git github.com/stretchr/testify v1.1.3
 clone git github.com/davecgh/go-spew master
 clone git github.com/pmezard/go-difflib master
-clone git github.com/docker/docker 0f5c9d301b9b1cca66b3ea0f9dec3b5317d3686d
+# docker deps from https://github.com/docker/docker/blob/v1.11.2/hack/vendor.sh
+clone git github.com/docker/docker v1.11.2
+clone git github.com/docker/engine-api v0.3.3
+clone git github.com/docker/go-connections v0.2.0
+clone git github.com/vbatts/tar-split v0.9.11
+clone git github.com/gorilla/context 14f550f51a
+clone git github.com/docker/go-units 651fc226e7441360384da338d0fd37f2440ffbe3
+clone git golang.org/x/net master https://github.com/golang/net.git
+# end docker deps
 clone git github.com/docker/distribution master
 clone git github.com/docker/libtrust master
 clone git github.com/opencontainers/runc master
