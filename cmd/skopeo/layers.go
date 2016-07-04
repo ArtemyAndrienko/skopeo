@@ -37,7 +37,7 @@ var layersCmd = cli.Command{
 		if err != nil {
 			return err
 		}
-		dest := directory.NewDirImageDestination(tmpDir)
+		dest := directory.NewImageDestination(tmpDir)
 		manifest, _, err := src.Manifest()
 		if err != nil {
 			return err
