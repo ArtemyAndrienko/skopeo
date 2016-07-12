@@ -58,12 +58,12 @@ func copyHandler(context *cli.Context) error {
 		if err != nil {
 			return fmt.Errorf("Error initializing GPG: %v", err)
 		}
-		dockerReference, err := dest.CanonicalDockerReference()
-		if err != nil {
-			return fmt.Errorf("Error determining canonical Docker reference: %v", err)
+		dockerReference := dest.CanonicalDockerReference()
+		if dockerReference == nil {
+			return errors.New("Destination image does not have an associated Docker reference")
 		}
 
-		newSig, err := signature.SignDockerManifest(manifest, dockerReference, mech, signBy)
+		newSig, err := signature.SignDockerManifest(manifest, dockerReference.String(), mech, signBy)
 		if err != nil {
 			return fmt.Errorf("Error creating signature: %v", err)
 		}
