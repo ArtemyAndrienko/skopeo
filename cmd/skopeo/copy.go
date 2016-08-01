@@ -71,13 +71,13 @@ func copyHandler(context *cli.Context) error {
 		sigs = append(sigs, newSig)
 	}
 
-	if err := dest.PutSignatures(sigs); err != nil {
-		return fmt.Errorf("Error writing signatures: %v", err)
-	}
-
-	// FIXME: We need to call PutManifest after PutBlob and PutSignatures. This seems ugly; move to a "set properties" + "commit" model?
+	// FIXME: We need to call PutManifest after PutBlob and before PutSignatures. This seems ugly; move to a "set properties" + "commit" model?
 	if err := dest.PutManifest(manifest); err != nil {
 		return fmt.Errorf("Error writing manifest: %v", err)
+	}
+
+	if err := dest.PutSignatures(sigs); err != nil {
+		return fmt.Errorf("Error writing signatures: %v", err)
 	}
 	return nil
 }
