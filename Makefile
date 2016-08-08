@@ -5,6 +5,7 @@ export GO15VENDOREXPERIMENT=1
 PREFIX ?= ${DESTDIR}/usr
 INSTALLDIR=${PREFIX}/bin
 MANINSTALLDIR=${PREFIX}/share/man
+CONTAINERSSYSCONFIGDIR=${DESTDIR}/etc/containers
 BASHINSTALLDIR=${PREFIX}/share/bash-completion/completions
 GO_MD2MAN ?= /usr/bin/go-md2man
 
@@ -60,14 +61,13 @@ clean:
 	rm -f skopeo docs/*.1
 
 install: install-binary install-docs install-completions
+	install -D -m 644 default-policy.json ${CONTAINERSSYSCONFIGDIR}/policy.json
 
 install-binary: ./skopeo
-	install -d -m 0755 ${INSTALLDIR}
-	install -m 755 skopeo ${INSTALLDIR}
+	install -D -m 755 skopeo ${INSTALLDIR}/skopeo
 
 install-docs: docs/skopeo.1
-	install -d -m 0755 ${MANINSTALLDIR}/man1
-	install -m 644 docs/skopeo.1 ${MANINSTALLDIR}/man1/
+	install -D -m 644 docs/skopeo.1 ${MANINSTALLDIR}/man1/skopeo.1
 
 install-completions:
 	install -m 644 -T hack/make/bash_autocomplete ${BASHINSTALLDIR}/skopeo
