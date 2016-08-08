@@ -39,13 +39,14 @@ func standaloneSign(context *cli.Context) error {
 }
 
 var standaloneSignCmd = cli.Command{
-	Name:   "standalone-sign",
-	Usage:  "Create a signature using local files",
-	Action: standaloneSign,
+	Name:      "standalone-sign",
+	Usage:     "Create a signature using local files",
+	ArgsUsage: "MANIFEST DOCKER-REFERENCE KEY-FINGERPRINT",
+	Action:    standaloneSign,
 	Flags: []cli.Flag{
 		cli.StringFlag{
 			Name:  "output, o",
-			Usage: "output signature file name",
+			Usage: "output the signature to `SIGNATURE`",
 		},
 	},
 }
@@ -82,7 +83,8 @@ func standaloneVerify(context *cli.Context) error {
 }
 
 var standaloneVerifyCmd = cli.Command{
-	Name:   "standalone-verify",
-	Usage:  "Verify a signature using local files",
-	Action: standaloneVerify,
+	Name:      "standalone-verify",
+	Usage:     "Verify a signature using local files",
+	ArgsUsage: "MANIFEST DOCKER-REFERENCE KEY-FINGERPRINT SIGNATURE",
+	Action:    standaloneVerify,
 }

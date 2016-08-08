@@ -23,7 +23,8 @@ func deleteHandler(context *cli.Context) error {
 }
 
 var deleteCmd = cli.Command{
-	Name:   "delete",
-	Usage:  "Delete given image",
-	Action: deleteHandler,
+	Name:      "delete",
+	Usage:     "Delete image IMAGE-NAME",
+	ArgsUsage: "IMAGE-NAME",
+	Action:    deleteHandler,
 }

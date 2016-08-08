@@ -13,10 +13,6 @@ import (
 // and will be populated by the Makefile
 var gitCommit = ""
 
-const (
-	usage = `interact with registries`
-)
-
 // createApp returns a cli.App to be run or tested.
 func createApp() *cli.App {
 	app := cli.NewApp()
@@ -26,7 +22,7 @@ func createApp() *cli.App {
 	} else {
 		app.Version = version.Version
 	}
-	app.Usage = usage
+	app.Usage = "Various operations with container images and container image registries"
 	// TODO(runcom)
 	//app.EnableBashCompletion = true
 	app.Flags = []cli.Flag{
@@ -37,21 +33,21 @@ func createApp() *cli.App {
 		cli.StringFlag{
 			Name:  "username",
 			Value: "",
-			Usage: "registry username",
+			Usage: "use `USERNAME` for accessing the registry",
 		},
 		cli.StringFlag{
 			Name:  "password",
 			Value: "",
-			Usage: "registry password",
+			Usage: "use `PASSWORD` for accessing the registry",
 		},
 		cli.StringFlag{
 			Name:  "cert-path",
 			Value: "",
-			Usage: "Certificates path to connect to the given registry (cert.pem, key.pem)",
+			Usage: "use certificates at `PATH` (cert.pem, key.pem) to connect to the registry",
 		},
 		cli.BoolFlag{
 			Name:  "tls-verify",
-			Usage: "Whether to verify certificates or not",
+			Usage: "verify certificates",
 		},
 	}
 	app.Before = func(c *cli.Context) error {
