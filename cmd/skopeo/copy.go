@@ -162,13 +162,15 @@ func copyHandler(context *cli.Context) error {
 }
 
 var copyCmd = cli.Command{
-	Name:   "copy",
-	Action: copyHandler,
+	Name:      "copy",
+	Usage:     "Copy an image from one location to another",
+	ArgsUsage: "SOURCE-IMAGE DESTINATION-IMAGE",
+	Action:    copyHandler,
 	// FIXME: Do we need to namespace the GPG aspect?
 	Flags: []cli.Flag{
 		cli.StringFlag{
 			Name:  "sign-by",
-			Usage: "sign the image using a GPG key with the specified fingerprint",
+			Usage: "Sign the image using a GPG key with the specified `FINGERPRINT`",
 		},
 	},
 }

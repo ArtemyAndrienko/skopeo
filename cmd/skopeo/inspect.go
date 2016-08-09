@@ -25,8 +25,9 @@ type inspectOutput struct {
 }
 
 var inspectCmd = cli.Command{
-	Name:  "inspect",
-	Usage: "inspect images on a registry",
+	Name:      "inspect",
+	Usage:     "Inspect image IMAGE-NAME",
+	ArgsUsage: "IMAGE-NAME",
 	Flags: []cli.Flag{
 		cli.BoolFlag{
 			Name:  "raw",

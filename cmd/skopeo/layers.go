@@ -12,8 +12,9 @@ import (
 
 // TODO(runcom): document args and usage
 var layersCmd = cli.Command{
-	Name:  "layers",
-	Usage: "get images layers",
+	Name:      "layers",
+	Usage:     "Get layers of IMAGE-NAME",
+	ArgsUsage: "IMAGE-NAME",
 	Action: func(c *cli.Context) error {
 		rawSource, err := parseImageSource(c, c.Args()[0])
 		if err != nil {
