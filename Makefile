@@ -53,8 +53,7 @@ docs: $(MANPAGES_MD:%.md=%)
 clean:
 	rm -f skopeo docs/*.1
 
-install: install-binary
-	install -m 644 man1/skopeo.1 ${MANINSTALLDIR}/man1/
+install: install-binary install-docs
 	# TODO(runcom)
 	#install -m 644 completion/bash/skopeo ${BASHINSTALLDIR}/
 
@@ -62,6 +61,9 @@ install-binary:
 	install -d -m 0755 ${INSTALLDIR}
 	install -m 755 skopeo ${INSTALLDIR}
 
+install-docs:
+	install -d -m 0755 ${MANINSTALLDIR}/man1
+	install -m 644 docs/skopeo.1 ${MANINSTALLDIR}/man1/
 
 shell: build-container
 	$(DOCKER_RUN_DOCKER) bash
