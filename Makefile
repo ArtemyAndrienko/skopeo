@@ -7,6 +7,7 @@ INSTALLDIR=${PREFIX}/bin
 MANINSTALLDIR=${PREFIX}/share/man
 # TODO(runcom)
 #BASHINSTALLDIR=${PREFIX}/share/bash-completion/completions
+GO_MD2MAN ?= /usr/bin/go-md2man
 
 GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null)
 DOCKER_IMAGE := skopeo-dev$(if $(GIT_BRANCH),:$(GIT_BRANCH))
@@ -23,7 +24,9 @@ DOCKER_RUN_DOCKER := $(DOCKER_FLAGS) "$(DOCKER_IMAGE)"
 
 GIT_COMMIT := $(shell git rev-parse HEAD 2> /dev/null || true)
 
-all: binary
+MANPAGES_MD = $(wildcard docs/*.md)
+
+all: binary docs
 
 binary: skopeo
 
@@ -41,11 +44,16 @@ binary-local:
 build-container:
 	docker build ${DOCKER_BUILD_ARGS} -t "$(DOCKER_IMAGE)" .
 
-clean:
-	rm -f skopeo
+docs/%.1: docs/%.1.md
+	$(GO_MD2MAN) -in $< -out $@.tmp && touch $@.tmp && mv $@.tmp $@
 
-install: install-binary
-	install -m 644 man1/skopeo.1 ${MANINSTALLDIR}/man1/
+.PHONY: docs
+docs: $(MANPAGES_MD:%.md=%)
+
+clean:
+	rm -f skopeo docs/*.1
+
+install: install-binary install-docs
 	# TODO(runcom)
 	#install -m 644 completion/bash/skopeo ${BASHINSTALLDIR}/
 
@@ -53,6 +61,9 @@ install-binary:
 	install -d -m 0755 ${INSTALLDIR}
 	install -m 755 skopeo ${INSTALLDIR}
 
+install-docs:
+	install -d -m 0755 ${MANINSTALLDIR}/man1
+	install -m 644 docs/skopeo.1 ${MANINSTALLDIR}/man1/
 
 shell: build-container
 	$(DOCKER_RUN_DOCKER) bash
@@ -70,7 +81,7 @@ test-unit: build-container
 validate: build-container
 	$(DOCKER_RUN_DOCKER) hack/make.sh validate-git-marks validate-gofmt validate-lint validate-vet
 
-# This target is only intended for development, e.g. executing it from an IDE. Use (make test) for CI or pre-release testing. 
+# This target is only intended for development, e.g. executing it from an IDE. Use (make test) for CI or pre-release testing.
 test-all-local: validate-local test-unit-local
 
 validate-local:
