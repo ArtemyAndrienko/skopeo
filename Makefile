@@ -1,4 +1,4 @@
-.PHONY: all binary build clean install install-binary shell test-integration
+.PHONY: all binary build-container build-local clean install install-binary shell test-integration
 
 export GO15VENDOREXPERIMENT=1
 
@@ -28,11 +28,9 @@ MANPAGES_MD = $(wildcard docs/*.md)
 
 all: binary docs
 
-binary: skopeo
-
 # Build a docker image (skopeobuild) that has everything we need to build.
 # Then do the build and the output (skopeo) should appear in current dir
-skopeo: cmd/skopeo
+binary: cmd/skopeo
 	docker build ${DOCKER_BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
 	docker run --rm -v ${PWD}:/src/github.com/projectatomic/skopeo \
 		skopeobuildimage make binary-local
@@ -57,7 +55,7 @@ install: install-binary install-docs
 	# TODO(runcom)
 	#install -m 644 completion/bash/skopeo ${BASHINSTALLDIR}/
 
-install-binary: skopeo
+install-binary: ./skopeo
 	install -d -m 0755 ${INSTALLDIR}
 	install -m 755 skopeo ${INSTALLDIR}
 
