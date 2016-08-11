@@ -1,12 +1,11 @@
-.PHONY: all binary build-container build-local clean install install-binary shell test-integration
+.PHONY: all binary build-container build-local clean install install-binary install-completions shell test-integration
 
 export GO15VENDOREXPERIMENT=1
 
 PREFIX ?= ${DESTDIR}/usr
 INSTALLDIR=${PREFIX}/bin
 MANINSTALLDIR=${PREFIX}/share/man
-# TODO(runcom)
-#BASHINSTALLDIR=${PREFIX}/share/bash-completion/completions
+BASHINSTALLDIR=${PREFIX}/share/bash-completion/completions
 GO_MD2MAN ?= /usr/bin/go-md2man
 
 ifeq ($(DEBUG), 1)
@@ -60,9 +59,7 @@ docs: $(MANPAGES_MD:%.md=%)
 clean:
 	rm -f skopeo docs/*.1
 
-install: install-binary install-docs
-	# TODO(runcom)
-	#install -m 644 completion/bash/skopeo ${BASHINSTALLDIR}/
+install: install-binary install-docs install-completions
 
 install-binary: ./skopeo
 	install -d -m 0755 ${INSTALLDIR}
@@ -71,6 +68,9 @@ install-binary: ./skopeo
 install-docs: docs/skopeo.1
 	install -d -m 0755 ${MANINSTALLDIR}/man1
 	install -m 644 docs/skopeo.1 ${MANINSTALLDIR}/man1/
+
+install-completions:
+	install -m 644 -T hack/make/bash_autocomplete ${BASHINSTALLDIR}/skopeo
 
 shell: build-container
 	$(DOCKER_RUN_DOCKER) bash
