@@ -9,6 +9,13 @@ MANINSTALLDIR=${PREFIX}/share/man
 #BASHINSTALLDIR=${PREFIX}/share/bash-completion/completions
 GO_MD2MAN ?= /usr/bin/go-md2man
 
+ifeq ($(DEBUG), 1)
+  GOGCFLAGS += "-N -l"
+else
+  GOGCFLAGS ?= ""
+  DEBUG ?= 0
+endif
+
 GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null)
 DOCKER_IMAGE := skopeo-dev$(if $(GIT_BRANCH),:$(GIT_BRANCH))
 # set env like gobuildtag?
@@ -26,6 +33,10 @@ GIT_COMMIT := $(shell git rev-parse HEAD 2> /dev/null || true)
 
 MANPAGES_MD = $(wildcard docs/*.md)
 
+#   make all DEBUG=1
+#     Note: Uses the -N -l go compiler options to disable compiler optimizations
+#           and inlining. Using these build options allows you to subsequently
+#           use source debugging tools like delve.
 all: binary docs
 
 # Build a docker image (skopeobuild) that has everything we need to build.
@@ -33,11 +44,12 @@ all: binary docs
 binary: cmd/skopeo
 	docker build ${DOCKER_BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
 	docker run --rm -v ${PWD}:/src/github.com/projectatomic/skopeo \
-		skopeobuildimage make binary-local
+		skopeobuildimage make binary-local DEBUG=$(DEBUG)
 
 # Build w/o using Docker containers
 binary-local:
-	go build -ldflags "-X main.gitCommit=${GIT_COMMIT}" -o skopeo ./cmd/skopeo
+	go build -ldflags "-X main.gitCommit=${GIT_COMMIT}" -gcflags $(GOGCFLAGS) -o skopeo ./cmd/skopeo
+
 
 build-container:
 	docker build ${DOCKER_BUILD_ARGS} -t "$(DOCKER_IMAGE)" .
