@@ -57,11 +57,11 @@ install: install-binary install-docs
 	# TODO(runcom)
 	#install -m 644 completion/bash/skopeo ${BASHINSTALLDIR}/
 
-install-binary:
+install-binary: skopeo
 	install -d -m 0755 ${INSTALLDIR}
 	install -m 755 skopeo ${INSTALLDIR}
 
-install-docs:
+install-docs: docs/skopeo.1
 	install -d -m 0755 ${MANINSTALLDIR}/man1
 	install -m 644 docs/skopeo.1 ${MANINSTALLDIR}/man1/
 
