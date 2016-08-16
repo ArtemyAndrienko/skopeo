@@ -62,7 +62,7 @@ func standaloneVerify(context *cli.Context) error {
 
 	unverifiedManifest, err := ioutil.ReadFile(manifestPath)
 	if err != nil {
-		return fmt.Errorf("Error reading manifest from %s: %v", signaturePath, err)
+		return fmt.Errorf("Error reading manifest from %s: %v", manifestPath, err)
 	}
 	unverifiedSignature, err := ioutil.ReadFile(signaturePath)
 	if err != nil {
