@@ -10,10 +10,7 @@ MANINSTALLDIR=${PREFIX}/share/man
 GO_MD2MAN ?= /usr/bin/go-md2man
 
 ifeq ($(DEBUG), 1)
-  GOGCFLAGS += "-N -l"
-else
-  GOGCFLAGS ?= ""
-  DEBUG ?= 0
+  override GOGCFLAGS += -N -l
 endif
 
 GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null)
@@ -44,11 +41,11 @@ all: binary docs
 binary: cmd/skopeo
 	docker build ${DOCKER_BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
 	docker run --rm -v ${PWD}:/src/github.com/projectatomic/skopeo \
-		skopeobuildimage make binary-local DEBUG=$(DEBUG)
+		skopeobuildimage make binary-local $(if $(DEBUG),DEBUG=$(DEBUG))
 
 # Build w/o using Docker containers
 binary-local:
-	go build -ldflags "-X main.gitCommit=${GIT_COMMIT}" -gcflags $(GOGCFLAGS) -o skopeo ./cmd/skopeo
+	go build -ldflags "-X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -o skopeo ./cmd/skopeo
 
 
 build-container:
