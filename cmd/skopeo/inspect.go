@@ -44,7 +44,10 @@ var inspectCmd = cli.Command{
 			return err
 		}
 		if c.Bool("raw") {
-			fmt.Fprintln(c.App.Writer, string(rawManifest))
+			_, err := c.App.Writer.Write(rawManifest)
+			if err != nil {
+				return fmt.Errorf("Error writing manifest to standard output: %v", err)
+			}
 			return nil
 		}
 		imgInspect, err := img.Inspect()

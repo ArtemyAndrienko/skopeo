@@ -91,6 +91,11 @@ Get image layers of _image-name_
 
   _image-name_ name of the image to retrieve layers
 
+## skopeo manifest-digest
+**skopeo manifest-digest** _manifest-file_
+
+Compute a manifest digest of _manifest-file_ and write it to standard output. 
+
 ## skopeo standalone-sign
 **skopeo standalone-sign** _manifest docker-reference key-fingerprint_ **--output**|**-o** _signature_
 
@@ -183,6 +188,11 @@ $ ls layers-500650331/
   8ddc19f16526912237dd8af81971d5e4dd0587907234be2b83e249518d5b673f.tar
   manifest.json
   a3ed95caeb02ffe68cdd9fd84406680ae93d633cb16422d00e8a7c22955b46d4.tar
+```
+## skopeo manifest-digest
+```sh
+$ skopeo manifest-digest manifest.json
+sha256:a59906e33509d14c036c8678d687bd4eec81ed7c4b8ce907b888c607f6a1e0e6
 ```
 ## skopeo standalone-sign
 ```sh
