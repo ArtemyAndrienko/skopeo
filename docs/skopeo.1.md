@@ -43,6 +43,9 @@ Most commands refer to container images, using a _transport_`:`_details_ format.
 
   **--cert-path** _path_ Use certificates at _path_ (cert.pem, key.pem) to connect to the registry
 
+  **--policy** _path-to-policy_ Path to a policy.json file to use for verifying signatures and
+  deciding whether an image is accepted, instead of the default policy.
+
   **--tls-verify** _bool-value_ Verify certificates
 
   **--help**|**-h** Show help
@@ -55,6 +58,8 @@ Most commands refer to container images, using a _transport_`:`_details_ format.
 **skopeo copy** [**--sign-by=**_key-ID_] _source-image destination-image_
 
 Copy an image (manifest, filesystem layers, signatures) from one location to another.
+
+Uses the system's signature verification policy to validate images, refuses to copy images rejected by the policy.
 
   _source-image_ use the "image name" format described above
 
@@ -127,6 +132,11 @@ Verify a signature using local files, digest will be printed on success.
 
 ## skopeo help
 show help for `skopeo`
+
+# FILES
+  **/etc/containers/policy.json**
+  Default signature verification policy file, if **--policy** is not specified.
+  The policy format is documented in https://github.com/containers/image/blob/master/docs/policy.json.md .
 
 # EXAMPLES
 

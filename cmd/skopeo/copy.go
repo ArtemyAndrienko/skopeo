@@ -80,6 +80,12 @@ func copyHandler(context *cli.Context) error {
 		return errors.New("Usage: copy source destination")
 	}
 
+	policyContext, err := getPolicyContext(context)
+	if err != nil {
+		return fmt.Errorf("Error loading verification policy: %v", err)
+	}
+	defer policyContext.Destroy()
+
 	dest, err := parseImageDestination(context, context.Args()[1])
 	if err != nil {
 		return fmt.Errorf("Error initializing %s: %v", context.Args()[1], err)
@@ -93,9 +99,19 @@ func copyHandler(context *cli.Context) error {
 
 	signBy := context.String("sign-by")
 
+	// Please keep this policy check BEFORE reading any other information about the image.
+	if allowed, err := policyContext.IsRunningImageAllowed(src); !allowed || err != nil { // Be paranoid and fail if either return value indicates so.
+		return fmt.Errorf("Source image rejected: %v", err)
+	}
+
 	manifest, _, err := src.Manifest()
 	if err != nil {
 		return fmt.Errorf("Error reading manifest: %v", err)
+	}
+
+	sigs, err := src.Signatures()
+	if err != nil {
+		return fmt.Errorf("Error reading signatures: %v", err)
 	}
 
 	blobDigests, err := src.BlobDigests()
@@ -126,11 +142,6 @@ func copyHandler(context *cli.Context) error {
 		if validationFailed { // Coverage: This should never happen.
 			return fmt.Errorf("Internal error uploading blob %s, digest verification failed but was ignored", digest)
 		}
-	}
-
-	sigs, err := src.Signatures()
-	if err != nil {
-		return fmt.Errorf("Error reading signatures: %v", err)
 	}
 
 	if signBy != "" {
