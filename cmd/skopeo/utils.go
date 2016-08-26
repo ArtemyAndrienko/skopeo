@@ -17,6 +17,7 @@ func contextFromGlobalOptions(c *cli.Context) *types.SystemContext {
 }
 
 // ParseImage converts image URL-like string to an initialized handler for that image.
+// The caller must call .Close() on the returned Image.
 func parseImage(c *cli.Context) (types.Image, error) {
 	imgName := c.Args().First()
 	ref, err := transports.ParseImageName(imgName)
@@ -28,6 +29,7 @@ func parseImage(c *cli.Context) (types.Image, error) {
 
 // parseImageSource converts image URL-like string to an ImageSource.
 // requestedManifestMIMETypes is as in types.ImageReference.NewImageSource.
+// The caller must call .Close() on the returned ImageSource.
 func parseImageSource(c *cli.Context, name string, requestedManifestMIMETypes []string) (types.ImageSource, error) {
 	ref, err := transports.ParseImageName(name)
 	if err != nil {

@@ -26,6 +26,8 @@ var layersCmd = cli.Command{
 			return err
 		}
 		src := image.FromSource(rawSource)
+		defer src.Close()
+
 		blobDigests := c.Args().Tail()
 		if len(blobDigests) == 0 {
 			b, err := src.BlobDigests()
@@ -46,6 +48,23 @@ var layersCmd = cli.Command{
 		if err != nil {
 			return err
 		}
+		defer dest.Close()
+
+		for _, digest := range blobDigests {
+			if !strings.HasPrefix(digest, "sha256:") {
+				digest = "sha256:" + digest
+			}
+			r, blobSize, err := rawSource.GetBlob(digest)
+			if err != nil {
+				return err
+			}
+			if err := dest.PutBlob(digest, blobSize, r); err != nil {
+				r.Close()
+				return err
+			}
+			r.Close()
+		}
+
 		manifest, _, err := src.Manifest()
 		if err != nil {
 			return err
@@ -53,20 +72,11 @@ var layersCmd = cli.Command{
 		if err := dest.PutManifest(manifest); err != nil {
 			return err
 		}
-		for _, digest := range blobDigests {
-			if !strings.HasPrefix(digest, "sha256:") {
-				digest = "sha256:" + digest
-			}
-			r, _, err := rawSource.GetBlob(digest)
-			if err != nil {
-				return err
-			}
-			if err := dest.PutBlob(digest, r); err != nil {
-				r.Close()
-				return err
-			}
-			r.Close()
+
+		if err := dest.Commit(); err != nil {
+			return err
 		}
+
 		return nil
 	},
 }
