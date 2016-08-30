@@ -67,6 +67,8 @@ loglevel: debug
 storage:
     filesystem:
         rootdirectory: %s
+    delete:
+        enabled: true
 http:
     addr: %s
 %s`

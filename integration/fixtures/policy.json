@@ -6,6 +6,13 @@
     ],
     "transports": {
         "docker": {
+            "localhost:5555": [
+                {
+                    "type": "signedBy",
+                    "keyType": "GPGKeys",
+                    "keyPath": "@keydir@/personal-pubkey.gpg"
+                }
+            ],
             "docker.io/openshift": [
                 {
                     "type": "insecureAcceptAnything"

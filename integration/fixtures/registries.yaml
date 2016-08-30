@@ -1,0 +1,6 @@
+docker:
+   localhost:5555:
+        sigstore: file://@sigstore@
+   localhost:5555/public:
+        sigstore-staging: file://@split-staging@
+        sigstore: @split-read@
