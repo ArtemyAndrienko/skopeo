@@ -1,11 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/containers/image/manifest"
 	"github.com/go-check/check"
@@ -73,20 +73,20 @@ func (s *CopySuite) TearDownSuite(c *check.C) {
 	}
 }
 
-// preparePolicyFixture applies edits to fixtures/policy.json and returns a path to the temporary file.
+// fileFromFixtureFixture applies edits to inputPath and returns a path to the temporary file.
 // Callers should defer os.Remove(the_returned_path)
-func preparePolicyFixture(c *check.C, edits map[string]string) string {
-	commands := []string{}
+func fileFromFixture(c *check.C, inputPath string, edits map[string]string) string {
+	contents, err := ioutil.ReadFile(inputPath)
+	c.Assert(err, check.IsNil)
 	for template, value := range edits {
-		commands = append(commands, fmt.Sprintf("s,%s,%s,g", template, value))
+		contents = bytes.Replace(contents, []byte(template), []byte(value), -1)
 	}
-	json := combinedOutputOfCommand(c, "sed", strings.Join(commands, "; "), "fixtures/policy.json")
 
 	file, err := ioutil.TempFile("", "policy.json")
 	c.Assert(err, check.IsNil)
 	path := file.Name()
 
-	_, err = file.Write([]byte(json))
+	_, err = file.Write(contents)
 	c.Assert(err, check.IsNil)
 	err = file.Close()
 	c.Assert(err, check.IsNil)
@@ -166,7 +166,7 @@ func (s *CopySuite) TestCopySignatures(c *check.C) {
 	defer os.RemoveAll(dir)
 	dirDest := "dir:" + dir
 
-	policy := preparePolicyFixture(c, map[string]string{"@keydir@": s.gpgHome})
+	policy := fileFromFixture(c, "fixtures/policy.json", map[string]string{"@keydir@": s.gpgHome})
 	defer os.Remove(policy)
 
 	// type: reject
@@ -222,7 +222,7 @@ func (s *CopySuite) TestCopyDirSignatures(c *check.C) {
 
 	// Note the "/@dirpath@": The value starts with a slash so that it is not rejected in other tests which do not replace it,
 	// but we must ensure that the result is a canonical path, not something starting with a "//".
-	policy := preparePolicyFixture(c, map[string]string{"@keydir@": s.gpgHome, "/@dirpath@": topDir + "/restricted"})
+	policy := fileFromFixture(c, "fixtures/policy.json", map[string]string{"@keydir@": s.gpgHome, "/@dirpath@": topDir + "/restricted"})
 	defer os.Remove(policy)
 
 	// Get some images.
