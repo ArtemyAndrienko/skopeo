@@ -6,6 +6,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/containers/image/signature"
+	"github.com/containers/storage/pkg/reexec"
 	"github.com/projectatomic/skopeo/version"
 	"github.com/urfave/cli"
 )
@@ -68,6 +69,9 @@ func createApp() *cli.App {
 }
 
 func main() {
+	if reexec.Init() {
+		return
+	}
 	app := createApp()
 	if err := app.Run(os.Args); err != nil {
 		logrus.Fatal(err)
