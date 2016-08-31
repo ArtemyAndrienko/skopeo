@@ -91,11 +91,11 @@ func copyHandler(context *cli.Context) error {
 		return fmt.Errorf("Error initializing %s: %v", context.Args()[1], err)
 	}
 
-	rawSource, err := parseImageSource(context, context.Args()[0])
+	rawSource, err := parseImageSource(context, context.Args()[0], dest.SupportedManifestMIMETypes())
 	if err != nil {
 		return fmt.Errorf("Error initializing %s: %v", context.Args()[0], err)
 	}
-	src := image.FromSource(rawSource, dest.SupportedManifestMIMETypes())
+	src := image.FromSource(rawSource)
 
 	signBy := context.String("sign-by")
 

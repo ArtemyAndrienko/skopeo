@@ -16,16 +16,16 @@ var layersCmd = cli.Command{
 	Usage:     "Get layers of IMAGE-NAME",
 	ArgsUsage: "IMAGE-NAME",
 	Action: func(c *cli.Context) error {
-		rawSource, err := parseImageSource(c, c.Args()[0])
-		if err != nil {
-			return err
-		}
-		src := image.FromSource(rawSource, []string{
+		rawSource, err := parseImageSource(c, c.Args()[0], []string{
 			// TODO: skopeo layers only support these now
 			// eventually we'll remove this command altogether...
 			manifest.DockerV2Schema1SignedMIMEType,
 			manifest.DockerV2Schema1MIMEType,
 		})
+		if err != nil {
+			return err
+		}
+		src := image.FromSource(rawSource)
 		blobDigests := c.Args().Tail()
 		if len(blobDigests) == 0 {
 			b, err := src.BlobDigests()
@@ -42,7 +42,7 @@ var layersCmd = cli.Command{
 		if err != nil {
 			return err
 		}
-		dest, err := tmpDirRef.NewImageDestination("", true)
+		dest, err := tmpDirRef.NewImageDestination(nil)
 		if err != nil {
 			return err
 		}

@@ -6,42 +6,41 @@ import (
 	"github.com/urfave/cli"
 )
 
+// contextFromGlobalOptions returns a types.SystemContext depending on c.
+func contextFromGlobalOptions(c *cli.Context) *types.SystemContext {
+	certPath := c.GlobalString("cert-path")
+	tlsVerify := c.GlobalBool("tls-verify") // FIXME!! defaults to false
+	return &types.SystemContext{
+		DockerCertPath:              certPath,
+		DockerInsecureSkipTLSVerify: !tlsVerify,
+	}
+}
+
 // ParseImage converts image URL-like string to an initialized handler for that image.
 func parseImage(c *cli.Context) (types.Image, error) {
-	var (
-		imgName   = c.Args().First()
-		certPath  = c.GlobalString("cert-path")
-		tlsVerify = c.GlobalBool("tls-verify")
-	)
+	imgName := c.Args().First()
 	ref, err := transports.ParseImageName(imgName)
 	if err != nil {
 		return nil, err
 	}
-	return ref.NewImage(certPath, tlsVerify)
+	return ref.NewImage(contextFromGlobalOptions(c))
 }
 
 // parseImageSource converts image URL-like string to an ImageSource.
-func parseImageSource(c *cli.Context, name string) (types.ImageSource, error) {
-	var (
-		certPath  = c.GlobalString("cert-path")
-		tlsVerify = c.GlobalBool("tls-verify") // FIXME!! defaults to false?
-	)
+// requestedManifestMIMETypes is as in types.ImageReference.NewImageSource.
+func parseImageSource(c *cli.Context, name string, requestedManifestMIMETypes []string) (types.ImageSource, error) {
 	ref, err := transports.ParseImageName(name)
 	if err != nil {
 		return nil, err
 	}
-	return ref.NewImageSource(certPath, tlsVerify)
+	return ref.NewImageSource(contextFromGlobalOptions(c), requestedManifestMIMETypes)
 }
 
 // parseImageDestination converts image URL-like string to an ImageDestination.
 func parseImageDestination(c *cli.Context, name string) (types.ImageDestination, error) {
-	var (
-		certPath  = c.GlobalString("cert-path")
-		tlsVerify = c.GlobalBool("tls-verify") // FIXME!! defaults to false?
-	)
 	ref, err := transports.ParseImageName(name)
 	if err != nil {
 		return nil, err
 	}
-	return ref.NewImageDestination(certPath, tlsVerify)
+	return ref.NewImageDestination(contextFromGlobalOptions(c))
 }
