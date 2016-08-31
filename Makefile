@@ -32,6 +32,11 @@ GIT_COMMIT := $(shell git rev-parse HEAD 2> /dev/null || true)
 
 MANPAGES_MD = $(wildcard docs/*.md)
 
+BTRFS_BUILD_TAG = $(shell hack/btrfs_tag.sh)
+LIBDM_BUILD_TAG = $(shell hack/libdm_tag.sh)
+LOCAL_BUILD_TAGS = $(BTRFS_BUILD_TAG) $(LIBDM_BUILD_TAG)
+BUILDTAGS += $(LOCAL_BUILD_TAGS)
+
 #   make all DEBUG=1
 #     Note: Uses the -N -l go compiler options to disable compiler optimizations
 #           and inlining. Using these build options allows you to subsequently

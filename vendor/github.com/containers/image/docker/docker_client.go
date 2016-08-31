@@ -17,7 +17,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/containers/image/types"
-	"github.com/docker/docker/pkg/homedir"
+	"github.com/containers/storage/pkg/homedir"
 	"github.com/docker/go-connections/sockets"
 	"github.com/docker/go-connections/tlsconfig"
 )
@@ -428,7 +428,7 @@ func (c *dockerClient) ping() (*pingResponse, error) {
 	}
 	if err != nil {
 		err = fmt.Errorf("pinging docker registry returned %+v", err)
-		if c.ctx.DockerDisableV1Ping {
+		if c.ctx != nil && c.ctx.DockerDisableV1Ping {
 			return nil, err
 		}
 		// best effort to understand if we're talking to a V1 registry
