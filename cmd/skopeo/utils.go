@@ -35,12 +35,3 @@ func parseImageSource(c *cli.Context, name string, requestedManifestMIMETypes []
 	}
 	return ref.NewImageSource(contextFromGlobalOptions(c), requestedManifestMIMETypes)
 }
-
-// parseImageDestination converts image URL-like string to an ImageDestination.
-func parseImageDestination(c *cli.Context, name string) (types.ImageDestination, error) {
-	ref, err := transports.ParseImageName(name)
-	if err != nil {
-		return nil, err
-	}
-	return ref.NewImageDestination(contextFromGlobalOptions(c))
-}
