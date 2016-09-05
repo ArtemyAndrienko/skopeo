@@ -65,6 +65,8 @@ Uses the system's signature verification policy to validate images, refuses to c
 
   _destination-image_ use the "image name" format described above
 
+  **--remove-signatures** do not copy signatures, if any, from _source-image_. Necessary when copying a signed image to a destination which does not support signatures. 
+
   **--sign-by=**_key-id_ add a signature using that key ID for an image name corresponding to _destination-image_
 
 Existing signatures, if any, are preserved as well.

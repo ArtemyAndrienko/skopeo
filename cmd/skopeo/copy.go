@@ -29,9 +29,11 @@ func copyHandler(context *cli.Context) error {
 		return fmt.Errorf("Invalid destination name %s: %v", context.Args()[1], err)
 	}
 	signBy := context.String("sign-by")
+	removeSignatures := context.Bool("remove-signatures")
 
 	return copy.Image(contextFromGlobalOptions(context), policyContext, destRef, srcRef, &copy.Options{
-		SignBy: signBy,
+		RemoveSignatures: removeSignatures,
+		SignBy:           signBy,
 	})
 }
 
@@ -42,6 +44,10 @@ var copyCmd = cli.Command{
 	Action:    copyHandler,
 	// FIXME: Do we need to namespace the GPG aspect?
 	Flags: []cli.Flag{
+		cli.BoolFlag{
+			Name:  "remove-signatures",
+			Usage: "Do not copy signatures from SOURCE-IMAGE",
+		},
 		cli.StringFlag{
 			Name:  "sign-by",
 			Usage: "Sign the image using a GPG key with the specified `FINGERPRINT`",
