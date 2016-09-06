@@ -40,7 +40,7 @@ all: binary docs
 # Then do the build and the output (skopeo) should appear in current dir
 binary: cmd/skopeo
 	docker build ${DOCKER_BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
-	docker run --rm -v ${PWD}:/src/github.com/projectatomic/skopeo \
+	docker run --rm --security-opt label:disable -v $$(pwd):/src/github.com/projectatomic/skopeo \
 		skopeobuildimage make binary-local $(if $(DEBUG),DEBUG=$(DEBUG))
 
 # Build w/o using Docker containers
