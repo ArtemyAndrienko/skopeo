@@ -16,7 +16,7 @@ func copyHandler(context *cli.Context) error {
 
 	policyContext, err := getPolicyContext(context)
 	if err != nil {
-		return fmt.Errorf("Error loading verification policy: %v", err)
+		return fmt.Errorf("Error loading trust policy: %v", err)
 	}
 	defer policyContext.Destroy()
 
