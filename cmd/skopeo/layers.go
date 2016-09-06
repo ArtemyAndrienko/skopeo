@@ -7,6 +7,7 @@ import (
 	"github.com/containers/image/directory"
 	"github.com/containers/image/image"
 	"github.com/containers/image/manifest"
+	"github.com/containers/image/types"
 	"github.com/urfave/cli"
 )
 
@@ -30,12 +31,26 @@ var layersCmd = cli.Command{
 
 		blobDigests := c.Args().Tail()
 		if len(blobDigests) == 0 {
-			b, err := src.BlobDigests()
+			layers, err := src.LayerInfos()
 			if err != nil {
 				return err
 			}
-			blobDigests = b
+			seenLayers := map[string]struct{}{}
+			for _, info := range layers {
+				if _, ok := seenLayers[info.Digest]; !ok {
+					blobDigests = append(blobDigests, info.Digest)
+					seenLayers[info.Digest] = struct{}{}
+				}
+			}
+			configInfo, err := src.ConfigInfo()
+			if err != nil {
+				return err
+			}
+			if configInfo.Digest != "" {
+				blobDigests = append(blobDigests, configInfo.Digest)
+			}
 		}
+
 		tmpDir, err := ioutil.TempDir(".", "layers-")
 		if err != nil {
 			return err
@@ -58,7 +73,7 @@ var layersCmd = cli.Command{
 			if err != nil {
 				return err
 			}
-			if _, _, err := dest.PutBlob(r, digest, blobSize); err != nil {
+			if _, err := dest.PutBlob(r, types.BlobInfo{Digest: digest, Size: blobSize}); err != nil {
 				r.Close()
 				return err
 			}
