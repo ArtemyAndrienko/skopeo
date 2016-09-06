@@ -58,7 +58,7 @@ var layersCmd = cli.Command{
 			if err != nil {
 				return err
 			}
-			if err := dest.PutBlob(digest, blobSize, r); err != nil {
+			if _, _, err := dest.PutBlob(r, digest, blobSize); err != nil {
 				r.Close()
 				return err
 			}
