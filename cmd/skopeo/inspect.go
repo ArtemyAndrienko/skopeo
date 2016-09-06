@@ -39,6 +39,8 @@ var inspectCmd = cli.Command{
 		if err != nil {
 			return err
 		}
+		defer img.Close()
+
 		rawManifest, _, err := img.Manifest()
 		if err != nil {
 			return err
