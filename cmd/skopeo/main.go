@@ -54,7 +54,7 @@ func createApp() *cli.App {
 		cli.StringFlag{
 			Name:  "policy",
 			Value: "",
-			Usage: "Path to a signature verification policy file",
+			Usage: "Path to a trust policy file",
 		},
 	}
 	app.Before = func(c *cli.Context) error {
