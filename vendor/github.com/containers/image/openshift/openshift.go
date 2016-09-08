@@ -337,9 +337,15 @@ func (d *openshiftImageDestination) Close() {
 
 func (d *openshiftImageDestination) SupportedManifestMIMETypes() []string {
 	return []string{
-		manifest.DockerV2Schema1SignedMIMEType,
-		manifest.DockerV2Schema1MIMEType,
+		manifest.DockerV2Schema1SignedMediaType,
+		manifest.DockerV2Schema1MediaType,
 	}
+}
+
+// SupportsSignatures returns an error (to be displayed to the user) if the destination certainly can't store signatures.
+// Note: It is still possible for PutSignatures to fail if SupportsSignatures returns nil.
+func (d *openshiftImageDestination) SupportsSignatures() error {
+	return nil
 }
 
 // PutBlob writes contents of stream and returns its computed digest and size.

@@ -45,10 +45,16 @@ func (d *dockerImageDestination) Close() {
 func (d *dockerImageDestination) SupportedManifestMIMETypes() []string {
 	return []string{
 		// TODO(runcom): we'll add OCI as part of another PR here
-		manifest.DockerV2Schema2MIMEType,
-		manifest.DockerV2Schema1SignedMIMEType,
-		manifest.DockerV2Schema1MIMEType,
+		manifest.DockerV2Schema2MediaType,
+		manifest.DockerV2Schema1SignedMediaType,
+		manifest.DockerV2Schema1MediaType,
 	}
+}
+
+// SupportsSignatures returns an error (to be displayed to the user) if the destination certainly can't store signatures.
+// Note: It is still possible for PutSignatures to fail if SupportsSignatures returns nil.
+func (d *dockerImageDestination) SupportsSignatures() error {
+	return fmt.Errorf("Pushing signatures to a Docker Registry is not supported")
 }
 
 // PutBlob writes contents of stream and returns its computed digest and size.
@@ -67,7 +73,7 @@ func (d *dockerImageDestination) PutBlob(stream io.Reader, digest string, expect
 			return "", -1, err
 		}
 		defer res.Body.Close()
-		if res.StatusCode == http.StatusOK && res.Header.Get("Docker-Content-Digest") == digest {
+		if res.StatusCode == http.StatusOK {
 			logrus.Debugf("... already exists, not uploading")
 			blobLength, err := strconv.ParseInt(res.Header.Get("Content-Length"), 10, 64)
 			if err != nil {

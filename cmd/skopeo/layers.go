@@ -19,8 +19,8 @@ var layersCmd = cli.Command{
 		rawSource, err := parseImageSource(c, c.Args()[0], []string{
 			// TODO: skopeo layers only support these now
 			// eventually we'll remove this command altogether...
-			manifest.DockerV2Schema1SignedMIMEType,
-			manifest.DockerV2Schema1MIMEType,
+			manifest.DockerV2Schema1SignedMediaType,
+			manifest.DockerV2Schema1MediaType,
 		})
 		if err != nil {
 			return err
