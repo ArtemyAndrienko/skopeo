@@ -45,6 +45,8 @@ Most commands refer to container images, using a _transport_`:`_details_ format.
 
   **--policy** _path-to-policy_ Path to a policy.json file to use for verifying signatures and deciding whether an image is trusted, overriding the default trust policy file.
 
+  **--registries.d** _dir_ use registry configuration files in _dir_ (e.g. for docker signature storage), overriding the default path.
+
   **--tls-verify** _bool-value_ Verify certificates
 
   **--help**|**-h** Show help
@@ -64,7 +66,7 @@ Uses the system's trust policy to validate images, rejects images not trusted by
 
   _destination-image_ use the "image name" format described above
 
-  **--remove-signatures** do not copy signatures, if any, from _source-image_. Necessary when copying a signed image to a destination which does not support signatures. 
+  **--remove-signatures** do not copy signatures, if any, from _source-image_. Necessary when copying a signed image to a destination which does not support signatures.
 
   **--sign-by=**_key-id_ add a signature using that key ID for an image name corresponding to _destination-image_
 
@@ -100,7 +102,7 @@ Get image layers of _image-name_
 ## skopeo manifest-digest
 **skopeo manifest-digest** _manifest-file_
 
-Compute a manifest digest of _manifest-file_ and write it to standard output. 
+Compute a manifest digest of _manifest-file_ and write it to standard output.
 
 ## skopeo standalone-sign
 **skopeo standalone-sign** _manifest docker-reference key-fingerprint_ **--output**|**-o** _signature_
@@ -138,6 +140,10 @@ show help for `skopeo`
   **/etc/containers/policy.json**
   Default trust policy file, if **--policy** is not specified.
   The policy format is documented in https://github.com/containers/image/blob/master/docs/policy.json.md .
+
+  **/etc/containers/registries.d**
+  Default directory containing registry configuration, if **--registries.d** is not specified.
+  The contents of this directory are documented in https://github.com/containers/image/blob/master/docs/registries.d.md .
 
 # EXAMPLES
 
