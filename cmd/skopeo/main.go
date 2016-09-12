@@ -56,6 +56,11 @@ func createApp() *cli.App {
 			Value: "",
 			Usage: "Path to a trust policy file",
 		},
+		cli.StringFlag{
+			Name:  "registries.d",
+			Value: "",
+			Usage: "use registry configuration files in `DIR` (e.g. for docker signature storage)",
+		},
 	}
 	app.Before = func(c *cli.Context) error {
 		if c.GlobalBool("debug") {
