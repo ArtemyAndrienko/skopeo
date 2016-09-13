@@ -25,7 +25,7 @@ func (s *CopySuite) SetUpSuite(c *check.C) {
 		c.Skip("Not running in a container, refusing to affect user state")
 	}
 
-	s.cluster = startOpenshiftCluster(c)
+	s.cluster = startOpenshiftCluster(c) // FIXME: Set up TLS for the docker registry port instead of using "--tls-verify=false" all over the place.
 
 	for _, stream := range []string{"unsigned", "personal", "official", "naming", "cosigned"} {
 		isJSON := fmt.Sprintf(`{
@@ -98,9 +98,9 @@ func (s *CopySuite) TestCopySimple(c *check.C) {
 	// "pull": docker: → dir:
 	assertSkopeoSucceeds(c, "", "copy", "docker://estesp/busybox:latest", "dir:"+dir1)
 	// "push": dir: → atomic:
-	assertSkopeoSucceeds(c, "", "--debug", "copy", "dir:"+dir1, "atomic:localhost:5000/myns/unsigned:unsigned")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--debug", "copy", "dir:"+dir1, "atomic:localhost:5000/myns/unsigned:unsigned")
 	// The result of pushing and pulling is an unmodified image.
-	assertSkopeoSucceeds(c, "", "copy", "atomic:localhost:5000/myns/unsigned:unsigned", "dir:"+dir2)
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/unsigned:unsigned", "dir:"+dir2)
 	out := combinedOutputOfCommand(c, "diff", "-urN", dir1, dir2)
 	c.Assert(out, check.Equals, "")
 
@@ -127,10 +127,10 @@ func (s *CopySuite) TestCopyStreaming(c *check.C) {
 
 	// FIXME: It would be nice to use one of the local Docker registries instead of neeeding an Internet connection.
 	// streaming: docker: → atomic:
-	assertSkopeoSucceeds(c, "", "--debug", "copy", "docker://estesp/busybox:amd64", "atomic:localhost:5000/myns/unsigned:streaming")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--debug", "copy", "docker://estesp/busybox:amd64", "atomic:localhost:5000/myns/unsigned:streaming")
 	// Compare (copies of) the original and the copy:
 	assertSkopeoSucceeds(c, "", "copy", "docker://estesp/busybox:amd64", "dir:"+dir1)
-	assertSkopeoSucceeds(c, "", "copy", "atomic:localhost:5000/myns/unsigned:streaming", "dir:"+dir2)
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/unsigned:streaming", "dir:"+dir2)
 	// The manifests will have different JWS signatures; so, compare the manifests by digests, which
 	// strips the signatures, and remove them, comparing the rest file by file.
 	digests := []string{}
@@ -170,34 +170,34 @@ func (s *CopySuite) TestCopySignatures(c *check.C) {
 
 	// type: signedBy
 	// Sign the images
-	assertSkopeoSucceeds(c, "", "copy", "--sign-by", "personal@example.com", "docker://busybox:1.23", "atomic:localhost:5000/myns/personal:personal")
-	assertSkopeoSucceeds(c, "", "copy", "--sign-by", "official@example.com", "docker://busybox:1.23.2", "atomic:localhost:5000/myns/official:official")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "--sign-by", "personal@example.com", "docker://busybox:1.23", "atomic:localhost:5000/myns/personal:personal")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "--sign-by", "official@example.com", "docker://busybox:1.23.2", "atomic:localhost:5000/myns/official:official")
 	// Verify that we can pull them
-	assertSkopeoSucceeds(c, "", "--policy", policy, "copy", "atomic:localhost:5000/myns/personal:personal", dirDest)
-	assertSkopeoSucceeds(c, "", "--policy", policy, "copy", "atomic:localhost:5000/myns/official:official", dirDest)
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5000/myns/personal:personal", dirDest)
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5000/myns/official:official", dirDest)
 	// Verify that mis-signed images are rejected
-	assertSkopeoSucceeds(c, "", "copy", "atomic:localhost:5000/myns/personal:personal", "atomic:localhost:5000/myns/official:attack")
-	assertSkopeoSucceeds(c, "", "copy", "atomic:localhost:5000/myns/official:official", "atomic:localhost:5000/myns/personal:attack")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/personal:personal", "atomic:localhost:5000/myns/official:attack")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/official:official", "atomic:localhost:5000/myns/personal:attack")
 	assertSkopeoFails(c, ".*Source image rejected: Invalid GPG signature.*",
-		"--policy", policy, "copy", "atomic:localhost:5000/myns/personal:attack", dirDest)
+		"--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5000/myns/personal:attack", dirDest)
 	assertSkopeoFails(c, ".*Source image rejected: Invalid GPG signature.*",
-		"--policy", policy, "copy", "atomic:localhost:5000/myns/official:attack", dirDest)
+		"--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5000/myns/official:attack", dirDest)
 
 	// Verify that signed identity is verified.
-	assertSkopeoSucceeds(c, "", "copy", "atomic:localhost:5000/myns/official:official", "atomic:localhost:5000/myns/naming:test1")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/official:official", "atomic:localhost:5000/myns/naming:test1")
 	assertSkopeoFails(c, ".*Source image rejected: Signature for identity localhost:5000/myns/official:official is not accepted.*",
-		"--policy", policy, "copy", "atomic:localhost:5000/myns/naming:test1", dirDest)
+		"--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5000/myns/naming:test1", dirDest)
 	// signedIdentity works
-	assertSkopeoSucceeds(c, "", "copy", "atomic:localhost:5000/myns/official:official", "atomic:localhost:5000/myns/naming:naming")
-	assertSkopeoSucceeds(c, "", "--policy", policy, "copy", "atomic:localhost:5000/myns/naming:naming", dirDest)
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/official:official", "atomic:localhost:5000/myns/naming:naming")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5000/myns/naming:naming", dirDest)
 
 	// Verify that cosigning requirements are enforced
-	assertSkopeoSucceeds(c, "", "copy", "atomic:localhost:5000/myns/official:official", "atomic:localhost:5000/myns/cosigned:cosigned")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/official:official", "atomic:localhost:5000/myns/cosigned:cosigned")
 	assertSkopeoFails(c, ".*Source image rejected: Invalid GPG signature.*",
-		"--policy", policy, "copy", "atomic:localhost:5000/myns/cosigned:cosigned", dirDest)
+		"--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5000/myns/cosigned:cosigned", dirDest)
 
-	assertSkopeoSucceeds(c, "", "copy", "--sign-by", "personal@example.com", "atomic:localhost:5000/myns/official:official", "atomic:localhost:5000/myns/cosigned:cosigned")
-	assertSkopeoSucceeds(c, "", "--policy", policy, "copy", "atomic:localhost:5000/myns/cosigned:cosigned", dirDest)
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "--sign-by", "personal@example.com", "atomic:localhost:5000/myns/official:official", "atomic:localhost:5000/myns/cosigned:cosigned")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5000/myns/cosigned:cosigned", dirDest)
 }
 
 // --policy copy for dir: sources
@@ -224,10 +224,10 @@ func (s *CopySuite) TestCopyDirSignatures(c *check.C) {
 	// Sign the images. By coping fom a topDirDest/dirN, also test that non-/restricted paths
 	// use the dir:"" default of insecureAcceptAnything.
 	// (For signing, we must push to atomic: to get a Docker identity to use in the signature.)
-	assertSkopeoSucceeds(c, "", "--policy", policy, "copy", "--sign-by", "personal@example.com", topDirDest+"/dir1", "atomic:localhost:5000/myns/personal:dirstaging")
-	assertSkopeoSucceeds(c, "", "--policy", policy, "copy", "--sign-by", "official@example.com", topDirDest+"/dir2", "atomic:localhost:5000/myns/official:dirstaging")
-	assertSkopeoSucceeds(c, "", "copy", "atomic:localhost:5000/myns/personal:dirstaging", topDirDest+"/restricted/personal")
-	assertSkopeoSucceeds(c, "", "copy", "atomic:localhost:5000/myns/official:dirstaging", topDirDest+"/restricted/official")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "copy", "--sign-by", "personal@example.com", topDirDest+"/dir1", "atomic:localhost:5000/myns/personal:dirstaging")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "copy", "--sign-by", "official@example.com", topDirDest+"/dir2", "atomic:localhost:5000/myns/official:dirstaging")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/personal:dirstaging", topDirDest+"/restricted/personal")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/official:dirstaging", topDirDest+"/restricted/official")
 
 	// type: signedBy, with a signedIdentity override (necessary because dir: identities can't be signed)
 	// Verify that correct images are accepted
@@ -237,8 +237,8 @@ func (s *CopySuite) TestCopyDirSignatures(c *check.C) {
 		"--policy", policy, "copy", topDirDest+"/restricted/personal", topDirDest+"/dest")
 
 	// Verify that the signed identity is verified.
-	assertSkopeoSucceeds(c, "", "--policy", policy, "copy", "--sign-by", "official@example.com", topDirDest+"/dir1", "atomic:localhost:5000/myns/personal:dirstaging2")
-	assertSkopeoSucceeds(c, "", "copy", "atomic:localhost:5000/myns/personal:dirstaging2", topDirDest+"/restricted/badidentity")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "copy", "--sign-by", "official@example.com", topDirDest+"/dir1", "atomic:localhost:5000/myns/personal:dirstaging2")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/personal:dirstaging2", topDirDest+"/restricted/badidentity")
 	assertSkopeoFails(c, ".*Source image rejected: .*Signature for identity localhost:5000/myns/personal:dirstaging2 is not accepted.*",
 		"--policy", policy, "copy", topDirDest+"/restricted/badidentity", topDirDest+"/dest")
 }

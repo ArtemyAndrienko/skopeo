@@ -8,7 +8,7 @@ import (
 
 // contextFromGlobalOptions returns a types.SystemContext depending on c.
 func contextFromGlobalOptions(c *cli.Context) *types.SystemContext {
-	tlsVerify := c.GlobalBool("tls-verify") // FIXME!! defaults to false
+	tlsVerify := c.GlobalBoolT("tls-verify")
 	return &types.SystemContext{
 		RegistriesDirPath:           c.GlobalString("registries.d"),
 		DockerCertPath:              c.GlobalString("cert-path"),
