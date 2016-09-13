@@ -20,7 +20,7 @@
                     "keyPath": "@keydir@/official-pubkey.gpg",
                     "signedIdentity": {
                         "type": "exactRepository",
-                        "dockerRepository": "localhost:8443/myns/official"
+                        "dockerRepository": "localhost:5000/myns/official"
                     }
                 }
             ],
@@ -31,46 +31,46 @@
             ]
         },
         "atomic": {
-            "localhost:8443/myns/personal": [
+            "localhost:5000/myns/personal": [
                 {
                     "type": "signedBy",
                     "keyType": "GPGKeys",
                     "keyPath": "@keydir@/personal-pubkey.gpg"
                 }
             ],
-            "localhost:8443/myns/official": [
+            "localhost:5000/myns/official": [
                 {
                     "type": "signedBy",
                     "keyType": "GPGKeys",
                     "keyPath": "@keydir@/official-pubkey.gpg"
                 }
             ],
-            "localhost:8443/myns/naming:test1": [
+            "localhost:5000/myns/naming:test1": [
                 {
                     "type": "signedBy",
                     "keyType": "GPGKeys",
                     "keyPath": "@keydir@/official-pubkey.gpg"
                 }
             ],
-            "localhost:8443/myns/naming:naming": [
+            "localhost:5000/myns/naming:naming": [
                 {
                     "type": "signedBy",
                     "keyType": "GPGKeys",
                     "keyPath": "@keydir@/official-pubkey.gpg",
                     "signedIdentity": {
                         "type": "exactRepository",
-                        "dockerRepository": "localhost:8443/myns/official"
+                        "dockerRepository": "localhost:5000/myns/official"
                     }
                 }
             ],
-            "localhost:8443/myns/cosigned:cosigned": [
+            "localhost:5000/myns/cosigned:cosigned": [
                 {
                     "type": "signedBy",
                     "keyType": "GPGKeys",
                     "keyPath": "@keydir@/official-pubkey.gpg",
                     "signedIdentity": {
                         "type": "exactRepository",
-                        "dockerRepository": "localhost:8443/myns/official"
+                        "dockerRepository": "localhost:5000/myns/official"
                     }
                 },
                 {
