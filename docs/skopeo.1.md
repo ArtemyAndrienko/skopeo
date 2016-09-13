@@ -47,7 +47,7 @@ Most commands refer to container images, using a _transport_`:`_details_ format.
 
   **--registries.d** _dir_ use registry configuration files in _dir_ (e.g. for docker signature storage), overriding the default path.
 
-  **--tls-verify** _bool-value_ Verify certificates
+  **--tls-verify** _bool-value_ Require HTTPS and verify certificates when talking to docker registries (defaults to true)
 
   **--help**|**-h** Show help
 

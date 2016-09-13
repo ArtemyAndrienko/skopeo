@@ -47,9 +47,9 @@ func createApp() *cli.App {
 			Value: "",
 			Usage: "use certificates at `PATH` (cert.pem, key.pem) to connect to the registry",
 		},
-		cli.BoolFlag{
+		cli.BoolTFlag{
 			Name:  "tls-verify",
-			Usage: "verify certificates",
+			Usage: "require HTTPS and verify certificates when talking to docker registries (defaults to true)",
 		},
 		cli.StringFlag{
 			Name:  "policy",
