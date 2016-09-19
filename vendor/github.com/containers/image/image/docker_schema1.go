@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/containers/image/manifest"
 	"github.com/containers/image/types"
 )
 
@@ -18,14 +19,14 @@ type fsLayersSchema1 struct {
 }
 
 type manifestSchema1 struct {
-	Name     string
-	Tag      string
-	FSLayers []fsLayersSchema1 `json:"fsLayers"`
-	History  []struct {
+	Name         string            `json:"name"`
+	Tag          string            `json:"tag"`
+	Architecture string            `json:"architecture"`
+	FSLayers     []fsLayersSchema1 `json:"fsLayers"`
+	History      []struct {
 		V1Compatibility string `json:"v1Compatibility"`
 	} `json:"history"`
-	// TODO(runcom) verify the downloaded manifest
-	//Signature []byte `json:"signature"`
+	SchemaVersion int `json:"schemaVersion"`
 }
 
 func manifestSchema1FromManifest(manifest []byte) (genericManifest, error) {
@@ -52,7 +53,7 @@ func (m *manifestSchema1) ConfigInfo() types.BlobInfo {
 
 func (m *manifestSchema1) LayerInfos() []types.BlobInfo {
 	layers := make([]types.BlobInfo, len(m.FSLayers))
-	for i, layer := range m.FSLayers {
+	for i, layer := range m.FSLayers { // NOTE: This includes empty layers (where m.History.V1Compatibility->ThrowAway)
 		layers[(len(m.FSLayers)-1)-i] = types.BlobInfo{Digest: layer.BlobSum, Size: -1}
 	}
 	return layers
@@ -79,6 +80,28 @@ func (m *manifestSchema1) ImageInspectInfo() (*types.ImageInspectInfo, error) {
 		Architecture:  v1.Architecture,
 		Os:            v1.OS,
 	}, nil
+}
+
+func (m *manifestSchema1) UpdatedManifest(options types.ManifestUpdateOptions) ([]byte, error) {
+	copy := *m
+	if options.LayerInfos != nil {
+		// Our LayerInfos includes empty layers (where m.History.V1Compatibility->ThrowAway), so expect them to be included here as well.
+		if len(copy.FSLayers) != len(options.LayerInfos) {
+			return nil, fmt.Errorf("Error preparing updated manifest: layer count changed from %d to %d", len(copy.FSLayers), len(options.LayerInfos))
+		}
+		for i, info := range options.LayerInfos {
+			// (docker push) sets up m.History.V1Compatibility->{Id,Parent} based on values of info.Digest,
+			// but (docker pull) ignores them in favor of computing DiffIDs from uncompressed data, except verifying the child->parent links and uniqueness.
+			// So, we don't bother recomputing the IDs in m.History.V1Compatibility.
+			copy.FSLayers[(len(options.LayerInfos)-1)-i].BlobSum = info.Digest
+		}
+	}
+	// docker/distribution requires a signature even if the incoming data uses the nominally unsigned DockerV2Schema1MediaType.
+	unsigned, err := json.Marshal(copy)
+	if err != nil {
+		return nil, err
+	}
+	return manifest.AddDummyV2S1Signature(unsigned)
 }
 
 // fixManifestLayers, after validating the supplied manifest

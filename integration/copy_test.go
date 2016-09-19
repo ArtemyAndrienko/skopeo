@@ -15,9 +15,12 @@ func init() {
 	check.Suite(&CopySuite{})
 }
 
+const v2DockerRegistryURL = "localhost:5555"
+
 type CopySuite struct {
-	cluster *openshiftCluster
-	gpgHome string
+	cluster  *openshiftCluster
+	registry *testRegistryV2
+	gpgHome  string
 }
 
 func (s *CopySuite) SetUpSuite(c *check.C) {
@@ -27,7 +30,7 @@ func (s *CopySuite) SetUpSuite(c *check.C) {
 
 	s.cluster = startOpenshiftCluster(c) // FIXME: Set up TLS for the docker registry port instead of using "--tls-verify=false" all over the place.
 
-	for _, stream := range []string{"unsigned", "personal", "official", "naming", "cosigned"} {
+	for _, stream := range []string{"unsigned", "personal", "official", "naming", "cosigned", "compression"} {
 		isJSON := fmt.Sprintf(`{
 			"kind": "ImageStream",
 			"apiVersion": "v1",
@@ -38,6 +41,8 @@ func (s *CopySuite) SetUpSuite(c *check.C) {
 		}`, stream)
 		runCommandWithInput(c, isJSON, "oc", "create", "-f", "-")
 	}
+
+	s.registry = setupRegistryV2At(c, v2DockerRegistryURL, false, false) // FIXME: Set up TLS for the docker registry port instead of using "--tls-verify=false" all over the place.
 
 	gpgHome, err := ioutil.TempDir("", "skopeo-gpg")
 	c.Assert(err, check.IsNil)
@@ -59,6 +64,9 @@ func (s *CopySuite) SetUpSuite(c *check.C) {
 func (s *CopySuite) TearDownSuite(c *check.C) {
 	if s.gpgHome != "" {
 		os.RemoveAll(s.gpgHome)
+	}
+	if s.registry != nil {
+		s.registry.Close()
 	}
 	if s.cluster != nil {
 		s.cluster.tearDown()
@@ -241,4 +249,45 @@ func (s *CopySuite) TestCopyDirSignatures(c *check.C) {
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/personal:dirstaging2", topDirDest+"/restricted/badidentity")
 	assertSkopeoFails(c, ".*Source image rejected: .*Signature for identity localhost:5000/myns/personal:dirstaging2 is not accepted.*",
 		"--policy", policy, "copy", topDirDest+"/restricted/badidentity", topDirDest+"/dest")
+}
+
+// Compression during copy
+func (s *CopySuite) TestCopyCompression(c *check.C) {
+	const uncompresssedLayerFile = "160d823fdc48e62f97ba62df31e55424f8f5eb6b679c865eec6e59adfe304710.tar"
+
+	topDir, err := ioutil.TempDir("", "compression-top")
+	c.Assert(err, check.IsNil)
+	defer os.RemoveAll(topDir)
+
+	for i, t := range []struct{ fixture, remote string }{
+		//{"uncompressed-image-s1", "docker://" + v2DockerRegistryURL + "/compression/compression:s1"}, // FIXME: depends on push to tag working
+		//{"uncompressed-image-s2", "docker://" + v2DockerRegistryURL + "/compression/compression:s2"}, // FIXME: depends on push to tag working
+		{"uncompressed-image-s1", "atomic:localhost:5000/myns/compression:s1"},
+		//{"uncompressed-image-s2", "atomic:localhost:5000/myns/compression:s2"}, // FIXME: The unresolved "MANIFEST_UNKNOWN"/"unexpected end of JSON input" failure
+	} {
+		dir := filepath.Join(topDir, fmt.Sprintf("case%d", i))
+		err := os.MkdirAll(dir, 0755)
+		c.Assert(err, check.IsNil)
+
+		assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "dir:fixtures/"+t.fixture, t.remote)
+		assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", t.remote, "dir:"+dir)
+
+		// The original directory contained an uncompressed file, the copy after pushing and pulling doesn't (we use a different name for the compressed file).
+		_, err = os.Lstat(filepath.Join("fixtures", t.fixture, uncompresssedLayerFile))
+		c.Assert(err, check.IsNil)
+		_, err = os.Lstat(filepath.Join(dir, uncompresssedLayerFile))
+		c.Assert(err, check.NotNil)
+		c.Assert(os.IsNotExist(err), check.Equals, true)
+
+		// All pulled layers are smaller than the uncompressed size of uncompresssedLayerFile. (Note that this includes the manifest in s2, but that works out OK).
+		dirf, err := os.Open(dir)
+		c.Assert(err, check.IsNil)
+		fis, err := dirf.Readdir(-1)
+		c.Assert(err, check.IsNil)
+		for _, fi := range fis {
+			if strings.HasSuffix(fi.Name(), ".tar") {
+				c.Assert(fi.Size() < 2048, check.Equals, true)
+			}
+		}
+	}
 }
