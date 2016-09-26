@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/containers/image/copy"
 	"github.com/containers/image/transports"
@@ -34,6 +35,7 @@ func copyHandler(context *cli.Context) error {
 	return copy.Image(contextFromGlobalOptions(context), policyContext, destRef, srcRef, &copy.Options{
 		RemoveSignatures: removeSignatures,
 		SignBy:           signBy,
+		ReportWriter:     os.Stdout,
 	})
 }
 

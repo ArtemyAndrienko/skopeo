@@ -91,13 +91,21 @@ func (d *dockerImageDestination) PutBlob(stream io.Reader, inputInfo types.BlobI
 			return types.BlobInfo{}, err
 		}
 		defer res.Body.Close()
-		if res.StatusCode == http.StatusOK {
+		switch res.StatusCode {
+		case http.StatusOK:
 			logrus.Debugf("... already exists, not uploading")
 			blobLength, err := strconv.ParseInt(res.Header.Get("Content-Length"), 10, 64)
 			if err != nil {
 				return types.BlobInfo{}, err
 			}
 			return types.BlobInfo{Digest: inputInfo.Digest, Size: blobLength}, nil
+		case http.StatusUnauthorized:
+			logrus.Debugf("... not authorized")
+			return types.BlobInfo{}, fmt.Errorf("not authorized to read from destination repository %s", d.ref.ref.RemoteName())
+		case http.StatusNotFound:
+			// noop
+		default:
+			return types.BlobInfo{}, fmt.Errorf("failed to read from destination repository %s: %v", d.ref.ref.RemoteName(), http.StatusText(res.StatusCode))
 		}
 		logrus.Debugf("... failed, status %d", res.StatusCode)
 	}
@@ -157,14 +165,17 @@ func (d *dockerImageDestination) PutBlob(stream io.Reader, inputInfo types.BlobI
 }
 
 func (d *dockerImageDestination) PutManifest(m []byte) error {
-	// FIXME: This only allows upload by digest, not creating a tag.  See the
-	// corresponding comment in openshift.NewImageDestination.
 	digest, err := manifest.Digest(m)
 	if err != nil {
 		return err
 	}
 	d.manifestDigest = digest
-	url := fmt.Sprintf(manifestURL, d.ref.ref.RemoteName(), digest)
+
+	reference, err := d.ref.tagOrDigest()
+	if err != nil {
+		return err
+	}
+	url := fmt.Sprintf(manifestURL, d.ref.ref.RemoteName(), reference)
 
 	headers := map[string][]string{}
 	mimeType := manifest.GuessMIMEType(m)
@@ -251,6 +262,8 @@ func (d *dockerImageDestination) putOneSignature(url *url.URL, signature []byte)
 		}
 		return nil
 
+	case "http", "https":
+		return fmt.Errorf("Writing directly to a %s sigstore %s is not supported. Configure a sigstore-staging: location.", url.Scheme, url.String())
 	default:
 		return fmt.Errorf("Unsupported scheme when writing signature to %s", url.String())
 	}
@@ -268,6 +281,8 @@ func (c *dockerClient) deleteOneSignature(url *url.URL) (missing bool, err error
 		}
 		return false, err
 
+	case "http", "https":
+		return false, fmt.Errorf("Writing directly to a %s sigstore %s is not supported. Configure a sigstore-staging: location.", url.Scheme, url.String())
 	default:
 		return false, fmt.Errorf("Unsupported scheme when deleting signature from %s", url.String())
 	}
