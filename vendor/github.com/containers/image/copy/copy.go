@@ -91,11 +91,12 @@ type Options struct {
 
 // Image copies image from srcRef to destRef, using policyContext to validate source image admissibility.
 func Image(ctx *types.SystemContext, policyContext *signature.PolicyContext, destRef, srcRef types.ImageReference, options *Options) error {
-	if options.ReportWriter == nil {
-		options.ReportWriter = ioutil.Discard
+	reportWriter := options.ReportWriter
+	if reportWriter == nil {
+		reportWriter = ioutil.Discard
 	}
 	writeReport := func(f string, a ...interface{}) {
-		fmt.Fprintf(options.ReportWriter, f, a...)
+		fmt.Fprintf(reportWriter, f, a...)
 	}
 	dest, err := destRef.NewImageDestination(ctx)
 	if err != nil {
@@ -270,11 +271,7 @@ func copyBlob(dest types.ImageDestination, src types.ImageSource, srcInfo types.
 	bar.Start()
 	destStream = bar.NewProxyReader(destStream)
 
-	defer func() {
-		if err != nil {
-			fmt.Fprint(reportWriter, "\n")
-		}
-	}()
+	defer fmt.Fprint(reportWriter, "\n")
 
 	var inputInfo types.BlobInfo
 	if !canCompress || isCompressed || !dest.ShouldCompressLayers() {
