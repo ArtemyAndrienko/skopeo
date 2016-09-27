@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,7 +18,7 @@ func init() {
 	check.Suite(&CopySuite{})
 }
 
-const v2DockerRegistryURL = "localhost:5555"
+const v2DockerRegistryURL = "localhost:5555" // Update also policy.json
 
 type CopySuite struct {
 	cluster  *openshiftCluster
@@ -73,20 +76,20 @@ func (s *CopySuite) TearDownSuite(c *check.C) {
 	}
 }
 
-// preparePolicyFixture applies edits to fixtures/policy.json and returns a path to the temporary file.
+// fileFromFixtureFixture applies edits to inputPath and returns a path to the temporary file.
 // Callers should defer os.Remove(the_returned_path)
-func preparePolicyFixture(c *check.C, edits map[string]string) string {
-	commands := []string{}
+func fileFromFixture(c *check.C, inputPath string, edits map[string]string) string {
+	contents, err := ioutil.ReadFile(inputPath)
+	c.Assert(err, check.IsNil)
 	for template, value := range edits {
-		commands = append(commands, fmt.Sprintf("s,%s,%s,g", template, value))
+		contents = bytes.Replace(contents, []byte(template), []byte(value), -1)
 	}
-	json := combinedOutputOfCommand(c, "sed", strings.Join(commands, "; "), "fixtures/policy.json")
 
 	file, err := ioutil.TempFile("", "policy.json")
 	c.Assert(err, check.IsNil)
 	path := file.Name()
 
-	_, err = file.Write([]byte(json))
+	_, err = file.Write(contents)
 	c.Assert(err, check.IsNil)
 	err = file.Close()
 	c.Assert(err, check.IsNil)
@@ -166,7 +169,7 @@ func (s *CopySuite) TestCopySignatures(c *check.C) {
 	defer os.RemoveAll(dir)
 	dirDest := "dir:" + dir
 
-	policy := preparePolicyFixture(c, map[string]string{"@keydir@": s.gpgHome})
+	policy := fileFromFixture(c, "fixtures/policy.json", map[string]string{"@keydir@": s.gpgHome})
 	defer os.Remove(policy)
 
 	// type: reject
@@ -222,7 +225,7 @@ func (s *CopySuite) TestCopyDirSignatures(c *check.C) {
 
 	// Note the "/@dirpath@": The value starts with a slash so that it is not rejected in other tests which do not replace it,
 	// but we must ensure that the result is a canonical path, not something starting with a "//".
-	policy := preparePolicyFixture(c, map[string]string{"@keydir@": s.gpgHome, "/@dirpath@": topDir + "/restricted"})
+	policy := fileFromFixture(c, "fixtures/policy.json", map[string]string{"@keydir@": s.gpgHome, "/@dirpath@": topDir + "/restricted"})
 	defer os.Remove(policy)
 
 	// Get some images.
@@ -290,4 +293,83 @@ func (s *CopySuite) TestCopyCompression(c *check.C) {
 			}
 		}
 	}
+}
+
+func findRegularFiles(c *check.C, root string) []string {
+	result := []string{}
+	err := filepath.Walk(root, filepath.WalkFunc(func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.Mode().IsRegular() {
+			result = append(result, path)
+		}
+		return nil
+	}))
+	c.Assert(err, check.IsNil)
+	return result
+}
+
+// --sign-by and policy use for docker: with sigstore
+func (s *CopySuite) TestCopyDockerSigstore(c *check.C) {
+	const ourRegistry = "docker://" + v2DockerRegistryURL + "/"
+
+	tmpDir, err := ioutil.TempDir("", "signatures-sigstore")
+	c.Assert(err, check.IsNil)
+	//defer os.RemoveAll(tmpDir)
+	copyDest := filepath.Join(tmpDir, "dest")
+	err = os.Mkdir(copyDest, 0755)
+	c.Assert(err, check.IsNil)
+	dirDest := "dir:" + copyDest
+	plainSigstore := filepath.Join(tmpDir, "sigstore")
+	splitSigstoreStaging := filepath.Join(tmpDir, "sigstore-staging")
+
+	splitSigstoreReadServerHandler := http.NotFoundHandler()
+	splitSigstoreReadServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		splitSigstoreReadServerHandler.ServeHTTP(w, r)
+	}))
+	defer splitSigstoreReadServer.Close()
+
+	policy := fileFromFixture(c, "fixtures/policy.json", map[string]string{"@keydir@": s.gpgHome})
+	defer os.Remove(policy)
+	registriesDir := filepath.Join(tmpDir, "registries.d")
+	err = os.Mkdir(registriesDir, 0755)
+	c.Assert(err, check.IsNil)
+	registriesFile := fileFromFixture(c, "fixtures/registries.yaml",
+		map[string]string{"@sigstore@": plainSigstore, "@split-staging@": splitSigstoreStaging, "@split-read@": splitSigstoreReadServer.URL})
+	err = os.Symlink(registriesFile, filepath.Join(registriesDir, "registries.yaml"))
+	c.Assert(err, check.IsNil)
+
+	// Get an image to work with.  Also verifies that we can use Docker repositories with no sigstore configured.
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--registries.d", registriesDir, "copy", "docker://busybox", ourRegistry+"original/busybox")
+	// Pulling an unsigned image fails.
+	assertSkopeoFails(c, ".*Source image rejected: A signature was required, but no signature exists.*",
+		"--tls-verify=false", "--policy", policy, "--registries.d", registriesDir, "copy", ourRegistry+"original/busybox", dirDest)
+
+	// Signing with sigstore defined succeeds,
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--registries.d", registriesDir, "copy", "--sign-by", "personal@example.com", ourRegistry+"original/busybox", ourRegistry+"signed/busybox")
+	// a signature file has been created,
+	foundFiles := findRegularFiles(c, plainSigstore)
+	c.Assert(foundFiles, check.HasLen, 1)
+	// and pulling a signed image succeeds.
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "--registries.d", registriesDir, "copy", ourRegistry+"signed/busybox", dirDest)
+
+	// Deleting the image succeeds,
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--registries.d", registriesDir, "delete", ourRegistry+"signed/busybox")
+	// and the signature file has been deleted (but we leave the directories around).
+	// a signature file has been created,
+	foundFiles = findRegularFiles(c, plainSigstore)
+	c.Assert(foundFiles, check.HasLen, 0)
+
+	// Signing with a read/write sigstore split succeeds,
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--registries.d", registriesDir, "copy", "--sign-by", "personal@example.com", ourRegistry+"original/busybox", ourRegistry+"public/busybox")
+	// and a signature file has been created.
+	foundFiles = findRegularFiles(c, splitSigstoreStaging)
+	c.Assert(foundFiles, check.HasLen, 1)
+	// Pulling the image fails because the read sigstore URL has not been populated:
+	assertSkopeoFails(c, ".*Source image rejected: A signature was required, but no signature exists.*",
+		"--tls-verify=false", "--policy", policy, "--registries.d", registriesDir, "copy", ourRegistry+"public/busybox", dirDest)
+	// Pulling the image succeeds after the read sigstore URL is available:
+	splitSigstoreReadServerHandler = http.FileServer(http.Dir(splitSigstoreStaging))
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "--registries.d", registriesDir, "copy", ourRegistry+"public/busybox", dirDest)
 }
