@@ -96,8 +96,11 @@ func fileFromFixture(c *check.C, inputPath string, edits map[string]string) stri
 	return path
 }
 
-// The most basic (skopeo copy) use:
-func (s *CopySuite) TestCopySimple(c *check.C) {
+func (s *CopySuite) TestCopyFailsWithManifestList(c *check.C) {
+	assertSkopeoFails(c, ".*can not copy docker://estesp/busybox:latest: manifest contains multiple images.*", "copy", "docker://estesp/busybox:latest", "dir:somedir")
+}
+
+func (s *CopySuite) TestCopySimpleAtomicRegistry(c *check.C) {
 	dir1, err := ioutil.TempDir("", "copy-1")
 	c.Assert(err, check.IsNil)
 	defer os.RemoveAll(dir1)
@@ -107,11 +110,33 @@ func (s *CopySuite) TestCopySimple(c *check.C) {
 
 	// FIXME: It would be nice to use one of the local Docker registries instead of neeeding an Internet connection.
 	// "pull": docker: → dir:
-	assertSkopeoSucceeds(c, "", "copy", "docker://estesp/busybox:latest", "dir:"+dir1)
+	assertSkopeoSucceeds(c, "", "copy", "docker://estesp/busybox:amd64", "dir:"+dir1)
 	// "push": dir: → atomic:
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--debug", "copy", "dir:"+dir1, "atomic:localhost:5000/myns/unsigned:unsigned")
 	// The result of pushing and pulling is an unmodified image.
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/unsigned:unsigned", "dir:"+dir2)
+	out := combinedOutputOfCommand(c, "diff", "-urN", dir1, dir2)
+	c.Assert(out, check.Equals, "")
+}
+
+// The most basic (skopeo copy) use:
+func (s *CopySuite) TestCopySimple(c *check.C) {
+	const ourRegistry = "docker://" + v2DockerRegistryURL + "/"
+
+	dir1, err := ioutil.TempDir("", "copy-1")
+	c.Assert(err, check.IsNil)
+	defer os.RemoveAll(dir1)
+	dir2, err := ioutil.TempDir("", "copy-2")
+	c.Assert(err, check.IsNil)
+	defer os.RemoveAll(dir2)
+
+	// FIXME: It would be nice to use one of the local Docker registries instead of neeeding an Internet connection.
+	// "pull": docker: → dir:
+	assertSkopeoSucceeds(c, "", "copy", "docker://busybox", "dir:"+dir1)
+	// "push": dir: → docker(v2s2):
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--debug", "copy", "dir:"+dir1, ourRegistry+"busybox:unsigned")
+	// The result of pushing and pulling is an unmodified image.
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", ourRegistry+"busybox:unsigned", "dir:"+dir2)
 	out := combinedOutputOfCommand(c, "diff", "-urN", dir1, dir2)
 	c.Assert(out, check.Equals, "")
 
@@ -123,8 +148,6 @@ func (s *CopySuite) TestCopySimple(c *check.C) {
 	assertSkopeoSucceeds(c, "", "copy", "docker://busybox:latest", "oci:"+ociDest)
 	_, err = os.Stat(ociDest)
 	c.Assert(err, check.IsNil)
-
-	// FIXME: Also check pushing to docker://
 }
 
 // Streaming (skopeo copy)
