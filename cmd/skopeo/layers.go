@@ -26,15 +26,16 @@ var layersCmd = cli.Command{
 		if err != nil {
 			return err
 		}
-		src := image.FromSource(rawSource)
+		src, err := image.FromSource(rawSource)
+		if err != nil {
+			rawSource.Close()
+			return err
+		}
 		defer src.Close()
 
 		blobDigests := c.Args().Tail()
 		if len(blobDigests) == 0 {
-			layers, err := src.LayerInfos()
-			if err != nil {
-				return err
-			}
+			layers := src.LayerInfos()
 			seenLayers := map[string]struct{}{}
 			for _, info := range layers {
 				if _, ok := seenLayers[info.Digest]; !ok {
@@ -42,10 +43,7 @@ var layersCmd = cli.Command{
 					seenLayers[info.Digest] = struct{}{}
 				}
 			}
-			configInfo, err := src.ConfigInfo()
-			if err != nil {
-				return err
-			}
+			configInfo := src.ConfigInfo()
 			if configInfo.Digest != "" {
 				blobDigests = append(blobDigests, configInfo.Digest)
 			}
