@@ -7,6 +7,7 @@ INSTALLDIR=${PREFIX}/bin
 MANINSTALLDIR=${PREFIX}/share/man
 CONTAINERSSYSCONFIGDIR=${DESTDIR}/etc/containers
 REGISTRIESDDIR=${CONTAINERSSYSCONFIGDIR}/registries.d
+SIGSTOREDIR=${DESTDIR}/var/lib/atomic/sigstore
 BASHINSTALLDIR=${PREFIX}/share/bash-completion/completions
 GO_MD2MAN ?= /usr/bin/go-md2man
 
@@ -62,8 +63,9 @@ clean:
 	rm -f skopeo docs/*.1
 
 install: install-binary install-docs install-completions
+	install -d -m 755 ${SIGSTOREDIR}
 	install -D -m 644 default-policy.json ${CONTAINERSSYSCONFIGDIR}/policy.json
-	install -d -m 755 ${REGISTRIESDDIR}
+	install -D -m 644 default.yaml ${REGISTRIESDDIR}/default.yaml
 
 install-binary: ./skopeo
 	install -D -m 755 skopeo ${INSTALLDIR}/skopeo
