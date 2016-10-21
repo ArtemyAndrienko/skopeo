@@ -110,6 +110,12 @@ $ git clone https://github.com/projectatomic/skopeo $GOPATH/src/github.com/proje
 $ cd $GOPATH/src/github.com/projectatomic/skopeo && make all
 ```
 
+To build localy on OSX:
+```sh
+$ brew install gpgme
+$ make binary-local
+```
+
 You may need to install additional development packages: gpgme-devel and libassuan-devel
 ```sh
 $ dnf install gpgme-devel libassuan-devel
