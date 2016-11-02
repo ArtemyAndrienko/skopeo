@@ -2,7 +2,9 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/containers/image/directory"
@@ -12,14 +14,14 @@ import (
 	"github.com/urfave/cli"
 )
 
-// TODO(runcom): document args and usage
 var layersCmd = cli.Command{
 	Name:      "layers",
 	Usage:     "Get layers of IMAGE-NAME",
 	ArgsUsage: "IMAGE-NAME [LAYER...]",
 	Action: func(c *cli.Context) error {
+		fmt.Fprintln(os.Stderr, `DEPRECATED: skopeo layers is deprecated in favor of skopeo copy`)
 		if c.NArg() == 0 {
-			return errors.New("please specify an image")
+			return errors.New("Usage: layers imageReference [layer...]")
 		}
 		rawSource, err := parseImageSource(c, c.Args()[0], []string{
 			// TODO: skopeo layers only supports these now
