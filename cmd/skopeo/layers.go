@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"io/ioutil"
 	"strings"
 
@@ -15,10 +16,13 @@ import (
 var layersCmd = cli.Command{
 	Name:      "layers",
 	Usage:     "Get layers of IMAGE-NAME",
-	ArgsUsage: "IMAGE-NAME",
+	ArgsUsage: "IMAGE-NAME [LAYER...]",
 	Action: func(c *cli.Context) error {
+		if c.NArg() == 0 {
+			return errors.New("please specify an image")
+		}
 		rawSource, err := parseImageSource(c, c.Args()[0], []string{
-			// TODO: skopeo layers only support these now
+			// TODO: skopeo layers only supports these now
 			// eventually we'll remove this command altogether...
 			manifest.DockerV2Schema1SignedMediaType,
 			manifest.DockerV2Schema1MediaType,
