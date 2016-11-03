@@ -36,7 +36,7 @@ MANPAGES_MD = $(wildcard docs/*.md)
 #     Note: Uses the -N -l go compiler options to disable compiler optimizations
 #           and inlining. Using these build options allows you to subsequently
 #           use source debugging tools like delve.
-all: binary docs
+all: binary binary-static docs
 
 # Build a docker image (skopeobuild) that has everything we need to build.
 # Then do the build and the output (skopeo) should appear in current dir
@@ -45,10 +45,17 @@ binary: cmd/skopeo
 	docker run --rm --security-opt label:disable -v $$(pwd):/src/github.com/projectatomic/skopeo \
 		skopeobuildimage make binary-local $(if $(DEBUG),DEBUG=$(DEBUG))
 
+binary-static: cmd/skopeo
+	docker build ${DOCKER_BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
+	docker run --rm --security-opt label:disable -v $$(pwd):/src/github.com/projectatomic/skopeo \
+		skopeobuildimage make binary-local-static $(if $(DEBUG),DEBUG=$(DEBUG))
+
 # Build w/o using Docker containers
 binary-local:
 	go build -ldflags "-X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -o skopeo ./cmd/skopeo
 
+binary-local-static:
+	go build -ldflags "-extldflags \"-static\" -X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -o skopeo ./cmd/skopeo
 
 build-container:
 	docker build ${DOCKER_BUILD_ARGS} -t "$(DOCKER_IMAGE)" .
