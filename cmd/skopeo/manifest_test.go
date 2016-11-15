@@ -27,5 +27,5 @@ func TestManifestDigest(t *testing.T) {
 	// Success
 	out, err = runSkopeo("manifest-digest", "fixtures/image.manifest.json")
 	assert.NoError(t, err)
-	assert.Equal(t, fixturesTestImageManifestDigest+"\n", out)
+	assert.Equal(t, fixturesTestImageManifestDigest.String()+"\n", out)
 }
