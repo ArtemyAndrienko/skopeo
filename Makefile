@@ -36,7 +36,7 @@ MANPAGES_MD = $(wildcard docs/*.md)
 #     Note: Uses the -N -l go compiler options to disable compiler optimizations
 #           and inlining. Using these build options allows you to subsequently
 #           use source debugging tools like delve.
-all: binary binary-static docs
+all: binary docs
 
 # Build a docker image (skopeobuild) that has everything we need to build.
 # Then do the build and the output (skopeo) should appear in current dir
