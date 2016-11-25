@@ -1,22 +1,56 @@
 package main
 
 import (
+	"errors"
+	"strings"
+
 	"github.com/containers/image/transports"
 	"github.com/containers/image/types"
 	"github.com/urfave/cli"
 )
 
-// contextFromGlobalOptions returns a types.SystemContext depending on c.
-func contextFromGlobalOptions(c *cli.Context) *types.SystemContext {
-	tlsVerify := c.GlobalBoolT("tls-verify")
-	return &types.SystemContext{
+func contextFromGlobalOptions(c *cli.Context, credsFlag string) (*types.SystemContext, error) {
+	ctx := &types.SystemContext{
 		RegistriesDirPath:           c.GlobalString("registries.d"),
 		DockerCertPath:              c.GlobalString("cert-path"),
-		DockerInsecureSkipTLSVerify: !tlsVerify,
+		DockerInsecureSkipTLSVerify: !c.GlobalBoolT("tls-verify"),
 	}
+	if c.IsSet(credsFlag) {
+		var err error
+		ctx.DockerAuthConfig, err = getDockerAuth(c.String(credsFlag))
+		if err != nil {
+			return nil, err
+		}
+	}
+	return ctx, nil
 }
 
-// ParseImage converts image URL-like string to an initialized handler for that image.
+func parseCreds(creds string) (string, string, error) {
+	if creds == "" {
+		return "", "", errors.New("credentials can't be empty")
+	}
+	up := strings.SplitN(creds, ":", 2)
+	if len(up) == 1 {
+		return up[0], "", nil
+	}
+	if up[0] == "" {
+		return "", "", errors.New("username can't be empty")
+	}
+	return up[0], up[1], nil
+}
+
+func getDockerAuth(creds string) (*types.DockerAuthConfig, error) {
+	username, password, err := parseCreds(creds)
+	if err != nil {
+		return nil, err
+	}
+	return &types.DockerAuthConfig{
+		Username: username,
+		Password: password,
+	}, nil
+}
+
+// parseImage converts image URL-like string to an initialized handler for that image.
 // The caller must call .Close() on the returned Image.
 func parseImage(c *cli.Context) (types.Image, error) {
 	imgName := c.Args().First()
@@ -24,7 +58,11 @@ func parseImage(c *cli.Context) (types.Image, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ref.NewImage(contextFromGlobalOptions(c))
+	ctx, err := contextFromGlobalOptions(c, "creds")
+	if err != nil {
+		return nil, err
+	}
+	return ref.NewImage(ctx)
 }
 
 // parseImageSource converts image URL-like string to an ImageSource.
@@ -35,5 +73,9 @@ func parseImageSource(c *cli.Context, name string, requestedManifestMIMETypes []
 	if err != nil {
 		return nil, err
 	}
-	return ref.NewImageSource(contextFromGlobalOptions(c), requestedManifestMIMETypes)
+	ctx, err := contextFromGlobalOptions(c, "creds")
+	if err != nil {
+		return nil, err
+	}
+	return ref.NewImageSource(ctx, requestedManifestMIMETypes)
 }

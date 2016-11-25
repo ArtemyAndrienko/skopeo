@@ -34,6 +34,11 @@ var inspectCmd = cli.Command{
 			Name:  "raw",
 			Usage: "output raw manifest",
 		},
+		cli.StringFlag{
+			Name:  "creds",
+			Value: "",
+			Usage: "Use `USERNAME[:PASSWORD]` for accessing the registry",
+		},
 	},
 	Action: func(c *cli.Context) error {
 		img, err := parseImage(c)

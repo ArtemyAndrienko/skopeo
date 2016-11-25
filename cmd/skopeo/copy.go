@@ -7,8 +7,24 @@ import (
 
 	"github.com/containers/image/copy"
 	"github.com/containers/image/transports"
+	"github.com/containers/image/types"
 	"github.com/urfave/cli"
 )
+
+// contextsFromGlobalOptions returns source and destionation types.SystemContext depending on c.
+func contextsFromGlobalOptions(c *cli.Context) (*types.SystemContext, *types.SystemContext, error) {
+	sourceCtx, err := contextFromGlobalOptions(c, "src-creds")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	destinationCtx, err := contextFromGlobalOptions(c, "dest-creds")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return sourceCtx, destinationCtx, nil
+}
 
 func copyHandler(context *cli.Context) error {
 	if len(context.Args()) != 2 {
@@ -32,10 +48,17 @@ func copyHandler(context *cli.Context) error {
 	signBy := context.String("sign-by")
 	removeSignatures := context.Bool("remove-signatures")
 
-	return copy.Image(contextFromGlobalOptions(context), policyContext, destRef, srcRef, &copy.Options{
+	sourceCtx, destinationCtx, err := contextsFromGlobalOptions(context)
+	if err != nil {
+		return err
+	}
+
+	return copy.Image(policyContext, destRef, srcRef, &copy.Options{
 		RemoveSignatures: removeSignatures,
 		SignBy:           signBy,
 		ReportWriter:     os.Stdout,
+		SourceCtx:        sourceCtx,
+		DestinationCtx:   destinationCtx,
 	})
 }
 
@@ -53,6 +76,16 @@ var copyCmd = cli.Command{
 		cli.StringFlag{
 			Name:  "sign-by",
 			Usage: "Sign the image using a GPG key with the specified `FINGERPRINT`",
+		},
+		cli.StringFlag{
+			Name:  "src-creds, screds",
+			Value: "",
+			Usage: "Use `USERNAME[:PASSWORD]` for accessing the source registry",
+		},
+		cli.StringFlag{
+			Name:  "dest-creds, dcreds",
+			Value: "",
+			Usage: "Use `USERNAME[:PASSWORD]` for accessing the destination registry",
 		},
 	},
 }
