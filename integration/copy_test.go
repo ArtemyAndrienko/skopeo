@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/containers/image/manifest"
+	"github.com/docker/distribution/digest"
 	"github.com/go-check/check"
 )
 
@@ -167,7 +168,7 @@ func (s *CopySuite) TestCopyStreaming(c *check.C) {
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/unsigned:streaming", "dir:"+dir2)
 	// The manifests will have different JWS signatures; so, compare the manifests by digests, which
 	// strips the signatures, and remove them, comparing the rest file by file.
-	digests := []string{}
+	digests := []digest.Digest{}
 	for _, dir := range []string{dir1, dir2} {
 		manifestPath := filepath.Join(dir, "manifest.json")
 		m, err := ioutil.ReadFile(manifestPath)

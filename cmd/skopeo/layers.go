@@ -11,6 +11,7 @@ import (
 	"github.com/containers/image/image"
 	"github.com/containers/image/manifest"
 	"github.com/containers/image/types"
+	"github.com/docker/distribution/digest"
 	"github.com/urfave/cli"
 )
 
@@ -39,10 +40,21 @@ var layersCmd = cli.Command{
 		}
 		defer src.Close()
 
-		blobDigests := c.Args().Tail()
+		var blobDigests []digest.Digest
+		for _, dString := range c.Args().Tail() {
+			if !strings.HasPrefix(dString, "sha256:") {
+				dString = "sha256:" + dString
+			}
+			d, err := digest.ParseDigest(dString)
+			if err != nil {
+				return err
+			}
+			blobDigests = append(blobDigests, d)
+		}
+
 		if len(blobDigests) == 0 {
 			layers := src.LayerInfos()
-			seenLayers := map[string]struct{}{}
+			seenLayers := map[digest.Digest]struct{}{}
 			for _, info := range layers {
 				if _, ok := seenLayers[info.Digest]; !ok {
 					blobDigests = append(blobDigests, info.Digest)
@@ -70,9 +82,6 @@ var layersCmd = cli.Command{
 		defer dest.Close()
 
 		for _, digest := range blobDigests {
-			if !strings.HasPrefix(digest, "sha256:") {
-				digest = "sha256:" + digest
-			}
 			r, blobSize, err := rawSource.GetBlob(digest)
 			if err != nil {
 				return err

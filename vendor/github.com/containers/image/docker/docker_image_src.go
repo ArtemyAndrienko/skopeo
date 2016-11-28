@@ -13,6 +13,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/containers/image/manifest"
 	"github.com/containers/image/types"
+	"github.com/docker/distribution/digest"
 	"github.com/docker/distribution/registry/client"
 )
 
@@ -67,6 +68,8 @@ func simplifyContentType(contentType string) string {
 	return mimeType
 }
 
+// GetManifest returns the image's manifest along with its MIME type (which may be empty when it can't be determined but the manifest is available).
+// It may use a remote (= slow) service.
 func (s *dockerImageSource) GetManifest() ([]byte, string, error) {
 	err := s.ensureManifestIsLoaded()
 	if err != nil {
@@ -96,8 +99,8 @@ func (s *dockerImageSource) fetchManifest(tagOrDigest string) ([]byte, string, e
 
 // GetTargetManifest returns an image's manifest given a digest.
 // This is mainly used to retrieve a single image's manifest out of a manifest list.
-func (s *dockerImageSource) GetTargetManifest(digest string) ([]byte, string, error) {
-	return s.fetchManifest(digest)
+func (s *dockerImageSource) GetTargetManifest(digest digest.Digest) ([]byte, string, error) {
+	return s.fetchManifest(digest.String())
 }
 
 // ensureManifestIsLoaded sets s.cachedManifest and s.cachedManifestMIMEType
@@ -128,8 +131,8 @@ func (s *dockerImageSource) ensureManifestIsLoaded() error {
 }
 
 // GetBlob returns a stream for the specified blob, and the blob’s size (or -1 if unknown).
-func (s *dockerImageSource) GetBlob(digest string) (io.ReadCloser, int64, error) {
-	url := fmt.Sprintf(blobsURL, s.ref.ref.RemoteName(), digest)
+func (s *dockerImageSource) GetBlob(digest digest.Digest) (io.ReadCloser, int64, error) {
+	url := fmt.Sprintf(blobsURL, s.ref.ref.RemoteName(), digest.String())
 	logrus.Debugf("Downloading %s", url)
 	res, err := s.c.makeRequest("GET", url, nil, nil)
 	if err != nil {
@@ -244,7 +247,7 @@ func deleteImage(ctx *types.SystemContext, ref dockerReference) error {
 	switch get.StatusCode {
 	case http.StatusOK:
 	case http.StatusNotFound:
-		return fmt.Errorf("Unable to delete %v. Image may not exist or is not stored with a v2 Schema in a v2 registry.", ref.ref)
+		return fmt.Errorf("Unable to delete %v. Image may not exist or is not stored with a v2 Schema in a v2 registry", ref.ref)
 	default:
 		return fmt.Errorf("Failed to delete %v: %s (%v)", ref.ref, manifestBody, get.Status)
 	}

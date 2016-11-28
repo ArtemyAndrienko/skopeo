@@ -7,6 +7,7 @@ import (
 
 	"github.com/containers/image/docker"
 	"github.com/containers/image/manifest"
+	"github.com/docker/distribution/digest"
 	"github.com/urfave/cli"
 )
 
@@ -14,7 +15,7 @@ import (
 type inspectOutput struct {
 	Name          string `json:",omitempty"`
 	Tag           string `json:",omitempty"`
-	Digest        string
+	Digest        digest.Digest
 	RepoTags      []string
 	Created       time.Time
 	DockerVersion string

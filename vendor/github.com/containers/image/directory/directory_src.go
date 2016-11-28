@@ -6,7 +6,9 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/containers/image/manifest"
 	"github.com/containers/image/types"
+	"github.com/docker/distribution/digest"
 )
 
 type dirImageSource struct {
@@ -29,21 +31,22 @@ func (s *dirImageSource) Reference() types.ImageReference {
 func (s *dirImageSource) Close() {
 }
 
-// it's up to the caller to determine the MIME type of the returned manifest's bytes
+// GetManifest returns the image's manifest along with its MIME type (which may be empty when it can't be determined but the manifest is available).
+// It may use a remote (= slow) service.
 func (s *dirImageSource) GetManifest() ([]byte, string, error) {
 	m, err := ioutil.ReadFile(s.ref.manifestPath())
 	if err != nil {
 		return nil, "", err
 	}
-	return m, "", err
+	return m, manifest.GuessMIMEType(m), err
 }
 
-func (s *dirImageSource) GetTargetManifest(digest string) ([]byte, string, error) {
-	return nil, "", fmt.Errorf("Getting target manifest not supported by dir:")
+func (s *dirImageSource) GetTargetManifest(digest digest.Digest) ([]byte, string, error) {
+	return nil, "", fmt.Errorf(`Getting target manifest not supported by "dir:"`)
 }
 
 // GetBlob returns a stream for the specified blob, and the blob’s size (or -1 if unknown).
-func (s *dirImageSource) GetBlob(digest string) (io.ReadCloser, int64, error) {
+func (s *dirImageSource) GetBlob(digest digest.Digest) (io.ReadCloser, int64, error) {
 	r, err := os.Open(s.ref.layerPath(digest))
 	if err != nil {
 		return nil, 0, nil

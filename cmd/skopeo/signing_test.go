@@ -6,13 +6,14 @@ import (
 	"testing"
 
 	"github.com/containers/image/signature"
+	"github.com/docker/distribution/digest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 const (
 	// fixturesTestImageManifestDigest is the Docker manifest digest of "image.manifest.json"
-	fixturesTestImageManifestDigest = "sha256:20bf21ed457b390829cdbeec8795a7bea1626991fda603e0d01b4e7f60427e55"
+	fixturesTestImageManifestDigest = digest.Digest("sha256:20bf21ed457b390829cdbeec8795a7bea1626991fda603e0d01b4e7f60427e55")
 	// fixturesTestKeyFingerprint is the fingerprint of the private key.
 	fixturesTestKeyFingerprint = "1D8230F6CDB6A06716E414C1DB72F2188BB46CC8"
 )
@@ -122,5 +123,5 @@ func TestStandaloneVerify(t *testing.T) {
 	out, err = runSkopeo("standalone-verify", manifestPath,
 		dockerReference, fixturesTestKeyFingerprint, signaturePath)
 	assert.NoError(t, err)
-	assert.Equal(t, "Signature verified, digest "+fixturesTestImageManifestDigest+"\n", out)
+	assert.Equal(t, "Signature verified, digest "+fixturesTestImageManifestDigest.String()+"\n", out)
 }
