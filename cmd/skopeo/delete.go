@@ -18,7 +18,11 @@ func deleteHandler(context *cli.Context) error {
 		return fmt.Errorf("Invalid source name %s: %v", context.Args()[0], err)
 	}
 
-	if err := ref.DeleteImage(contextFromGlobalOptions(context)); err != nil {
+	ctx, err := contextFromGlobalOptions(context, "creds")
+	if err != nil {
+		return err
+	}
+	if err := ref.DeleteImage(ctx); err != nil {
 		return err
 	}
 	return nil
@@ -29,4 +33,11 @@ var deleteCmd = cli.Command{
 	Usage:     "Delete image IMAGE-NAME",
 	ArgsUsage: "IMAGE-NAME",
 	Action:    deleteHandler,
+	Flags: []cli.Flag{
+		cli.StringFlag{
+			Name:  "creds",
+			Value: "",
+			Usage: "Use `USERNAME[:PASSWORD]` for accessing the registry",
+		},
+	},
 }

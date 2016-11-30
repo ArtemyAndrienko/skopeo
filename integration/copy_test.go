@@ -397,3 +397,20 @@ func (s *CopySuite) TestCopyDockerSigstore(c *check.C) {
 	splitSigstoreReadServerHandler = http.FileServer(http.Dir(splitSigstoreStaging))
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "--registries.d", registriesDir, "copy", ourRegistry+"public/busybox", dirDest)
 }
+
+func (s *SkopeoSuite) TestCopySrcWithAuth(c *check.C) {
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "--dest-creds=testuser:testpassword", "docker://busybox", fmt.Sprintf("docker://%s/busybox:latest", s.regV2WithAuth.url))
+	dir1, err := ioutil.TempDir("", "copy-1")
+	c.Assert(err, check.IsNil)
+	defer os.RemoveAll(dir1)
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "--src-creds=testuser:testpassword", fmt.Sprintf("docker://%s/busybox:latest", s.regV2WithAuth.url), "dir:"+dir1)
+}
+
+func (s *SkopeoSuite) TestCopyDestWithAuth(c *check.C) {
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "--dest-creds=testuser:testpassword", "docker://busybox", fmt.Sprintf("docker://%s/busybox:latest", s.regV2WithAuth.url))
+}
+
+func (s *SkopeoSuite) TestCopySrcAndDestWithAuth(c *check.C) {
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "--dest-creds=testuser:testpassword", "docker://busybox", fmt.Sprintf("docker://%s/busybox:latest", s.regV2WithAuth.url))
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "--src-creds=testuser:testpassword", "--dest-creds=testuser:testpassword", fmt.Sprintf("docker://%s/busybox:latest", s.regV2WithAuth.url), fmt.Sprintf("docker://%s/test:auth", s.regV2WithAuth.url))
+}

@@ -37,10 +37,6 @@ Most commands refer to container images, using a _transport_`:`_details_ format.
 
   **--debug** enable debug output
 
-  **--username** _username_ for accessing  the registry
-
-  **--password** _password_ for accessing the registry
-
   **--cert-path** _path_ Use certificates at _path_ (cert.pem, key.pem) to connect to the registry
 
   **--policy** _path-to-policy_ Path to a policy.json file to use for verifying signatures and deciding whether an image is trusted, overriding the default trust policy file.
@@ -70,6 +66,10 @@ Uses the system's trust policy to validate images, rejects images not trusted by
 
   **--sign-by=**_key-id_ add a signature using that key ID for an image name corresponding to _destination-image_
 
+  **--src-creds** _username[:password]_ for accessing the source registry
+
+  **--dest-creds** _username[:password]_ for accessing the destination registry
+
 Existing signatures, if any, are preserved as well.
 
 ## skopeo delete
@@ -81,6 +81,8 @@ Mark _image-name_ for deletion.  To release the allocated disk space, you need t
 $ docker exec -it registry bin/registry garbage-collect /etc/docker/registry/config.yml
 ```
 
+  **--creds** _username[:password]_ for accessing the registry
+
 Additionally, the registry must allow deletions by setting `REGISTRY_STORAGE_DELETE_ENABLED=true` for the registry daemon.
 
 ## skopeo inspect
@@ -91,6 +93,8 @@ Return low-level information about _image-name_ in a registry
   **--raw** output raw manifest, default is to format in JSON
 
   _image-name_ name of image to retrieve information about
+
+  **--creds** _username[:password]_ for accessing the registry
 
 ## skopeo layers
 **skopeo layers** _image-name_

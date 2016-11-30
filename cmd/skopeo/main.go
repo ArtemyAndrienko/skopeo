@@ -25,22 +25,10 @@ func createApp() *cli.App {
 		app.Version = version.Version
 	}
 	app.Usage = "Various operations with container images and container image registries"
-	// TODO(runcom)
-	//app.EnableBashCompletion = true
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
 			Name:  "debug",
 			Usage: "enable debug output",
-		},
-		cli.StringFlag{
-			Name:  "username",
-			Value: "",
-			Usage: "use `USERNAME` for accessing the registry",
-		},
-		cli.StringFlag{
-			Name:  "password",
-			Value: "",
-			Usage: "use `PASSWORD` for accessing the registry",
 		},
 		cli.StringFlag{
 			Name:  "cert-path",

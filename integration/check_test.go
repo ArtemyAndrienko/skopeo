@@ -76,17 +76,13 @@ func (s *SkopeoSuite) TestVersion(c *check.C) {
 }
 
 func (s *SkopeoSuite) TestCanAuthToPrivateRegistryV2WithoutDockerCfg(c *check.C) {
-	// TODO(runcom)
-	c.Skip("we need to restore --username --password flags!")
-	wanted := ".*unauthorized: authentication required.*"
-	assertSkopeoFails(c, wanted, "--docker-cfg=''", "--username="+s.regV2WithAuth.username, "--password="+s.regV2WithAuth.password, "inspect", fmt.Sprintf("docker://%s/busybox:latest", s.regV2WithAuth.url))
+	wanted := ".*manifest unknown: manifest unknown.*"
+	assertSkopeoFails(c, wanted, "--tls-verify=false", "inspect", "--creds="+s.regV2WithAuth.username+":"+s.regV2WithAuth.password, fmt.Sprintf("docker://%s/busybox:latest", s.regV2WithAuth.url))
 }
 
 func (s *SkopeoSuite) TestNeedAuthToPrivateRegistryV2WithoutDockerCfg(c *check.C) {
-	// TODO(runcom): mock the empty docker-cfg by removing it in the test itself (?)
-	c.Skip("mock empty docker config")
 	wanted := ".*unauthorized: authentication required.*"
-	assertSkopeoFails(c, wanted, "--docker-cfg=''", "inspect", fmt.Sprintf("docker://%s/busybox:latest", s.regV2WithAuth.url))
+	assertSkopeoFails(c, wanted, "--tls-verify=false", "inspect", fmt.Sprintf("docker://%s/busybox:latest", s.regV2WithAuth.url))
 }
 
 // TODO(runcom): as soon as we can push to registries ensure you can inspect here

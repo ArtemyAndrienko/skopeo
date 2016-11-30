@@ -49,11 +49,12 @@ Copying images
 -
 `skopeo` can copy container images between various storage mechanisms,
 e.g. Docker registries (including the Docker Hub), the Atomic Registry,
-and local directories:
+local directories, and local OCI-layout directories:
 
 ```sh
 $ skopeo copy docker://busybox:1-glibc atomic:myns/unsigned:streaming
 $ skopeo copy docker://busybox:latest dir:existingemptydirectory
+$ skopeo copy docker://busybox:latest oci:busybox_ocilayout
 ```
 
 Deleting images
@@ -65,14 +66,10 @@ $ skopeo delete docker://localhost:5000/imagename:latest
 
 Private registries with authentication
 -
-When interacting with private registries, `skopeo` first looks for the Docker's cli config file (usually located at `$HOME/.docker/config.json`) to get the credentials needed to authenticate. When the file isn't available it falls back looking for `--username` and `--password` flags. The ultimate fallback, as Docker does, is to provide an empty authentication when interacting with those registries.
+When interacting with private registries, `skopeo` first looks for `--creds` (for `skopeo inspect|delete`) or `--src-creds|--dest-creds` (for `skopeo copy`) flags. If those aren't provided, it looks for the Docker's cli config file (usually located at `$HOME/.docker/config.json`) to get the credentials needed to authenticate. The ultimate fallback, as Docker does, is to provide an empty authentication when interacting with those registries.
 
 Examples:
 ```sh
-# on my system
-$ skopeo --help | grep docker-cfg
-   --docker-cfg "/home/runcom/.docker"	Docker's cli config for auth
-
 $ cat /home/runcom/.docker/config.json
 {
 	"auths": {
@@ -88,16 +85,22 @@ $ skopeo inspect docker://myregistrydomain.com:5000/busybox
 {"Tag":"latest","Digest":"sha256:473bb2189d7b913ed7187a33d11e743fdc2f88931122a44d91a301b64419f092","RepoTags":["latest"],"Comment":"","Created":"2016-01-15T18:06:41.282540103Z","ContainerConfig":{"Hostname":"aded96b43f48","Domainname":"","User":"","AttachStdin":false,"AttachStdout":false,"AttachStderr":false,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":null,"Cmd":["/bin/sh","-c","#(nop) CMD [\"sh\"]"],"Image":"9e77fef7a1c9f989988c06620dabc4020c607885b959a2cbd7c2283c91da3e33","Volumes":null,"WorkingDir":"","Entrypoint":null,"OnBuild":null,"Labels":null},"DockerVersion":"1.8.3","Author":"","Config":{"Hostname":"aded96b43f48","Domainname":"","User":"","AttachStdin":false,"AttachStdout":false,"AttachStderr":false,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":null,"Cmd":["sh"],"Image":"9e77fef7a1c9f989988c06620dabc4020c607885b959a2cbd7c2283c91da3e33","Volumes":null,"WorkingDir":"","Entrypoint":null,"OnBuild":null,"Labels":null},"Architecture":"amd64","Os":"linux"}
 
 # let's try now to fake a non existent Docker's config file
-$ skopeo --docker-cfg="" inspect docker://myregistrydomain.com:5000/busybox
-FATA[0000] Get https://myregistrydomain.com:5000/v2/busybox/manifests/latest: no basic auth credentials
+$ cat /home/runcom/.docker/config.json
+{}
 
-# passing --username and --password - we can see that everything goes fine
-$ skopeo --docker-cfg="" --username=testuser --password=testpassword inspect docker://myregistrydomain.com:5000/busybox
+$ skopeo inspect docker://myregistrydomain.com:5000/busybox
+FATA[0000] unauthorized: authentication required
+
+# passing --creds - we can see that everything goes fine
+$ skopeo inspect --creds=testuser:testpassword docker://myregistrydomain.com:5000/busybox
 {"Tag":"latest","Digest":"sha256:473bb2189d7b913ed7187a33d11e743fdc2f88931122a44d91a301b64419f092","RepoTags":["latest"],"Comment":"","Created":"2016-01-15T18:06:41.282540103Z","ContainerConfig":{"Hostname":"aded96b43f48","Domainname":"","User":"","AttachStdin":false,"AttachStdout":false,"AttachStderr":false,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":null,"Cmd":["/bin/sh","-c","#(nop) CMD [\"sh\"]"],"Image":"9e77fef7a1c9f989988c06620dabc4020c607885b959a2cbd7c2283c91da3e33","Volumes":null,"WorkingDir":"","Entrypoint":null,"OnBuild":null,"Labels":null},"DockerVersion":"1.8.3","Author":"","Config":{"Hostname":"aded96b43f48","Domainname":"","User":"","AttachStdin":false,"AttachStdout":false,"AttachStderr":false,"Tty":false,"OpenStdin":false,"StdinOnce":false,"Env":null,"Cmd":["sh"],"Image":"9e77fef7a1c9f989988c06620dabc4020c607885b959a2cbd7c2283c91da3e33","Volumes":null,"WorkingDir":"","Entrypoint":null,"OnBuild":null,"Labels":null},"Architecture":"amd64","Os":"linux"}
+
+# skopeo copy example:
+$ skopeo copy --src-creds=testuser:testpassword docker://myregistrydomain.com:5000/private oci:local_oci_image
 ```
 If your cli config is found but it doesn't contain the necessary credentials for the queried registry
-you'll get an error. You can fix this by either logging in (via `docker login`) or providing `--username`
-and `--password`.
+you'll get an error. You can fix this by either logging in (via `docker login`) or providing `--creds` or `--src-creds|--dest-creds`.
+
 Building
 -
 To build the manual you will need go-md2man.
@@ -116,7 +119,7 @@ $ brew install gpgme
 $ make binary-local
 ```
 
-You may need to install additional development packages: gpgme-devel and libassuan-devel
+You may need to install additional development packages: `gpgme-devel` and `libassuan-devel`
 ```sh
 $ dnf install gpgme-devel libassuan-devel
 ```
