@@ -81,7 +81,7 @@ install-docs: docs/skopeo.1
 	install -D -m 644 docs/skopeo.1 ${MANINSTALLDIR}/man1/skopeo.1
 
 install-completions:
-	install -m 644 -D hack/make/bash_autocomplete ${BASHINSTALLDIR}/skopeo
+	install -m 644 -D completions/bash/skopeo ${BASHINSTALLDIR}/skopeo
 
 shell: build-container
 	$(DOCKER_RUN_DOCKER) bash
