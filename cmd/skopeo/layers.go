@@ -82,7 +82,7 @@ var layersCmd = cli.Command{
 		defer dest.Close()
 
 		for _, digest := range blobDigests {
-			r, blobSize, err := rawSource.GetBlob(digest)
+			r, blobSize, err := rawSource.GetBlob(types.BlobInfo{Digest: digest, Size: -1})
 			if err != nil {
 				return err
 			}
