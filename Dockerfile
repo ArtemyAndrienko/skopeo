@@ -1,8 +1,10 @@
 FROM fedora
 
 RUN dnf -y update && dnf install -y make git golang golang-github-cpuguy83-go-md2man \
+	# gpgme bindings deps
 	libassuan-devel gpgme-devel \
 	gnupg \
+	# registry v1 deps
 	xz-devel \
 	python-devel \
 	python-pip \
@@ -29,6 +31,7 @@ RUN set -x \
 	&& rm -rf "$GOPATH" \
 	&& export DRV1="$(mktemp -d)" \
 	&& git clone https://github.com/docker/docker-registry.git "$DRV1" \
+	# no need for setuptools since we have a version conflict with fedora
 	&& sed -i.bak s/setuptools==5.8//g "$DRV1/requirements/main.txt" \
 	&& sed -i.bak s/setuptools==5.8//g "$DRV1/depends/docker-registry-core/requirements/main.txt" \
 	&& pip install "$DRV1/depends/docker-registry-core" \
