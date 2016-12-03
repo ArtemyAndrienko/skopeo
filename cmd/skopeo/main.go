@@ -30,14 +30,10 @@ func createApp() *cli.App {
 			Name:  "debug",
 			Usage: "enable debug output",
 		},
-		cli.StringFlag{
-			Name:  "cert-path",
-			Value: "",
-			Usage: "use certificates at `PATH` (cert.pem, key.pem) to connect to the registry",
-		},
 		cli.BoolTFlag{
-			Name:  "tls-verify",
-			Usage: "require HTTPS and verify certificates when talking to docker registries (defaults to true)",
+			Name:   "tls-verify",
+			Usage:  "require HTTPS and verify certificates when talking to docker registries (defaults to true)",
+			Hidden: true,
 		},
 		cli.StringFlag{
 			Name:  "policy",
@@ -53,6 +49,9 @@ func createApp() *cli.App {
 	app.Before = func(c *cli.Context) error {
 		if c.GlobalBool("debug") {
 			logrus.SetLevel(logrus.DebugLevel)
+		}
+		if c.GlobalIsSet("tls-verify") {
+			logrus.Warn("'--tls-verify' is deprecated, please set this on the specific subcommand")
 		}
 		return nil
 	}
