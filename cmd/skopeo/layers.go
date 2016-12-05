@@ -19,6 +19,7 @@ var layersCmd = cli.Command{
 	Name:      "layers",
 	Usage:     "Get layers of IMAGE-NAME",
 	ArgsUsage: "IMAGE-NAME [LAYER...]",
+	Hidden:    true,
 	Action: func(c *cli.Context) error {
 		fmt.Fprintln(os.Stderr, `DEPRECATED: skopeo layers is deprecated in favor of skopeo copy`)
 		if c.NArg() == 0 {
