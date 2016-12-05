@@ -146,6 +146,28 @@ NOT TODO
 -
 - provide a _format_ flag - just use the awesome [jq](https://stedolan.github.io/jq/)
 
+CONTRIBUTING
+-
+
+### Dependencies management
+
+`skopeo` uses a custom bash script for dependencies management. This script is located at `hack/vendor.sh`.
+
+In order to add a new dependency to this project:
+
+- add a new line to `hack/vendor.sh` (e.g. `clone git github.com/pkg/errors master`)
+- run `hack/vendor.sh`
+
+In order to update an existing dependency (or more):
+
+- update the relevant dependency line in `hack/vendor.sh`
+- run `hack/vendor.sh`
+
+In order to test out new PRs from [containers/image](https://github.com/containers/image) to not break `skopeo`:
+
+- update `hack/vendor.sh`. Find out the `containers/image` dependency; update it to vendor from your own branch and your own repository fork (e.g. `clone git github.com/containers/image my-branch https://github.com/runcom/image`)
+- run `hack/vendor.sh`
+
 License
 -
 skopeo is licensed under the Apache License, Version 2.0. See
