@@ -9,15 +9,20 @@ import (
 	"github.com/urfave/cli"
 )
 
-func contextFromGlobalOptions(c *cli.Context, credsFlag string) (*types.SystemContext, error) {
+func contextFromGlobalOptions(c *cli.Context, flagPrefix string) (*types.SystemContext, error) {
 	ctx := &types.SystemContext{
-		RegistriesDirPath:           c.GlobalString("registries.d"),
-		DockerCertPath:              c.GlobalString("cert-path"),
+		RegistriesDirPath: c.GlobalString("registries.d"),
+		DockerCertPath:    c.String(flagPrefix + "cert-dir"),
+		// DEPRECATED: keep this here for backward compatibility, but override
+		// them if per subcommand flags are provided (see below).
 		DockerInsecureSkipTLSVerify: !c.GlobalBoolT("tls-verify"),
 	}
-	if c.IsSet(credsFlag) {
+	if c.IsSet(flagPrefix + "tls-verify") {
+		ctx.DockerInsecureSkipTLSVerify = !c.BoolT(flagPrefix + "tls-verify")
+	}
+	if c.IsSet(flagPrefix + "creds") {
 		var err error
-		ctx.DockerAuthConfig, err = getDockerAuth(c.String(credsFlag))
+		ctx.DockerAuthConfig, err = getDockerAuth(c.String(flagPrefix + "creds"))
 		if err != nil {
 			return nil, err
 		}
@@ -58,7 +63,7 @@ func parseImage(c *cli.Context) (types.Image, error) {
 	if err != nil {
 		return nil, err
 	}
-	ctx, err := contextFromGlobalOptions(c, "creds")
+	ctx, err := contextFromGlobalOptions(c, "")
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +78,7 @@ func parseImageSource(c *cli.Context, name string, requestedManifestMIMETypes []
 	if err != nil {
 		return nil, err
 	}
-	ctx, err := contextFromGlobalOptions(c, "creds")
+	ctx, err := contextFromGlobalOptions(c, "")
 	if err != nil {
 		return nil, err
 	}

@@ -37,13 +37,9 @@ Most commands refer to container images, using a _transport_`:`_details_ format.
 
   **--debug** enable debug output
 
-  **--cert-path** _path_ Use certificates at _path_ (cert.pem, key.pem) to connect to the registry
-
   **--policy** _path-to-policy_ Path to a policy.json file to use for verifying signatures and deciding whether an image is trusted, overriding the default trust policy file.
 
   **--registries.d** _dir_ use registry configuration files in _dir_ (e.g. for docker signature storage), overriding the default path.
-
-  **--tls-verify** _bool-value_ Require HTTPS and verify certificates when talking to docker registries (defaults to true)
 
   **--help**|**-h** Show help
 
@@ -70,6 +66,14 @@ Uses the system's trust policy to validate images, rejects images not trusted by
 
   **--dest-creds** _username[:password]_ for accessing the destination registry
 
+  **--src-cert-dir** _path_ Use certificates at _path_ (*.crt, *.cert, *.key) to connect to the source registry
+
+  **--src-tls-verify** _bool-value_ Require HTTPS and verify certificates when talking to docker source registry (defaults to true)
+
+  **--dest-cert-dir** _path_ Use certificates at _path_ (*.crt, *.cert, *.key) to connect to the destination registry
+
+  **--dest-tls-verify** _bool-value_ Require HTTPS and verify certificates when talking to docker destination registry (defaults to true)
+
 Existing signatures, if any, are preserved as well.
 
 ## skopeo delete
@@ -82,6 +86,10 @@ $ docker exec -it registry bin/registry garbage-collect /etc/docker/registry/con
 ```
 
   **--creds** _username[:password]_ for accessing the registry
+
+  **--cert-dir** _path_ Use certificates at _path_ (*.crt, *.cert, *.key) to connect to the registry
+
+  **--tls-verify** _bool-value_ Require HTTPS and verify certificates when talking to docker registries (defaults to true)
 
 Additionally, the registry must allow deletions by setting `REGISTRY_STORAGE_DELETE_ENABLED=true` for the registry daemon.
 
@@ -96,12 +104,9 @@ Return low-level information about _image-name_ in a registry
 
   **--creds** _username[:password]_ for accessing the registry
 
-## skopeo layers
-**skopeo layers** _image-name_
+  **--cert-dir** _path_ Use certificates at _path_ (*.crt, *.cert, *.key) to connect to the registry
 
-Get image layers of _image-name_
-
-  _image-name_ name of the image to retrieve layers
+  **--tls-verify** _bool-value_ Require HTTPS and verify certificates when talking to docker registries (defaults to true)
 
 ## skopeo manifest-digest
 **skopeo manifest-digest** _manifest-file_

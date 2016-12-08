@@ -13,12 +13,12 @@ import (
 
 // contextsFromGlobalOptions returns source and destionation types.SystemContext depending on c.
 func contextsFromGlobalOptions(c *cli.Context) (*types.SystemContext, *types.SystemContext, error) {
-	sourceCtx, err := contextFromGlobalOptions(c, "src-creds")
+	sourceCtx, err := contextFromGlobalOptions(c, "src-")
 	if err != nil {
 		return nil, nil, err
 	}
 
-	destinationCtx, err := contextFromGlobalOptions(c, "dest-creds")
+	destinationCtx, err := contextFromGlobalOptions(c, "dest-")
 	if err != nil {
 		return nil, nil, err
 	}
@@ -86,6 +86,24 @@ var copyCmd = cli.Command{
 			Name:  "dest-creds, dcreds",
 			Value: "",
 			Usage: "Use `USERNAME[:PASSWORD]` for accessing the destination registry",
+		},
+		cli.StringFlag{
+			Name:  "src-cert-dir",
+			Value: "",
+			Usage: "use certificates at `PATH` (*.crt, *.cert, *.key) to connect to the source registry",
+		},
+		cli.BoolTFlag{
+			Name:  "src-tls-verify",
+			Usage: "require HTTPS and verify certificates when talking to the docker source registry (defaults to true)",
+		},
+		cli.StringFlag{
+			Name:  "dest-cert-dir",
+			Value: "",
+			Usage: "use certificates at `PATH` (*.crt, *.cert, *.key) to connect to the destination registry",
+		},
+		cli.BoolTFlag{
+			Name:  "dest-tls-verify",
+			Usage: "require HTTPS and verify certificates when talking to the docker destination registry (defaults to true)",
 		},
 	},
 }

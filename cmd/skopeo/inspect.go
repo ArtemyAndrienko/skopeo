@@ -30,6 +30,15 @@ var inspectCmd = cli.Command{
 	Usage:     "Inspect image IMAGE-NAME",
 	ArgsUsage: "IMAGE-NAME",
 	Flags: []cli.Flag{
+		cli.StringFlag{
+			Name:  "cert-path",
+			Value: "",
+			Usage: "use certificates at `PATH` (*.crt, *.cert, *.key) to connect to the registry",
+		},
+		cli.BoolTFlag{
+			Name:  "tls-verify",
+			Usage: "require HTTPS and verify certificates when talking to docker registries (defaults to true)",
+		},
 		cli.BoolFlag{
 			Name:  "raw",
 			Usage: "output raw manifest",

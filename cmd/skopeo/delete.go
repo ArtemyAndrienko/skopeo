@@ -18,7 +18,7 @@ func deleteHandler(context *cli.Context) error {
 		return fmt.Errorf("Invalid source name %s: %v", context.Args()[0], err)
 	}
 
-	ctx, err := contextFromGlobalOptions(context, "creds")
+	ctx, err := contextFromGlobalOptions(context, "")
 	if err != nil {
 		return err
 	}
@@ -38,6 +38,15 @@ var deleteCmd = cli.Command{
 			Name:  "creds",
 			Value: "",
 			Usage: "Use `USERNAME[:PASSWORD]` for accessing the registry",
+		},
+		cli.StringFlag{
+			Name:  "cert-dir",
+			Value: "",
+			Usage: "use certificates at `PATH` (*.crt, *.cert, *.key) to connect to the registry",
+		},
+		cli.BoolTFlag{
+			Name:  "tls-verify",
+			Usage: "require HTTPS and verify certificates when talking to docker registries (defaults to true)",
 		},
 	},
 }
