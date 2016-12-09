@@ -55,7 +55,7 @@ func TestStandaloneSign(t *testing.T) {
 		manifestPath, "" /* empty reference */, fixturesTestKeyFingerprint)
 	assertTestFailed(t, out, err, "empty signature content")
 
-	// Unknown key. (FIXME? The error is 'Error creating signature: End of file")
+	// Unknown key.
 	out, err = runSkopeo("standalone-sign", "-o", "/dev/null",
 		manifestPath, dockerReference, "UNKNOWN GPG FINGERPRINT")
 	assert.Error(t, err)
