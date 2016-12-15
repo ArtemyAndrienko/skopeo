@@ -8,6 +8,7 @@ source 'hack/.vendor-helpers.sh'
 clone git github.com/urfave/cli v1.17.0
 clone git github.com/containers/image master
 clone git gopkg.in/cheggaaa/pb.v1 ad4efe000aa550bb54918c06ebbadc0ff17687b9 https://github.com/cheggaaa/pb
+clone git github.com/containers/storage master
 clone git github.com/Sirupsen/logrus v0.10.0
 clone git github.com/go-check/check v1
 clone git github.com/stretchr/testify v1.1.3
@@ -34,6 +35,9 @@ clone git k8s.io/kubernetes 4a3f9c5b19c7ff804cbc1bf37a15c044ca5d2353 https://git
 clone git github.com/ghodss/yaml 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 clone git gopkg.in/yaml.v2 d466437aa4adc35830964cffc5b5f262c63ddcb4
 clone git github.com/imdario/mergo 6633656539c1639d9d78127b7d47c622b5d7b6dc
+# containers/storage's dependencies that aren't already being pulled in
+clone git github.com/mistifyio/go-zfs 22c9b32c84eb0d0c6f4043b6e90fc94073de92fa
+clone git github.com/pborman/uuid v1.0
 
 clean
 
