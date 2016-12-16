@@ -8,7 +8,7 @@ that we follow.
 * [Reporting Issues](#reporting-issues)
 * [Submitting Pull Requests](#submitting-pull-requests)
 * [Communications](#communications)
-* [Becomign a Maintainer](#becoming-a-maintainer)
+* [Becoming a Maintainer](#becoming-a-maintainer)
 
 ## Reporting Issues
 
