@@ -14,6 +14,7 @@ clone git github.com/go-check/check v1
 clone git github.com/stretchr/testify v1.1.3
 clone git github.com/davecgh/go-spew master
 clone git github.com/pmezard/go-difflib master
+clone git github.com/pkg/errors master
 # docker deps from https://github.com/docker/docker/blob/v1.11.2/hack/vendor.sh
 clone git github.com/docker/docker v1.12.1
 clone git github.com/docker/engine-api 4eca04ae18f4f93f40196a17b9aa6e11262a7269
