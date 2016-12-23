@@ -28,7 +28,7 @@ clone git golang.org/x/net master https://github.com/golang/net.git
 clone git github.com/docker/distribution 07f32ac1831ed0fc71960b7da5d6bb83cb6881b5
 clone git github.com/docker/libtrust master
 clone git github.com/opencontainers/runc master
-clone git github.com/opencontainers/image-spec 7dc1ee39c59c6949612c6fdf502a4727750cb063
+clone git github.com/opencontainers/image-spec v1.0.0-rc3
 clone git github.com/mtrmac/gpgme master
 # openshift/origin' k8s dependencies as of OpenShift v1.1.5
 clone git github.com/golang/glog 44145f04b68cf362d9c4df2182967c2275eaefed
