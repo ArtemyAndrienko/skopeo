@@ -7,7 +7,7 @@ import (
 
 	"github.com/containers/image/docker"
 	"github.com/containers/image/manifest"
-	"github.com/docker/distribution/digest"
+	"github.com/opencontainers/go-digest"
 	"github.com/urfave/cli"
 )
 

@@ -11,7 +11,7 @@ import (
 	"github.com/containers/image/image"
 	"github.com/containers/image/manifest"
 	"github.com/containers/image/types"
-	"github.com/docker/distribution/digest"
+	"github.com/opencontainers/go-digest"
 	"github.com/urfave/cli"
 )
 
@@ -46,7 +46,7 @@ var layersCmd = cli.Command{
 			if !strings.HasPrefix(dString, "sha256:") {
 				dString = "sha256:" + dString
 			}
-			d, err := digest.ParseDigest(dString)
+			d, err := digest.Parse(dString)
 			if err != nil {
 				return err
 			}

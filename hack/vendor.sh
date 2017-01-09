@@ -7,6 +7,7 @@ source 'hack/.vendor-helpers.sh'
 
 clone git github.com/urfave/cli v1.17.0
 clone git github.com/containers/image master
+clone git github.com/opencontainers/go-digest master
 clone git gopkg.in/cheggaaa/pb.v1 ad4efe000aa550bb54918c06ebbadc0ff17687b9 https://github.com/cheggaaa/pb
 clone git github.com/containers/storage master
 clone git github.com/Sirupsen/logrus v0.10.0
