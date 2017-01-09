@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	"github.com/containers/image/manifest"
-	"github.com/docker/distribution/digest"
 	"github.com/go-check/check"
+	"github.com/opencontainers/go-digest"
 )
 
 func init() {
