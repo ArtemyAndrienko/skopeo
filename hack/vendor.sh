@@ -1,46 +1,15 @@
-#!/usr/bin/env bash
+#!/bin/bash
+
+# This file is just wrapper around vndr (github.com/LK4D4/vndr) tool.
+# For updating dependencies you should change `vendor.conf` file in root of the
+# project. Please refer to https://github.com/LK4D4/vndr/blob/master/README.md for
+# vndr usage.
+
 set -e
 
-cd "$(dirname "$BASH_SOURCE")/.."
-rm -rf vendor/
-source 'hack/.vendor-helpers.sh'
+if ! hash vndr; then
+	echo "Please install vndr with \"go get github.com/LK4D4/vndr\" and put it in your \$GOPATH"
+	exit 1
+fi
 
-clone git github.com/urfave/cli v1.17.0
-clone git github.com/containers/image master
-clone git github.com/opencontainers/go-digest master
-clone git gopkg.in/cheggaaa/pb.v1 ad4efe000aa550bb54918c06ebbadc0ff17687b9 https://github.com/cheggaaa/pb
-clone git github.com/containers/storage master
-clone git github.com/Sirupsen/logrus v0.10.0
-clone git github.com/go-check/check v1
-clone git github.com/stretchr/testify v1.1.3
-clone git github.com/davecgh/go-spew master
-clone git github.com/pmezard/go-difflib master
-clone git github.com/pkg/errors master
-# docker deps from https://github.com/docker/docker/blob/v1.11.2/hack/vendor.sh
-clone git github.com/docker/docker v1.12.1
-clone git github.com/docker/engine-api 4eca04ae18f4f93f40196a17b9aa6e11262a7269
-clone git github.com/docker/go-connections 4ccf312bf1d35e5dbda654e57a9be4c3f3cd0366
-clone git github.com/vbatts/tar-split v0.9.11
-clone git github.com/gorilla/context 14f550f51a
-clone git github.com/gorilla/mux e444e69cbd
-clone git github.com/docker/go-units 651fc226e7441360384da338d0fd37f2440ffbe3
-clone git golang.org/x/net master https://github.com/golang/net.git
-# end docker deps
-clone git github.com/docker/distribution 07f32ac1831ed0fc71960b7da5d6bb83cb6881b5
-clone git github.com/docker/libtrust master
-clone git github.com/opencontainers/runc master
-clone git github.com/opencontainers/image-spec v1.0.0-rc3
-clone git github.com/mtrmac/gpgme master
-# openshift/origin' k8s dependencies as of OpenShift v1.1.5
-clone git github.com/golang/glog 44145f04b68cf362d9c4df2182967c2275eaefed
-clone git k8s.io/kubernetes 4a3f9c5b19c7ff804cbc1bf37a15c044ca5d2353 https://github.com/openshift/kubernetes
-clone git github.com/ghodss/yaml 73d445a93680fa1a78ae23a5839bad48f32ba1ee
-clone git gopkg.in/yaml.v2 d466437aa4adc35830964cffc5b5f262c63ddcb4
-clone git github.com/imdario/mergo 6633656539c1639d9d78127b7d47c622b5d7b6dc
-# containers/storage's dependencies that aren't already being pulled in
-clone git github.com/mistifyio/go-zfs 22c9b32c84eb0d0c6f4043b6e90fc94073de92fa
-clone git github.com/pborman/uuid v1.0
-
-clean
-
-mv vendor/src/* vendor/
+vndr "$@"
