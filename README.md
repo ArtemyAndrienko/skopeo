@@ -151,22 +151,22 @@ CONTRIBUTING
 
 ### Dependencies management
 
-`skopeo` uses a custom bash script for dependencies management. This script is located at `hack/vendor.sh`.
+`skopeo` uses [`vndr`](https://github.com/LK4D4/vndr) for dependencies management.
 
 In order to add a new dependency to this project:
 
-- add a new line to `hack/vendor.sh` (e.g. `clone git github.com/pkg/errors master`)
-- run `hack/vendor.sh`
+- add a new line to `vendor.conf` according to `vndr` rules (e.g. `github.com/pkg/errors master`)
+- run `vndr github.com/pkg/errors`
 
-In order to update an existing dependency (or more):
+In order to update an existing dependency:
 
-- update the relevant dependency line in `hack/vendor.sh`
-- run `hack/vendor.sh`
+- update the relevant dependency line in `vendor.conf`
+- run `vndr github.com/pkg/errors`
 
 In order to test out new PRs from [containers/image](https://github.com/containers/image) to not break `skopeo`:
 
-- update `hack/vendor.sh`. Find out the `containers/image` dependency; update it to vendor from your own branch and your own repository fork (e.g. `clone git github.com/containers/image my-branch https://github.com/runcom/image`)
-- run `hack/vendor.sh`
+- update `vendor.conf`. Find out the `containers/image` dependency; update it to vendor from your own branch and your own repository fork (e.g. `github.com/containers/image my-branch https://github.com/runcom/image`)
+- run `vndr github.com/containers/image`
 
 License
 -
