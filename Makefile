@@ -9,7 +9,7 @@ CONTAINERSSYSCONFIGDIR=${DESTDIR}/etc/containers
 REGISTRIESDDIR=${CONTAINERSSYSCONFIGDIR}/registries.d
 SIGSTOREDIR=${DESTDIR}/var/lib/atomic/sigstore
 BASHINSTALLDIR=${PREFIX}/share/bash-completion/completions
-GO_MD2MAN ?= /usr/bin/go-md2man
+GO_MD2MAN ?= go-md2man
 
 ifeq ($(DEBUG), 1)
   override GOGCFLAGS += -N -l
