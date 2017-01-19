@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/docker/distribution/context"
-	"github.com/docker/distribution/digest"
 	"github.com/docker/distribution/reference"
+	"github.com/opencontainers/go-digest"
 )
 
 var (
@@ -190,6 +190,18 @@ type BlobIngester interface {
 // TODO (brianbland): unify this with ManifestServiceOption in the future
 type BlobCreateOption interface {
 	Apply(interface{}) error
+}
+
+// CreateOptions is a collection of blob creation modifiers relevant to general
+// blob storage intended to be configured by the BlobCreateOption.Apply method.
+type CreateOptions struct {
+	Mount struct {
+		ShouldMount bool
+		From        reference.Canonical
+		// Stat allows to pass precalculated descriptor to link and return.
+		// Blob access check will be skipped if set.
+		Stat *Descriptor
+	}
 }
 
 // BlobWriter provides a handle for inserting data into a blob store.
