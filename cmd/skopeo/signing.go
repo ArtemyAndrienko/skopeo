@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -87,4 +88,41 @@ var standaloneVerifyCmd = cli.Command{
 	Usage:     "Verify a signature using local files",
 	ArgsUsage: "MANIFEST DOCKER-REFERENCE KEY-FINGERPRINT SIGNATURE",
 	Action:    standaloneVerify,
+}
+
+func untrustedSignatureDump(context *cli.Context) error {
+	if len(context.Args()) != 1 {
+		return errors.New("Usage: skopeo untrusted-signature-dump-without-verification signature")
+	}
+	untrustedSignaturePath := context.Args()[0]
+
+	untrustedSignature, err := ioutil.ReadFile(untrustedSignaturePath)
+	if err != nil {
+		return fmt.Errorf("Error reading untrusted signature from %s: %v", untrustedSignaturePath, err)
+	}
+
+	untrustedInfo, err := signature.GetUntrustedSignatureInformationWithoutVerifying(untrustedSignature)
+	if err != nil {
+		return fmt.Errorf("Error decoding untrusted signature: %v", err)
+	}
+	untrustedOut, err := json.MarshalIndent(untrustedInfo, "", "    ")
+	if err != nil {
+		return err
+	}
+	fmt.Fprintln(context.App.Writer, string(untrustedOut))
+	return nil
+}
+
+// WARNING: Do not use the contents of this for ANY security decisions,
+// and be VERY CAREFUL about showing this information to humans in any way which suggest that these values “are probably” reliable.
+// There is NO REASON to expect the values to be correct, or not intentionally misleading
+// (including things like “✅ Verified by $authority”)
+//
+// The subcommand is undocumented, and it may be renamed or entirely disappear in the future.
+var untrustedSignatureDumpCmd = cli.Command{
+	Name:      "untrusted-signature-dump-without-verification",
+	Usage:     "Dump contents of a signature WITHOUT VERIFYING IT",
+	ArgsUsage: "SIGNATURE",
+	Hidden:    true,
+	Action:    untrustedSignatureDump,
 }

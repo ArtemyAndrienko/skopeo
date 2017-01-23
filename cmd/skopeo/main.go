@@ -64,6 +64,7 @@ func createApp() *cli.App {
 		manifestDigestCmd,
 		standaloneSignCmd,
 		standaloneVerifyCmd,
+		untrustedSignatureDumpCmd,
 	}
 	return app
 }
