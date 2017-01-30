@@ -48,12 +48,12 @@ all: binary docs
 binary: cmd/skopeo
 	docker build ${DOCKER_BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
 	docker run --rm --security-opt label:disable -v $$(pwd):/src/github.com/projectatomic/skopeo \
-		skopeobuildimage make binary-local $(if $(DEBUG),DEBUG=$(DEBUG))
+		skopeobuildimage make binary-local $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
 
 binary-static: cmd/skopeo
 	docker build ${DOCKER_BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
 	docker run --rm --security-opt label:disable -v $$(pwd):/src/github.com/projectatomic/skopeo \
-		skopeobuildimage make binary-local-static $(if $(DEBUG),DEBUG=$(DEBUG))
+		skopeobuildimage make binary-local-static $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
 
 # Build w/o using Docker containers
 binary-local:
@@ -95,11 +95,11 @@ check: validate test-unit test-integration
 
 # The tests can run out of entropy and block in containers, so replace /dev/random.
 test-integration: build-container
-	$(DOCKER_RUN_DOCKER) bash -c 'rm -f /dev/random; ln -sf /dev/urandom /dev/random; SKOPEO_CONTAINER_TESTS=1 hack/make.sh test-integration'
+	$(DOCKER_RUN_DOCKER) bash -c 'rm -f /dev/random; ln -sf /dev/urandom /dev/random; SKOPEO_CONTAINER_TESTS=1 BUILDTAGS="$(BUILDTAGS)" hack/make.sh test-integration'
 
 test-unit: build-container
 	# Just call (make test unit-local) here instead of worrying about environment differences, e.g. GO15VENDOREXPERIMENT.
-	$(DOCKER_RUN_DOCKER) make test-unit-local
+	$(DOCKER_RUN_DOCKER) make test-unit-local BUILDTAGS='$(BUILDTAGS)'
 
 validate: build-container
 	$(DOCKER_RUN_DOCKER) hack/make.sh validate-git-marks validate-gofmt validate-lint validate-vet

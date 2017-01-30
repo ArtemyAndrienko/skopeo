@@ -72,10 +72,10 @@ TESTFLAGS+=" -test.timeout=10m"
 go_test_dir() {
 	dir=$1
 	(
-		echo '+ go test' $TESTFLAGS "${SKOPEO_PKG}${dir#.}"
+		echo '+ go test' $TESTFLAGS ${BUILDTAGS:+-tags "$BUILDTAGS"} "${SKOPEO_PKG}${dir#.}"
 		cd "$dir"
 		export DEST="$ABS_DEST" # we're in a subshell, so this is safe -- our integration-cli tests need DEST, and "cd" screws it up
-		go test $TESTFLAGS
+		go test $TESTFLAGS ${BUILDTAGS:+-tags "$BUILDTAGS"}
 	)
 }
 
