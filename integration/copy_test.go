@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -13,6 +14,7 @@ import (
 	"github.com/containers/image/manifest"
 	"github.com/go-check/check"
 	"github.com/opencontainers/go-digest"
+	"github.com/opencontainers/image-tools/image"
 )
 
 func init() {
@@ -184,6 +186,53 @@ func (s *CopySuite) TestCopyStreaming(c *check.C) {
 	out := combinedOutputOfCommand(c, "diff", "-urN", dir1, dir2)
 	c.Assert(out, check.Equals, "")
 	// FIXME: Also check pushing to docker://
+}
+
+// OCI round-trip testing. It's very important to make sure that OCI <-> Docker
+// conversion works (while skopeo handles many things, one of the most obvious
+// benefits of a tool like skopeo is that you can use OCI tooling to create an
+// image and then as the final step convert the image to a non-standard format
+// like Docker). But this only works if we _test_ it.
+func (s *CopySuite) TestCopyOCIRoundTrip(c *check.C) {
+	const ourRegistry = "docker://" + v2DockerRegistryURL + "/"
+
+	oci1, err := ioutil.TempDir("", "oci-1")
+	c.Assert(err, check.IsNil)
+	defer os.RemoveAll(oci1)
+	oci2, err := ioutil.TempDir("", "oci-2")
+	c.Assert(err, check.IsNil)
+	defer os.RemoveAll(oci2)
+
+	// Docker -> OCI
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--debug", "copy", "docker://busybox", "oci:"+oci1+":latest")
+	// OCI -> Docker
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--debug", "copy", "oci:"+oci1+":latest", ourRegistry+"original/busybox:oci_copy")
+	// Docker -> OCI
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--debug", "copy", ourRegistry+"original/busybox:oci_copy", "oci:"+oci2+":latest")
+	// OCI -> Docker
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--debug", "copy", "oci:"+oci2+":latest", ourRegistry+"original/busybox:oci_copy2")
+
+	// TODO: Add some more tags to output to and check those work properly.
+
+	// First, make sure the OCI blobs are the same. This should _always_ be true.
+	out := combinedOutputOfCommand(c, "diff", "-urN", oci1+"/blobs", oci2+"/blobs")
+	c.Assert(out, check.Equals, "")
+
+	// For some silly reason we pass a logger to the OCI library here...
+	logger := log.New(os.Stderr, "", 0)
+
+	// TODO: Verify using the upstream OCI image validator.
+	err = image.ValidateLayout(oci1, nil, logger)
+	c.Assert(err, check.IsNil)
+	err = image.ValidateLayout(oci2, nil, logger)
+	c.Assert(err, check.IsNil)
+
+	// Now verify that everything is identical. Currently this is true, but
+	// because we recompute the manifests on-the-fly this doesn't necessarily
+	// always have to be true (but if this breaks in the future __PLEASE__ make
+	// sure that the breakage actually makes sense before removing this check).
+	out = combinedOutputOfCommand(c, "diff", "-urN", oci1, oci2)
+	c.Assert(out, check.Equals, "")
 }
 
 // --sign-by and --policy copy, primarily using atomic:
