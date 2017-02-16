@@ -12,21 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package specs
+package image
 
-import "fmt"
+// SpecURL is the URL for the image-spec repository
+var SpecURL = "https://github.com/opencontainers/image-spec"
 
-const (
-	// VersionMajor is for an API incompatible changes
-	VersionMajor = 1
-	// VersionMinor is for functionality in a backwards-compatible manner
-	VersionMinor = 0
-	// VersionPatch is for backwards-compatible bug fixes
-	VersionPatch = 0
-
-	// VersionDev indicates development branch. Releases will be empty string.
-	VersionDev = "-rc4"
-)
-
-// Version is the specification version that the package types support.
-var Version = fmt.Sprintf("%d.%d.%d%s", VersionMajor, VersionMinor, VersionPatch, VersionDev)
+// IssuesURL is the URL for the issues of image-tools
+var IssuesURL = "https://github.com/opencontainers/image-tools/issues"

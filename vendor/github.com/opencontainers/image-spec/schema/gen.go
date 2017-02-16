@@ -12,21 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package specs
+package schema
 
-import "fmt"
+// Generates an embbedded http.FileSystem for all schema files
+// using esc (https://github.com/mjibson/esc).
 
-const (
-	// VersionMajor is for an API incompatible changes
-	VersionMajor = 1
-	// VersionMinor is for functionality in a backwards-compatible manner
-	VersionMinor = 0
-	// VersionPatch is for backwards-compatible bug fixes
-	VersionPatch = 0
-
-	// VersionDev indicates development branch. Releases will be empty string.
-	VersionDev = "-rc4"
-)
-
-// Version is the specification version that the package types support.
-var Version = fmt.Sprintf("%d.%d.%d%s", VersionMajor, VersionMinor, VersionPatch, VersionDev)
+// This should generally be invoked with `make schema-fs`
+//go:generate esc -private -pkg=schema -ignore=.*go .
