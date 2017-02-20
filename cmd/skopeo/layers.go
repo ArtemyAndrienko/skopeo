@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -12,6 +11,7 @@ import (
 	"github.com/containers/image/manifest"
 	"github.com/containers/image/types"
 	"github.com/opencontainers/go-digest"
+	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
@@ -20,7 +20,7 @@ var layersCmd = cli.Command{
 	Usage:     "Get layers of IMAGE-NAME",
 	ArgsUsage: "IMAGE-NAME [LAYER...]",
 	Hidden:    true,
-	Action: func(c *cli.Context) error {
+	Action: func(c *cli.Context) (retErr error) {
 		fmt.Fprintln(os.Stderr, `DEPRECATED: skopeo layers is deprecated in favor of skopeo copy`)
 		if c.NArg() == 0 {
 			return errors.New("Usage: layers imageReference [layer...]")
@@ -36,10 +36,17 @@ var layersCmd = cli.Command{
 		}
 		src, err := image.FromSource(rawSource)
 		if err != nil {
-			rawSource.Close()
+			if closeErr := rawSource.Close(); closeErr != nil {
+				return errors.Wrapf(err, " (close error: %v)", closeErr)
+			}
+
 			return err
 		}
-		defer src.Close()
+		defer func() {
+			if err := src.Close(); err != nil {
+				retErr = errors.Wrapf(retErr, " (close error: %v)", err)
+			}
+		}()
 
 		var blobDigests []digest.Digest
 		for _, dString := range c.Args().Tail() {
@@ -80,7 +87,12 @@ var layersCmd = cli.Command{
 		if err != nil {
 			return err
 		}
-		defer dest.Close()
+
+		defer func() {
+			if err := dest.Close(); err != nil {
+				retErr = errors.Wrapf(retErr, " (close error: %v)", err)
+			}
+		}()
 
 		for _, digest := range blobDigests {
 			r, blobSize, err := rawSource.GetBlob(types.BlobInfo{Digest: digest, Size: -1})
@@ -88,10 +100,11 @@ var layersCmd = cli.Command{
 				return err
 			}
 			if _, err := dest.PutBlob(r, types.BlobInfo{Digest: digest, Size: blobSize}); err != nil {
-				r.Close()
+				if closeErr := r.Close(); closeErr != nil {
+					return errors.Wrapf(err, " (close error: %v)", closeErr)
+				}
 				return err
 			}
-			r.Close()
 		}
 
 		manifest, _, err := src.Manifest()
