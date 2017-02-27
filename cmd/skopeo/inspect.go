@@ -8,6 +8,7 @@ import (
 	"github.com/containers/image/docker"
 	"github.com/containers/image/manifest"
 	"github.com/opencontainers/go-digest"
+	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
@@ -49,12 +50,17 @@ var inspectCmd = cli.Command{
 			Usage: "Use `USERNAME[:PASSWORD]` for accessing the registry",
 		},
 	},
-	Action: func(c *cli.Context) error {
+	Action: func(c *cli.Context) (retErr error) {
 		img, err := parseImage(c)
 		if err != nil {
 			return err
 		}
-		defer img.Close()
+
+		defer func() {
+			if err := img.Close(); err != nil {
+				retErr = errors.Wrapf(retErr, fmt.Sprintf("(could not close image: %v) ", err))
+			}
+		}()
 
 		rawManifest, _, err := img.Manifest()
 		if err != nil {
