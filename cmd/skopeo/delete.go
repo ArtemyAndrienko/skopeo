@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/containers/image/transports"
+	"github.com/containers/image/transports/alltransports"
 	"github.com/urfave/cli"
 )
 
@@ -13,7 +13,7 @@ func deleteHandler(context *cli.Context) error {
 		return errors.New("Usage: delete imageReference")
 	}
 
-	ref, err := transports.ParseImageName(context.Args()[0])
+	ref, err := alltransports.ParseImageName(context.Args()[0])
 	if err != nil {
 		return fmt.Errorf("Invalid source name %s: %v", context.Args()[0], err)
 	}

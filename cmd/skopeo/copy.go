@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/containers/image/copy"
-	"github.com/containers/image/transports"
+	"github.com/containers/image/transports/alltransports"
 	"github.com/containers/image/types"
 	"github.com/urfave/cli"
 )
@@ -37,11 +37,11 @@ func copyHandler(context *cli.Context) error {
 	}
 	defer policyContext.Destroy()
 
-	srcRef, err := transports.ParseImageName(context.Args()[0])
+	srcRef, err := alltransports.ParseImageName(context.Args()[0])
 	if err != nil {
 		return fmt.Errorf("Invalid source name %s: %v", context.Args()[0], err)
 	}
-	destRef, err := transports.ParseImageName(context.Args()[1])
+	destRef, err := alltransports.ParseImageName(context.Args()[1])
 	if err != nil {
 		return fmt.Errorf("Invalid destination name %s: %v", context.Args()[1], err)
 	}
