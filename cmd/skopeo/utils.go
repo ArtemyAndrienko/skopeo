@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/containers/image/transports"
+	"github.com/containers/image/transports/alltransports"
 	"github.com/containers/image/types"
 	"github.com/urfave/cli"
 )
@@ -59,7 +59,7 @@ func getDockerAuth(creds string) (*types.DockerAuthConfig, error) {
 // The caller must call .Close() on the returned Image.
 func parseImage(c *cli.Context) (types.Image, error) {
 	imgName := c.Args().First()
-	ref, err := transports.ParseImageName(imgName)
+	ref, err := alltransports.ParseImageName(imgName)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func parseImage(c *cli.Context) (types.Image, error) {
 // requestedManifestMIMETypes is as in types.ImageReference.NewImageSource.
 // The caller must call .Close() on the returned ImageSource.
 func parseImageSource(c *cli.Context, name string, requestedManifestMIMETypes []string) (types.ImageSource, error) {
-	ref, err := transports.ParseImageName(name)
+	ref, err := alltransports.ParseImageName(name)
 	if err != nil {
 		return nil, err
 	}
