@@ -16,6 +16,7 @@ func contextFromGlobalOptions(c *cli.Context, flagPrefix string) (*types.SystemC
 		// DEPRECATED: keep this here for backward compatibility, but override
 		// them if per subcommand flags are provided (see below).
 		DockerInsecureSkipTLSVerify: !c.GlobalBoolT("tls-verify"),
+		OSTreeTmpDirPath:            c.String(flagPrefix + "ostree-tmp-dir"),
 	}
 	if c.IsSet(flagPrefix + "tls-verify") {
 		ctx.DockerInsecureSkipTLSVerify = !c.BoolT(flagPrefix + "tls-verify")

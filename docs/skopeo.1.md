@@ -74,6 +74,8 @@ Uses the system's trust policy to validate images, rejects images not trusted by
 
   **--dest-cert-dir** _path_ Use certificates at _path_ (*.crt, *.cert, *.key) to connect to the destination registry
 
+  **--dest-ostree-tmp-dir** _path_ Directory to use for OSTree temporary files.
+
   **--dest-tls-verify** _bool-value_ Require HTTPS and verify certificates when talking to docker destination registry (defaults to true)
 
 Existing signatures, if any, are preserved as well.

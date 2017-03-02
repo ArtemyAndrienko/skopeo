@@ -27,6 +27,7 @@ _skopeo_copy() {
 	--src-tls-verify
 	--dest-creds --dcreds
 	--dest-cert-dir
+	--dest-ostree-tmp-dir
 	--dest-tls-verify
      "
      local boolean_options="
