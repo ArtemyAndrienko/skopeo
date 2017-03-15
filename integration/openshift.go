@@ -126,13 +126,35 @@ func (c *openshiftCluster) startMaster() {
 
 // startRegistry starts the OpenShift registry and waits for it to be ready, or terminates on failure.
 func (c *openshiftCluster) startRegistry() {
-	//KUBECONFIG=openshift.local.config/master/openshift-registry.kubeconfig DOCKER_REGISTRY_URL=127.0.0.1:5000
+	// This partially mimics the objects created by (oadm registry), except that we run the
+	// server directly as an ordinary process instead of a pod with an implicitly attached service account.
+	saJSON := `{
+		"apiVersion": "v1",
+		"kind": "ServiceAccount",
+		"metadata": {
+			"name": "registry"
+		}
+	}`
+	cmd := c.clusterCmd(adminKUBECONFIG, "oc", "create", "-f", "-")
+	runExecCmdWithInput(c.c, cmd, saJSON)
+
+	cmd = c.clusterCmd(adminKUBECONFIG, "oadm", "policy", "add-cluster-role-to-user", "system:registry", "-z", "registry")
+	out, err := cmd.CombinedOutput()
+	c.c.Assert(err, check.IsNil, check.Commentf("%s", string(out)))
+	c.c.Assert(string(out), check.Equals, "cluster role \"system:registry\" added: \"registry\"\n")
+
+	cmd = c.clusterCmd(adminKUBECONFIG, "oadm", "create-api-client-config", "--client-dir=openshift.local.registry", "--basename=openshift-registry", "--user=system:serviceaccount:default:registry")
+	out, err = cmd.CombinedOutput()
+	c.c.Assert(err, check.IsNil, check.Commentf("%s", string(out)))
+	c.c.Assert(string(out), check.Equals, "")
+
+	//KUBECONFIG=openshift.local.registry/openshift-registry.kubeconfig DOCKER_REGISTRY_URL=127.0.0.1:5000
 	c.registry = c.clusterCmd(map[string]string{
-		"KUBECONFIG":          "openshift.local.config/master/openshift-registry.kubeconfig",
+		"KUBECONFIG":          "openshift.local.registry/openshift-registry.kubeconfig",
 		"DOCKER_REGISTRY_URL": "127.0.0.1:5000",
 	}, "dockerregistry", "/atomic-registry-config.yml")
 	consumeAndLogOutputs(c.c, "registry", c.registry)
-	err := c.registry.Start()
+	err = c.registry.Start()
 	c.c.Assert(err, check.IsNil)
 
 	portOpen, terminatePortCheck := newPortChecker(c.c, 5000)
@@ -185,7 +207,7 @@ func (c *openshiftCluster) relaxImageSignerPermissions() {
 	cmd := c.clusterCmd(adminKUBECONFIG, "oadm", "policy", "add-cluster-role-to-group", "system:image-signer", "system:authenticated")
 	out, err := cmd.CombinedOutput()
 	c.c.Assert(err, check.IsNil, check.Commentf("%s", string(out)))
-	c.c.Assert(string(out), check.Equals, "")
+	c.c.Assert(string(out), check.Equals, "cluster role \"system:image-signer\" added: \"system:authenticated\"\n")
 }
 
 // tearDown stops the cluster services and deletes (only some!) of the state.
