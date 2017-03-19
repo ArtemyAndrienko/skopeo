@@ -32,7 +32,7 @@ var inspectCmd = cli.Command{
 	ArgsUsage: "IMAGE-NAME",
 	Flags: []cli.Flag{
 		cli.StringFlag{
-			Name:  "cert-path",
+			Name:  "cert-dir",
 			Value: "",
 			Usage: "use certificates at `PATH` (*.crt, *.cert, *.key) to connect to the registry",
 		},
