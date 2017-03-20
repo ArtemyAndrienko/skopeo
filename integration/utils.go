@@ -74,9 +74,15 @@ func assertSkopeoFails(c *check.C, regexp string, args ...string) {
 // runCommandWithInput runs a command as if exec.Command(), sending it the input to stdin,
 // and verifies that the exit status is 0, or terminates c on failure.
 func runCommandWithInput(c *check.C, input string, name string, args ...string) {
-	c.Logf("Running %s %s", name, strings.Join(args, " "))
 	cmd := exec.Command(name, args...)
-	consumeAndLogOutputs(c, name+" "+strings.Join(args, " "), cmd)
+	runExecCmdWithInput(c, cmd, input)
+}
+
+// runExecCmdWithInput runs an exec.Cmd, sending it the input to stdin,
+// and verifies that the exit status is 0, or terminates c on failure.
+func runExecCmdWithInput(c *check.C, cmd *exec.Cmd, input string) {
+	c.Logf("Running %s %s", cmd.Path, strings.Join(cmd.Args, " "))
+	consumeAndLogOutputs(c, cmd.Path+" "+strings.Join(cmd.Args, " "), cmd)
 	stdin, err := cmd.StdinPipe()
 	c.Assert(err, check.IsNil)
 	err = cmd.Start()

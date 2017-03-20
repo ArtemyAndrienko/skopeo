@@ -14,6 +14,10 @@ import (
 	"github.com/go-check/check"
 )
 
+var adminKUBECONFIG = map[string]string{
+	"KUBECONFIG": "openshift.local.config/master/admin.kubeconfig",
+}
+
 // openshiftCluster is an OpenShift API master and integrated registry
 // running on localhost.
 type openshiftCluster struct {
@@ -42,10 +46,20 @@ func startOpenshiftCluster(c *check.C) *openshiftCluster {
 	return cluster
 }
 
+// clusterCmd creates an exec.Cmd in c.workingDir with current environment modified by environment
+func (c *openshiftCluster) clusterCmd(env map[string]string, name string, args ...string) *exec.Cmd {
+	cmd := exec.Command(name, args...)
+	cmd.Dir = c.workingDir
+	cmd.Env = os.Environ()
+	for key, value := range env {
+		cmd.Env = modifyEnviron(cmd.Env, key, value)
+	}
+	return cmd
+}
+
 // startMaster starts the OpenShift master (etcd+API server) and waits for it to be ready, or terminates on failure.
 func (c *openshiftCluster) startMaster() {
-	c.master = exec.Command("openshift", "start", "master")
-	c.master.Dir = c.workingDir
+	c.master = c.clusterCmd(nil, "openshift", "start", "master")
 	stdout, err := c.master.StdoutPipe()
 	// Send both to the same pipe. This might cause the two streams to be mixed up,
 	// but logging actually goes only to stderr - this primarily ensure we log any
@@ -112,14 +126,35 @@ func (c *openshiftCluster) startMaster() {
 
 // startRegistry starts the OpenShift registry and waits for it to be ready, or terminates on failure.
 func (c *openshiftCluster) startRegistry() {
-	//KUBECONFIG=openshift.local.config/master/openshift-registry.kubeconfig DOCKER_REGISTRY_URL=127.0.0.1:5000
-	c.registry = exec.Command("dockerregistry", "/atomic-registry-config.yml")
-	c.registry.Dir = c.workingDir
-	c.registry.Env = os.Environ()
-	c.registry.Env = modifyEnviron(c.registry.Env, "KUBECONFIG", "openshift.local.config/master/openshift-registry.kubeconfig")
-	c.registry.Env = modifyEnviron(c.registry.Env, "DOCKER_REGISTRY_URL", "127.0.0.1:5000")
+	// This partially mimics the objects created by (oadm registry), except that we run the
+	// server directly as an ordinary process instead of a pod with an implicitly attached service account.
+	saJSON := `{
+		"apiVersion": "v1",
+		"kind": "ServiceAccount",
+		"metadata": {
+			"name": "registry"
+		}
+	}`
+	cmd := c.clusterCmd(adminKUBECONFIG, "oc", "create", "-f", "-")
+	runExecCmdWithInput(c.c, cmd, saJSON)
+
+	cmd = c.clusterCmd(adminKUBECONFIG, "oadm", "policy", "add-cluster-role-to-user", "system:registry", "-z", "registry")
+	out, err := cmd.CombinedOutput()
+	c.c.Assert(err, check.IsNil, check.Commentf("%s", string(out)))
+	c.c.Assert(string(out), check.Equals, "cluster role \"system:registry\" added: \"registry\"\n")
+
+	cmd = c.clusterCmd(adminKUBECONFIG, "oadm", "create-api-client-config", "--client-dir=openshift.local.registry", "--basename=openshift-registry", "--user=system:serviceaccount:default:registry")
+	out, err = cmd.CombinedOutput()
+	c.c.Assert(err, check.IsNil, check.Commentf("%s", string(out)))
+	c.c.Assert(string(out), check.Equals, "")
+
+	//KUBECONFIG=openshift.local.registry/openshift-registry.kubeconfig DOCKER_REGISTRY_URL=127.0.0.1:5000
+	c.registry = c.clusterCmd(map[string]string{
+		"KUBECONFIG":          "openshift.local.registry/openshift-registry.kubeconfig",
+		"DOCKER_REGISTRY_URL": "127.0.0.1:5000",
+	}, "dockerregistry", "/atomic-registry-config.yml")
 	consumeAndLogOutputs(c.c, "registry", c.registry)
-	err := c.registry.Start()
+	err = c.registry.Start()
 	c.c.Assert(err, check.IsNil)
 
 	portOpen, terminatePortCheck := newPortChecker(c.c, 5000)
@@ -134,8 +169,7 @@ func (c *openshiftCluster) startRegistry() {
 // ocLogin runs (oc login) and (oc new-project) on the cluster, or terminates on failure.
 func (c *openshiftCluster) ocLoginToProject() {
 	c.c.Logf("oc login")
-	cmd := exec.Command("oc", "login", "--certificate-authority=openshift.local.config/master/ca.crt", "-u", "myuser", "-p", "mypw", "https://localhost:8443")
-	cmd.Dir = c.workingDir
+	cmd := c.clusterCmd(nil, "oc", "login", "--certificate-authority=openshift.local.config/master/ca.crt", "-u", "myuser", "-p", "mypw", "https://localhost:8443")
 	out, err := cmd.CombinedOutput()
 	c.c.Assert(err, check.IsNil, check.Commentf("%s", out))
 	c.c.Assert(string(out), check.Matches, "(?s).*Login successful.*") // (?s) : '.' will also match newlines
@@ -170,13 +204,10 @@ func (c *openshiftCluster) dockerLogin() {
 // FIXME: This also allows anyone to DoS anyone else; this design is really not all
 // that workable, but it is the best we can do for now.
 func (c *openshiftCluster) relaxImageSignerPermissions() {
-	cmd := exec.Command("oadm", "policy", "add-cluster-role-to-group", "system:image-signer", "system:authenticated")
-	cmd.Dir = c.workingDir
-	cmd.Env = os.Environ()
-	cmd.Env = modifyEnviron(cmd.Env, "KUBECONFIG", "openshift.local.config/master/admin.kubeconfig")
+	cmd := c.clusterCmd(adminKUBECONFIG, "oadm", "policy", "add-cluster-role-to-group", "system:image-signer", "system:authenticated")
 	out, err := cmd.CombinedOutput()
 	c.c.Assert(err, check.IsNil, check.Commentf("%s", string(out)))
-	c.c.Assert(string(out), check.Equals, "")
+	c.c.Assert(string(out), check.Equals, "cluster role \"system:image-signer\" added: \"system:authenticated\"\n")
 }
 
 // tearDown stops the cluster services and deletes (only some!) of the state.

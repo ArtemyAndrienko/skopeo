@@ -118,8 +118,7 @@ func (s *CopySuite) TestCopySimpleAtomicRegistry(c *check.C) {
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--debug", "copy", "dir:"+dir1, "atomic:localhost:5000/myns/unsigned:unsigned")
 	// The result of pushing and pulling is an unmodified image.
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/unsigned:unsigned", "dir:"+dir2)
-	out := combinedOutputOfCommand(c, "diff", "-urN", dir1, dir2)
-	c.Assert(out, check.Equals, "")
+	destructiveCheckDirImagesAreEqual(c, dir1, dir2)
 }
 
 // The most basic (skopeo copy) use:
@@ -153,22 +152,10 @@ func (s *CopySuite) TestCopySimple(c *check.C) {
 	c.Assert(err, check.IsNil)
 }
 
-// Streaming (skopeo copy)
-func (s *CopySuite) TestCopyStreaming(c *check.C) {
-	dir1, err := ioutil.TempDir("", "streaming-1")
-	c.Assert(err, check.IsNil)
-	defer os.RemoveAll(dir1)
-	dir2, err := ioutil.TempDir("", "streaming-2")
-	c.Assert(err, check.IsNil)
-	defer os.RemoveAll(dir2)
-
-	// FIXME: It would be nice to use one of the local Docker registries instead of neeeding an Internet connection.
-	// streaming: docker: → atomic:
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--debug", "copy", "docker://estesp/busybox:amd64", "atomic:localhost:5000/myns/unsigned:streaming")
-	// Compare (copies of) the original and the copy:
-	assertSkopeoSucceeds(c, "", "copy", "docker://estesp/busybox:amd64", "dir:"+dir1)
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/unsigned:streaming", "dir:"+dir2)
-	// The manifests will have different JWS signatures; so, compare the manifests by digests, which
+// Check whether dir: images in dir1 and dir2 are equal.
+// WARNING: This modifies the contents of dir1 and dir2!
+func destructiveCheckDirImagesAreEqual(c *check.C, dir1, dir2 string) {
+	// The manifests may have different JWS signatures; so, compare the manifests by digests, which
 	// strips the signatures, and remove them, comparing the rest file by file.
 	digests := []digest.Digest{}
 	for _, dir := range []string{dir1, dir2} {
@@ -185,6 +172,24 @@ func (s *CopySuite) TestCopyStreaming(c *check.C) {
 	c.Assert(digests[0], check.Equals, digests[1])
 	out := combinedOutputOfCommand(c, "diff", "-urN", dir1, dir2)
 	c.Assert(out, check.Equals, "")
+}
+
+// Streaming (skopeo copy)
+func (s *CopySuite) TestCopyStreaming(c *check.C) {
+	dir1, err := ioutil.TempDir("", "streaming-1")
+	c.Assert(err, check.IsNil)
+	defer os.RemoveAll(dir1)
+	dir2, err := ioutil.TempDir("", "streaming-2")
+	c.Assert(err, check.IsNil)
+	defer os.RemoveAll(dir2)
+
+	// FIXME: It would be nice to use one of the local Docker registries instead of neeeding an Internet connection.
+	// streaming: docker: → atomic:
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--debug", "copy", "docker://estesp/busybox:amd64", "atomic:localhost:5000/myns/unsigned:streaming")
+	// Compare (copies of) the original and the copy:
+	assertSkopeoSucceeds(c, "", "copy", "docker://estesp/busybox:amd64", "dir:"+dir1)
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/unsigned:streaming", "dir:"+dir2)
+	destructiveCheckDirImagesAreEqual(c, dir1, dir2)
 	// FIXME: Also check pushing to docker://
 }
 
