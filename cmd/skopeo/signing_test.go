@@ -31,6 +31,13 @@ func assertTestFailed(t *testing.T, stdout string, err error, substring string) 
 }
 
 func TestStandaloneSign(t *testing.T) {
+	mech, _, err := signature.NewEphemeralGPGSigningMechanism([]byte{})
+	require.NoError(t, err)
+	defer mech.Close()
+	if err := mech.SupportsSigning(); err != nil {
+		t.Skipf("Signing not supported: %v", err)
+	}
+
 	manifestPath := "fixtures/image.manifest.json"
 	dockerReference := "testing/manifest"
 	os.Setenv("GNUPGHOME", "fixtures")
@@ -76,17 +83,18 @@ func TestStandaloneSign(t *testing.T) {
 	defer os.Remove(sigOutput.Name())
 	out, err = runSkopeo("standalone-sign", "-o", sigOutput.Name(),
 		manifestPath, dockerReference, fixturesTestKeyFingerprint)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Empty(t, out)
 
 	sig, err := ioutil.ReadFile(sigOutput.Name())
 	require.NoError(t, err)
 	manifest, err := ioutil.ReadFile(manifestPath)
 	require.NoError(t, err)
-	mech, err := signature.NewGPGSigningMechanism()
+	mech, err = signature.NewGPGSigningMechanism()
 	require.NoError(t, err)
+	defer mech.Close()
 	verified, err := signature.VerifyDockerManifestSignature(sig, manifest, dockerReference, mech, fixturesTestKeyFingerprint)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, dockerReference, verified.DockerReference)
 	assert.Equal(t, fixturesTestImageManifestDigest, verified.DockerManifestDigest)
 }

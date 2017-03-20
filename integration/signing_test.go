@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/containers/image/signature"
 	"github.com/go-check/check"
 )
 
@@ -36,7 +37,14 @@ func findFingerprint(lineBytes []byte) (string, error) {
 }
 
 func (s *SigningSuite) SetUpTest(c *check.C) {
-	_, err := exec.LookPath(skopeoBinary)
+	mech, _, err := signature.NewEphemeralGPGSigningMechanism([]byte{})
+	c.Assert(err, check.IsNil)
+	defer mech.Close()
+	if err := mech.SupportsSigning(); err != nil { // FIXME? Test that verification and policy enforcement works, using signatures from fixtures
+		c.Skip(fmt.Sprintf("Signing not supported: %v", err))
+	}
+
+	_, err = exec.LookPath(skopeoBinary)
 	c.Assert(err, check.IsNil)
 
 	s.gpgHome, err = ioutil.TempDir("", "skopeo-gpg")

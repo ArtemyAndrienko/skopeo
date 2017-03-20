@@ -28,6 +28,7 @@ func standaloneSign(context *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("Error initializing GPG: %v", err)
 	}
+	defer mech.Close()
 	signature, err := signature.SignDockerManifest(manifest, dockerReference, mech, fingerprint)
 	if err != nil {
 		return fmt.Errorf("Error creating signature: %v", err)
@@ -74,6 +75,7 @@ func standaloneVerify(context *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("Error initializing GPG: %v", err)
 	}
+	defer mech.Close()
 	sig, err := signature.VerifyDockerManifestSignature(unverifiedSignature, unverifiedManifest, expectedDockerReference, mech, expectedFingerprint)
 	if err != nil {
 		return fmt.Errorf("Error verifying signature: %v", err)
