@@ -23,10 +23,10 @@ _skopeo_copy() {
      local options_with_args="
 	--sign-by
 	--src-creds --screds
-	--src-cert-path
+	--src-cert-dir
 	--src-tls-verify
 	--dest-creds --dcreds
-	--dest-cert-path
+	--dest-cert-dir
 	--dest-tls-verify
      "
      local boolean_options="
@@ -38,7 +38,7 @@ _skopeo_copy() {
 _skopeo_inspect() {
      local options_with_args="
 	--creds
-	--cert-path
+	--cert-dir
      "
      local boolean_options="
 	--raw
@@ -75,7 +75,7 @@ _skopeo_manifest_digest() {
 _skopeo_delete() {
      local options_with_args="
 	   --creds
-	   --cert-path
+	   --cert-dir
      "
      local boolean_options="
 	   --tls-verify
@@ -86,7 +86,7 @@ _skopeo_delete() {
 _skopeo_layers() {
      local options_with_args="
 	   --creds
-	   --cert-path
+	   --cert-dir
      "
      local boolean_options="
 	   --tls-verify
