@@ -39,6 +39,8 @@ Most commands refer to container images, using a _transport_`:`_details_ format.
 
   **--policy** _path-to-policy_ Path to a policy.json file to use for verifying signatures and deciding whether an image is trusted, overriding the default trust policy file.
 
+  **--insecure-policy** Adopt an insecure, permissive policy that allows anything. This obviates the need for a policy file.
+
   **--registries.d** _dir_ use registry configuration files in _dir_ (e.g. for docker signature storage), overriding the default path.
 
   **--help**|**-h** Show help
