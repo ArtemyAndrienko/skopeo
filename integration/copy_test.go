@@ -473,6 +473,64 @@ func (s *CopySuite) TestCopyDockerSigstore(c *check.C) {
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "--registries.d", registriesDir, "copy", ourRegistry+"public/busybox", dirDest)
 }
 
+// atomic: and docker: X-Registry-Supports-Signatures works and interoperates
+func (s *CopySuite) TestCopyAtomicExtension(c *check.C) {
+	mech, _, err := signature.NewEphemeralGPGSigningMechanism([]byte{})
+	c.Assert(err, check.IsNil)
+	defer mech.Close()
+	if err := mech.SupportsSigning(); err != nil { // FIXME? Test that the reading/writing works using signatures from fixtures
+		c.Skip(fmt.Sprintf("Signing not supported: %v", err))
+	}
+
+	topDir, err := ioutil.TempDir("", "atomic-extension")
+	c.Assert(err, check.IsNil)
+	defer os.RemoveAll(topDir)
+	for _, subdir := range []string{"dirAA", "dirAD", "dirDA", "dirDD", "registries.d"} {
+		err := os.MkdirAll(filepath.Join(topDir, subdir), 0755)
+		c.Assert(err, check.IsNil)
+	}
+	registriesDir := filepath.Join(topDir, "registries.d")
+	dirDest := "dir:" + topDir
+	policy := fileFromFixture(c, "fixtures/policy.json", map[string]string{"@keydir@": s.gpgHome})
+	defer os.Remove(policy)
+
+	// Get an image to work with to an atomic: destination.  Also verifies that we can use Docker repositories without X-Registry-Supports-Signatures
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--registries.d", registriesDir, "copy", "docker://busybox", "atomic:localhost:5000/myns/extension:unsigned")
+	// Pulling an unsigned image using atomic: fails.
+	assertSkopeoFails(c, ".*Source image rejected: A signature was required, but no signature exists.*",
+		"--tls-verify=false", "--policy", policy,
+		"copy", "atomic:localhost:5000/myns/extension:unsigned", dirDest+"/dirAA")
+	// The same when pulling using docker:
+	assertSkopeoFails(c, ".*Source image rejected: A signature was required, but no signature exists.*",
+		"--tls-verify=false", "--policy", policy, "--registries.d", registriesDir,
+		"copy", "docker://localhost:5000/myns/extension:unsigned", dirDest+"/dirAD")
+
+	// Sign the image using atomic:
+	assertSkopeoSucceeds(c, "", "--tls-verify=false",
+		"copy", "--sign-by", "personal@example.com", "atomic:localhost:5000/myns/extension:unsigned", "atomic:localhost:5000/myns/extension:atomic")
+	// Pulling the image using atomic: now succeeds.
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy,
+		"copy", "atomic:localhost:5000/myns/extension:atomic", dirDest+"/dirAA")
+	// The same when pulling using docker:
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "--registries.d", registriesDir,
+		"copy", "docker://localhost:5000/myns/extension:atomic", dirDest+"/dirAD")
+	// Both access methods result in the same data.
+	destructiveCheckDirImagesAreEqual(c, filepath.Join(topDir, "dirAA"), filepath.Join(topDir, "dirAD"))
+
+	// Get another image (different so that they don't share signatures, and sign it using docker://)
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--registries.d", registriesDir,
+		"copy", "--sign-by", "personal@example.com", "docker://estesp/busybox:ppc64le", "atomic:localhost:5000/myns/extension:extension")
+	c.Logf("%s", combinedOutputOfCommand(c, "oc", "get", "istag", "extension:extension", "-o", "json"))
+	// Pulling the image using atomic: succeeds.
+	assertSkopeoSucceeds(c, "", "--debug", "--tls-verify=false", "--policy", policy,
+		"copy", "atomic:localhost:5000/myns/extension:extension", dirDest+"/dirDA")
+	// The same when pulling using docker:
+	assertSkopeoSucceeds(c, "", "--debug", "--tls-verify=false", "--policy", policy, "--registries.d", registriesDir,
+		"copy", "docker://localhost:5000/myns/extension:extension", dirDest+"/dirDD")
+	// Both access methods result in the same data.
+	destructiveCheckDirImagesAreEqual(c, filepath.Join(topDir, "dirDA"), filepath.Join(topDir, "dirDD"))
+}
+
 func (s *SkopeoSuite) TestCopySrcWithAuth(c *check.C) {
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "--dest-creds=testuser:testpassword", "docker://busybox", fmt.Sprintf("docker://%s/busybox:latest", s.regV2WithAuth.url))
 	dir1, err := ioutil.TempDir("", "copy-1")

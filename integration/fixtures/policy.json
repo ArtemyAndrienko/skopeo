@@ -13,6 +13,13 @@
                     "keyPath": "@keydir@/personal-pubkey.gpg"
                 }
             ],
+            "localhost:5000/myns/extension": [
+                {
+                    "type": "signedBy",
+                    "keyType": "GPGKeys",
+                    "keyPath": "@keydir@/personal-pubkey.gpg"
+                }
+            ],
             "docker.io/openshift": [
                 {
                     "type": "insecureAcceptAnything"
@@ -80,6 +87,13 @@
                         "dockerRepository": "localhost:5000/myns/official"
                     }
                 },
+                {
+                    "type": "signedBy",
+                    "keyType": "GPGKeys",
+                    "keyPath": "@keydir@/personal-pubkey.gpg"
+                }
+            ],
+            "localhost:5000/myns/extension": [
                 {
                     "type": "signedBy",
                     "keyType": "GPGKeys",
