@@ -394,7 +394,7 @@ func (s *CopySuite) TestCopyDockerSigstore(c *check.C) {
 
 	tmpDir, err := ioutil.TempDir("", "signatures-sigstore")
 	c.Assert(err, check.IsNil)
-	//defer os.RemoveAll(tmpDir)
+	defer os.RemoveAll(tmpDir)
 	copyDest := filepath.Join(tmpDir, "dest")
 	err = os.Mkdir(copyDest, 0755)
 	c.Assert(err, check.IsNil)
@@ -435,7 +435,6 @@ func (s *CopySuite) TestCopyDockerSigstore(c *check.C) {
 	// Deleting the image succeeds,
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--registries.d", registriesDir, "delete", ourRegistry+"signed/busybox")
 	// and the signature file has been deleted (but we leave the directories around).
-	// a signature file has been created,
 	foundFiles = findRegularFiles(c, plainSigstore)
 	c.Assert(foundFiles, check.HasLen, 0)
 
