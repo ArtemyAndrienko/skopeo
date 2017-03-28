@@ -394,7 +394,7 @@ func (s *CopySuite) TestCopyDockerSigstore(c *check.C) {
 
 	tmpDir, err := ioutil.TempDir("", "signatures-sigstore")
 	c.Assert(err, check.IsNil)
-	//defer os.RemoveAll(tmpDir)
+	defer os.RemoveAll(tmpDir)
 	copyDest := filepath.Join(tmpDir, "dest")
 	err = os.Mkdir(copyDest, 0755)
 	c.Assert(err, check.IsNil)
