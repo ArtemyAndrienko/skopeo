@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/containers/image/manifest"
+	"github.com/containers/image/signature"
 	"github.com/go-check/check"
 	"github.com/opencontainers/go-digest"
 	"github.com/opencontainers/image-tools/image"
@@ -242,6 +243,13 @@ func (s *CopySuite) TestCopyOCIRoundTrip(c *check.C) {
 
 // --sign-by and --policy copy, primarily using atomic:
 func (s *CopySuite) TestCopySignatures(c *check.C) {
+	mech, _, err := signature.NewEphemeralGPGSigningMechanism([]byte{})
+	c.Assert(err, check.IsNil)
+	defer mech.Close()
+	if err := mech.SupportsSigning(); err != nil { // FIXME? Test that verification and policy enforcement works, using signatures from fixtures
+		c.Skip(fmt.Sprintf("Signing not supported: %v", err))
+	}
+
 	dir, err := ioutil.TempDir("", "signatures-dest")
 	c.Assert(err, check.IsNil)
 	defer os.RemoveAll(dir)
@@ -291,6 +299,13 @@ func (s *CopySuite) TestCopySignatures(c *check.C) {
 
 // --policy copy for dir: sources
 func (s *CopySuite) TestCopyDirSignatures(c *check.C) {
+	mech, _, err := signature.NewEphemeralGPGSigningMechanism([]byte{})
+	c.Assert(err, check.IsNil)
+	defer mech.Close()
+	if err := mech.SupportsSigning(); err != nil { // FIXME? Test that verification and policy enforcement works, using signatures from fixtures
+		c.Skip(fmt.Sprintf("Signing not supported: %v", err))
+	}
+
 	topDir, err := ioutil.TempDir("", "dir-signatures-top")
 	c.Assert(err, check.IsNil)
 	defer os.RemoveAll(topDir)
@@ -390,6 +405,13 @@ func findRegularFiles(c *check.C, root string) []string {
 
 // --sign-by and policy use for docker: with sigstore
 func (s *CopySuite) TestCopyDockerSigstore(c *check.C) {
+	mech, _, err := signature.NewEphemeralGPGSigningMechanism([]byte{})
+	c.Assert(err, check.IsNil)
+	defer mech.Close()
+	if err := mech.SupportsSigning(); err != nil { // FIXME? Test that verification and policy enforcement works, using signatures from fixtures
+		c.Skip(fmt.Sprintf("Signing not supported: %v", err))
+	}
+
 	const ourRegistry = "docker://" + v2DockerRegistryURL + "/"
 
 	tmpDir, err := ioutil.TempDir("", "signatures-sigstore")
