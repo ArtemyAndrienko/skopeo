@@ -113,11 +113,10 @@ func (c *sizeCounter) Write(p []byte) (n int, err error) {
 func (d *dockerImageDestination) PutBlob(stream io.Reader, inputInfo types.BlobInfo) (types.BlobInfo, error) {
 	if inputInfo.Digest.String() != "" {
 		haveBlob, size, err := d.HasBlob(inputInfo)
-		if err != nil && err != types.ErrBlobNotFound {
+		if err != nil {
 			return types.BlobInfo{}, err
 		}
-		// Now err == nil || err == types.ErrBlobNotFound
-		if err == nil && haveBlob {
+		if haveBlob {
 			return types.BlobInfo{Digest: inputInfo.Digest, Size: size}, nil
 		}
 	}
@@ -175,6 +174,10 @@ func (d *dockerImageDestination) PutBlob(stream io.Reader, inputInfo types.BlobI
 	return types.BlobInfo{Digest: computedDigest, Size: sizeCounter.size}, nil
 }
 
+// HasBlob returns true iff the image destination already contains a blob with the matching digest which can be reapplied using ReapplyBlob.
+// Unlike PutBlob, the digest can not be empty.  If HasBlob returns true, the size of the blob must also be returned.
+// If the destination does not contain the blob, or it is unknown, HasBlob ordinarily returns (false, -1, nil);
+// it returns a non-nil error only on an unexpected failure.
 func (d *dockerImageDestination) HasBlob(info types.BlobInfo) (bool, int64, error) {
 	if info.Digest == "" {
 		return false, -1, errors.Errorf(`"Can not check for a blob with unknown digest`)
@@ -196,7 +199,7 @@ func (d *dockerImageDestination) HasBlob(info types.BlobInfo) (bool, int64, erro
 		return false, -1, errors.Errorf("not authorized to read from destination repository %s", reference.Path(d.ref.ref))
 	case http.StatusNotFound:
 		logrus.Debugf("... not present")
-		return false, -1, types.ErrBlobNotFound
+		return false, -1, nil
 	default:
 		return false, -1, errors.Errorf("failed to read from destination repository %s: %v", reference.Path(d.ref.ref), http.StatusText(res.StatusCode))
 	}
@@ -274,6 +277,7 @@ func (d *dockerImageDestination) putSignaturesToLookaside(signatures [][]byte) e
 		return errors.Errorf("Unknown manifest digest, can't add signatures")
 	}
 
+	// NOTE: Keep this in sync with docs/signature-protocols.md!
 	for i, signature := range signatures {
 		url := signatureStorageURL(d.c.signatureBase, d.manifestDigest, i)
 		if url == nil {
@@ -307,6 +311,7 @@ func (d *dockerImageDestination) putSignaturesToLookaside(signatures [][]byte) e
 }
 
 // putOneSignature stores one signature to url.
+// NOTE: Keep this in sync with docs/signature-protocols.md!
 func (d *dockerImageDestination) putOneSignature(url *url.URL, signature []byte) error {
 	switch url.Scheme {
 	case "file":
@@ -330,6 +335,7 @@ func (d *dockerImageDestination) putOneSignature(url *url.URL, signature []byte)
 
 // deleteOneSignature deletes a signature from url, if it exists.
 // If it successfully determines that the signature does not exist, returns (true, nil)
+// NOTE: Keep this in sync with docs/signature-protocols.md!
 func (c *dockerClient) deleteOneSignature(url *url.URL) (missing bool, err error) {
 	switch url.Scheme {
 	case "file":
