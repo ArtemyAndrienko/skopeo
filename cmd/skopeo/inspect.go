@@ -3,8 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/containers/image/docker"
 	"github.com/containers/image/manifest"
 	"github.com/opencontainers/go-digest"
@@ -97,7 +99,13 @@ var inspectCmd = cli.Command{
 			outputData.Name = dockerImg.SourceRefFullName()
 			outputData.RepoTags, err = dockerImg.GetRepositoryTags()
 			if err != nil {
-				return fmt.Errorf("Error determining repository tags: %v", err)
+				// some registries may decide to block the "list all tags" endpoint
+				// gracefully allow the inspect to continue in this case. Currently
+				// the IBM Bluemix container registry has this restriction.
+				if !strings.Contains(err.Error(), "401") {
+					return fmt.Errorf("Error determining repository tags: %v", err)
+				}
+				logrus.Warnf("Registry disallows tag list retrieval; skipping")
 			}
 		}
 		out, err := json.MarshalIndent(outputData, "", "    ")
