@@ -105,5 +105,10 @@ var copyCmd = cli.Command{
 			Name:  "dest-tls-verify",
 			Usage: "require HTTPS and verify certificates when talking to the docker destination registry (defaults to true)",
 		},
+		cli.StringFlag{
+			Name:  "dest-ostree-tmp-dir",
+			Value: "",
+			Usage: "`DIRECTORY` to use for OSTree temporary files",
+		},
 	},
 }
