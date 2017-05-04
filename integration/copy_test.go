@@ -274,34 +274,34 @@ func (s *CopySuite) TestCopySignatures(c *check.C) {
 
 	// type: signedBy
 	// Sign the images
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "--sign-by", "personal@example.com", "docker://busybox:1.23", "atomic:localhost:5000/myns/personal:personal")
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "--sign-by", "official@example.com", "docker://busybox:1.23.2", "atomic:localhost:5000/myns/official:official")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "--sign-by", "personal@example.com", "docker://busybox:1.26", "atomic:localhost:5006/myns/personal:personal")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "--sign-by", "official@example.com", "docker://busybox:1.26.1", "atomic:localhost:5006/myns/official:official")
 	// Verify that we can pull them
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5000/myns/personal:personal", dirDest)
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5000/myns/official:official", dirDest)
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5006/myns/personal:personal", dirDest)
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5006/myns/official:official", dirDest)
 	// Verify that mis-signed images are rejected
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/personal:personal", "atomic:localhost:5000/myns/official:attack")
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/official:official", "atomic:localhost:5000/myns/personal:attack")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5006/myns/personal:personal", "atomic:localhost:5006/myns/official:attack")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5006/myns/official:official", "atomic:localhost:5006/myns/personal:attack")
 	assertSkopeoFails(c, ".*Source image rejected: Invalid GPG signature.*",
-		"--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5000/myns/personal:attack", dirDest)
+		"--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5006/myns/personal:attack", dirDest)
 	assertSkopeoFails(c, ".*Source image rejected: Invalid GPG signature.*",
-		"--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5000/myns/official:attack", dirDest)
+		"--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5006/myns/official:attack", dirDest)
 
 	// Verify that signed identity is verified.
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/official:official", "atomic:localhost:5000/myns/naming:test1")
-	assertSkopeoFails(c, ".*Source image rejected: Signature for identity localhost:5000/myns/official:official is not accepted.*",
-		"--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5000/myns/naming:test1", dirDest)
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5006/myns/official:official", "atomic:localhost:5006/myns/naming:test1")
+	assertSkopeoFails(c, ".*Source image rejected: Signature for identity localhost:5006/myns/official:official is not accepted.*",
+		"--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5006/myns/naming:test1", dirDest)
 	// signedIdentity works
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/official:official", "atomic:localhost:5000/myns/naming:naming")
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5000/myns/naming:naming", dirDest)
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5006/myns/official:official", "atomic:localhost:5006/myns/naming:naming")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5006/myns/naming:naming", dirDest)
 
 	// Verify that cosigning requirements are enforced
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/official:official", "atomic:localhost:5000/myns/cosigned:cosigned")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5006/myns/official:official", "atomic:localhost:5006/myns/cosigned:cosigned")
 	assertSkopeoFails(c, ".*Source image rejected: Invalid GPG signature.*",
-		"--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5000/myns/cosigned:cosigned", dirDest)
+		"--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5006/myns/cosigned:cosigned", dirDest)
 
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "--sign-by", "personal@example.com", "atomic:localhost:5000/myns/official:official", "atomic:localhost:5000/myns/cosigned:cosigned")
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5000/myns/cosigned:cosigned", dirDest)
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "--sign-by", "personal@example.com", "atomic:localhost:5006/myns/official:official", "atomic:localhost:5006/myns/cosigned:cosigned")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5006/myns/cosigned:cosigned", dirDest)
 }
 
 // --policy copy for dir: sources
