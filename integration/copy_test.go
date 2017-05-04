@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -103,9 +104,9 @@ func (s *CopySuite) TestCopySimpleAtomicRegistry(c *check.C) {
 	assertSkopeoSucceeds(c, "", "copy", "docker://estesp/busybox:amd64", "dir:"+dir1)
 	// "push": dir: → atomic:
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--debug", "copy", "dir:"+dir1, "atomic:localhost:5000/myns/unsigned:unsigned")
-	// The result of pushing and pulling is an unmodified image.
+	// The result of pushing and pulling is an equivalent image, except for schema1 embedded names.
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/unsigned:unsigned", "dir:"+dir2)
-	assertDirImagesAreEqual(c, dir1, dir2)
+	assertSchema1DirImagesAreEqualExceptNames(c, dir1, dir2)
 }
 
 // The most basic (skopeo copy) use:
@@ -158,6 +159,29 @@ func assertDirImagesAreEqual(c *check.C, dir1, dir2 string) {
 	c.Assert(out, check.Equals, "")
 }
 
+// Check whether schema1 dir: images in dir1 and dir2 are equal, ignoring schema1 signatures and the embedded path/tag values.
+func assertSchema1DirImagesAreEqualExceptNames(c *check.C, dir1, dir2 string) {
+	// The manifests may have different JWS signatures and names; so, unmarshal and delete these elements.
+	manifests := []map[string]interface{}{}
+	for _, dir := range []string{dir1, dir2} {
+		manifestPath := filepath.Join(dir, "manifest.json")
+		m, err := ioutil.ReadFile(manifestPath)
+		c.Assert(err, check.IsNil)
+		data := map[string]interface{}{}
+		err = json.Unmarshal(m, &data)
+		c.Assert(err, check.IsNil)
+		c.Assert(data["schemaVersion"], check.Equals, float64(1))
+		for _, key := range []string{"signatures", "name", "tag"} {
+			delete(data, key)
+		}
+		manifests = append(manifests, data)
+	}
+	c.Assert(manifests[0], check.DeepEquals, manifests[1])
+	// Then compare the rest file by file.
+	out := combinedOutputOfCommand(c, "diff", "-urN", "-x", "manifest.json", dir1, dir2)
+	c.Assert(out, check.Equals, "")
+}
+
 // Streaming (skopeo copy)
 func (s *CopySuite) TestCopyStreaming(c *check.C) {
 	dir1, err := ioutil.TempDir("", "streaming-1")
@@ -173,7 +197,7 @@ func (s *CopySuite) TestCopyStreaming(c *check.C) {
 	// Compare (copies of) the original and the copy:
 	assertSkopeoSucceeds(c, "", "copy", "docker://estesp/busybox:amd64", "dir:"+dir1)
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/unsigned:streaming", "dir:"+dir2)
-	assertDirImagesAreEqual(c, dir1, dir2)
+	assertSchema1DirImagesAreEqualExceptNames(c, dir1, dir2)
 	// FIXME: Also check pushing to docker://
 }
 
