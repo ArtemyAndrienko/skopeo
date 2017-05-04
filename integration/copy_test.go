@@ -105,7 +105,7 @@ func (s *CopySuite) TestCopySimpleAtomicRegistry(c *check.C) {
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--debug", "copy", "dir:"+dir1, "atomic:localhost:5000/myns/unsigned:unsigned")
 	// The result of pushing and pulling is an unmodified image.
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/unsigned:unsigned", "dir:"+dir2)
-	destructiveCheckDirImagesAreEqual(c, dir1, dir2)
+	assertDirImagesAreEqual(c, dir1, dir2)
 }
 
 // The most basic (skopeo copy) use:
@@ -139,11 +139,10 @@ func (s *CopySuite) TestCopySimple(c *check.C) {
 	c.Assert(err, check.IsNil)
 }
 
-// Check whether dir: images in dir1 and dir2 are equal.
-// WARNING: This modifies the contents of dir1 and dir2!
-func destructiveCheckDirImagesAreEqual(c *check.C, dir1, dir2 string) {
+// Check whether dir: images in dir1 and dir2 are equal, ignoring schema1 signatures.
+func assertDirImagesAreEqual(c *check.C, dir1, dir2 string) {
 	// The manifests may have different JWS signatures; so, compare the manifests by digests, which
-	// strips the signatures, and remove them, comparing the rest file by file.
+	// strips the signatures.
 	digests := []digest.Digest{}
 	for _, dir := range []string{dir1, dir2} {
 		manifestPath := filepath.Join(dir, "manifest.json")
@@ -152,12 +151,10 @@ func destructiveCheckDirImagesAreEqual(c *check.C, dir1, dir2 string) {
 		digest, err := manifest.Digest(m)
 		c.Assert(err, check.IsNil)
 		digests = append(digests, digest)
-		err = os.Remove(manifestPath)
-		c.Assert(err, check.IsNil)
-		c.Logf("Manifest file %s (digest %s) removed", manifestPath, digest)
 	}
 	c.Assert(digests[0], check.Equals, digests[1])
-	out := combinedOutputOfCommand(c, "diff", "-urN", dir1, dir2)
+	// Then compare the rest file by file.
+	out := combinedOutputOfCommand(c, "diff", "-urN", "-x", "manifest.json", dir1, dir2)
 	c.Assert(out, check.Equals, "")
 }
 
@@ -176,7 +173,7 @@ func (s *CopySuite) TestCopyStreaming(c *check.C) {
 	// Compare (copies of) the original and the copy:
 	assertSkopeoSucceeds(c, "", "copy", "docker://estesp/busybox:amd64", "dir:"+dir1)
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/unsigned:streaming", "dir:"+dir2)
-	destructiveCheckDirImagesAreEqual(c, dir1, dir2)
+	assertDirImagesAreEqual(c, dir1, dir2)
 	// FIXME: Also check pushing to docker://
 }
 
@@ -501,7 +498,7 @@ func (s *CopySuite) TestCopyAtomicExtension(c *check.C) {
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "--registries.d", registriesDir,
 		"copy", "docker://localhost:5000/myns/extension:atomic", dirDest+"/dirAD")
 	// Both access methods result in the same data.
-	destructiveCheckDirImagesAreEqual(c, filepath.Join(topDir, "dirAA"), filepath.Join(topDir, "dirAD"))
+	assertDirImagesAreEqual(c, filepath.Join(topDir, "dirAA"), filepath.Join(topDir, "dirAD"))
 
 	// Get another image (different so that they don't share signatures, and sign it using docker://)
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--registries.d", registriesDir,
@@ -514,7 +511,7 @@ func (s *CopySuite) TestCopyAtomicExtension(c *check.C) {
 	assertSkopeoSucceeds(c, "", "--debug", "--tls-verify=false", "--policy", policy, "--registries.d", registriesDir,
 		"copy", "docker://localhost:5000/myns/extension:extension", dirDest+"/dirDD")
 	// Both access methods result in the same data.
-	destructiveCheckDirImagesAreEqual(c, filepath.Join(topDir, "dirDA"), filepath.Join(topDir, "dirDD"))
+	assertDirImagesAreEqual(c, filepath.Join(topDir, "dirDA"), filepath.Join(topDir, "dirDD"))
 }
 
 func (s *SkopeoSuite) TestCopySrcWithAuth(c *check.C) {
