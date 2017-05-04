@@ -106,7 +106,7 @@ func (s *CopySuite) TestCopySimpleAtomicRegistry(c *check.C) {
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--debug", "copy", "dir:"+dir1, "atomic:localhost:5000/myns/unsigned:unsigned")
 	// The result of pushing and pulling is an equivalent image, except for schema1 embedded names.
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/unsigned:unsigned", "dir:"+dir2)
-	assertSchema1DirImagesAreEqualExceptNames(c, dir1, dir2)
+	assertSchema1DirImagesAreEqualExceptNames(c, dir1, "estesp/busybox:amd64", dir2, "myns/unsigned:unsigned")
 }
 
 // The most basic (skopeo copy) use:
@@ -159,11 +159,11 @@ func assertDirImagesAreEqual(c *check.C, dir1, dir2 string) {
 	c.Assert(out, check.Equals, "")
 }
 
-// Check whether schema1 dir: images in dir1 and dir2 are equal, ignoring schema1 signatures and the embedded path/tag values.
-func assertSchema1DirImagesAreEqualExceptNames(c *check.C, dir1, dir2 string) {
+// Check whether schema1 dir: images in dir1 and dir2 are equal, ignoring schema1 signatures and the embedded path/tag values, which should have the expected values.
+func assertSchema1DirImagesAreEqualExceptNames(c *check.C, dir1, ref1, dir2, ref2 string) {
 	// The manifests may have different JWS signatures and names; so, unmarshal and delete these elements.
 	manifests := []map[string]interface{}{}
-	for _, dir := range []string{dir1, dir2} {
+	for dir, ref := range map[string]string{dir1: ref1, dir2: ref2} {
 		manifestPath := filepath.Join(dir, "manifest.json")
 		m, err := ioutil.ReadFile(manifestPath)
 		c.Assert(err, check.IsNil)
@@ -171,6 +171,10 @@ func assertSchema1DirImagesAreEqualExceptNames(c *check.C, dir1, dir2 string) {
 		err = json.Unmarshal(m, &data)
 		c.Assert(err, check.IsNil)
 		c.Assert(data["schemaVersion"], check.Equals, float64(1))
+		colon := strings.LastIndex(ref, ":")
+		c.Assert(colon, check.Not(check.Equals), -1)
+		c.Assert(data["name"], check.Equals, ref[:colon])
+		c.Assert(data["tag"], check.Equals, ref[colon+1:])
 		for _, key := range []string{"signatures", "name", "tag"} {
 			delete(data, key)
 		}
@@ -197,7 +201,7 @@ func (s *CopySuite) TestCopyStreaming(c *check.C) {
 	// Compare (copies of) the original and the copy:
 	assertSkopeoSucceeds(c, "", "copy", "docker://estesp/busybox:amd64", "dir:"+dir1)
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/unsigned:streaming", "dir:"+dir2)
-	assertSchema1DirImagesAreEqualExceptNames(c, dir1, dir2)
+	assertSchema1DirImagesAreEqualExceptNames(c, dir1, "estesp/busybox:amd64", dir2, "myns/unsigned:streaming")
 	// FIXME: Also check pushing to docker://
 }
 
