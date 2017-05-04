@@ -367,10 +367,10 @@ func (s *CopySuite) TestCopyCompression(c *check.C) {
 	defer os.RemoveAll(topDir)
 
 	for i, t := range []struct{ fixture, remote string }{
-		//{"uncompressed-image-s1", "docker://" + v2DockerRegistryURL + "/compression/compression:s1"}, // FIXME: depends on push to tag working
-		//{"uncompressed-image-s2", "docker://" + v2DockerRegistryURL + "/compression/compression:s2"}, // FIXME: depends on push to tag working
+		{"uncompressed-image-s1", "docker://" + v2DockerRegistryURL + "/compression/compression:s1"},
+		{"uncompressed-image-s2", "docker://" + v2DockerRegistryURL + "/compression/compression:s2"},
 		{"uncompressed-image-s1", "atomic:localhost:5000/myns/compression:s1"},
-		//{"uncompressed-image-s2", "atomic:localhost:5000/myns/compression:s2"}, // FIXME: The unresolved "MANIFEST_UNKNOWN"/"unexpected end of JSON input" failure
+		{"uncompressed-image-s2", "atomic:localhost:5000/myns/compression:s2"},
 	} {
 		dir := filepath.Join(topDir, fmt.Sprintf("case%d", i))
 		err := os.MkdirAll(dir, 0755)
