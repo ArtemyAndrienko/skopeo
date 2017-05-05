@@ -109,6 +109,7 @@ http:
 	}
 
 	cmd := exec.Command(binary, confPath)
+	consumeAndLogOutputs(c, fmt.Sprintf("registry-%s", url), cmd)
 	if err := cmd.Start(); err != nil {
 		os.RemoveAll(tmp)
 		if os.IsNotExist(err) {
