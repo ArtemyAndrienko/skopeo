@@ -572,13 +572,7 @@ func (s *CopySuite) TestCopySchemaConversion(c *check.C) {
 	// Test conversion / schema autodetection both for the OpenShift embedded registry…
 	s.testCopySchemaConversionRegistries(c, "docker://localhost:5005/myns/schema1", "docker://localhost:5006/myns/schema2")
 	// … and for various docker/distribution registry versions.
-	if false {
-		// FIXME: This does not currently work, because the schema1-only docker/distribution registry we have (unlike newer versions)
-		// enforces that a schema1 manifest contains a matching tag field. Our _s2→s1 conversion_ code does set the tag correctly,
-		// but a mere copy of schema1→schema1 changing the tag does not update the manifest.
-		// So, enabling this test results in a successful schema2→schema1 conversion, followed by a schema1→schema1 copy failure.
-		s.testCopySchemaConversionRegistries(c, "docker://"+v2s1DockerRegistryURL+"/schema1", "docker://"+v2DockerRegistryURL+"/schema2")
-	}
+	s.testCopySchemaConversionRegistries(c, "docker://"+v2s1DockerRegistryURL+"/schema1", "docker://"+v2DockerRegistryURL+"/schema2")
 }
 
 func (s *CopySuite) testCopySchemaConversionRegistries(c *check.C, schema1Registry, schema2Registry string) {
