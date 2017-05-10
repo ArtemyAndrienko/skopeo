@@ -36,15 +36,8 @@ func findFingerprint(lineBytes []byte) (string, error) {
 	return "", errors.New("No fingerprint found")
 }
 
-func (s *SigningSuite) SetUpTest(c *check.C) {
-	mech, _, err := signature.NewEphemeralGPGSigningMechanism([]byte{})
-	c.Assert(err, check.IsNil)
-	defer mech.Close()
-	if err := mech.SupportsSigning(); err != nil { // FIXME? Test that verification and policy enforcement works, using signatures from fixtures
-		c.Skip(fmt.Sprintf("Signing not supported: %v", err))
-	}
-
-	_, err = exec.LookPath(skopeoBinary)
+func (s *SigningSuite) SetUpSuite(c *check.C) {
+	_, err := exec.LookPath(skopeoBinary)
 	c.Assert(err, check.IsNil)
 
 	s.gpgHome, err = ioutil.TempDir("", "skopeo-gpg")
@@ -59,7 +52,7 @@ func (s *SigningSuite) SetUpTest(c *check.C) {
 	c.Assert(err, check.IsNil)
 }
 
-func (s *SigningSuite) TearDownTest(c *check.C) {
+func (s *SigningSuite) TearDownSuite(c *check.C) {
 	if s.gpgHome != "" {
 		err := os.RemoveAll(s.gpgHome)
 		c.Assert(err, check.IsNil)
@@ -70,6 +63,13 @@ func (s *SigningSuite) TearDownTest(c *check.C) {
 }
 
 func (s *SigningSuite) TestSignVerifySmoke(c *check.C) {
+	mech, _, err := signature.NewEphemeralGPGSigningMechanism([]byte{})
+	c.Assert(err, check.IsNil)
+	defer mech.Close()
+	if err := mech.SupportsSigning(); err != nil { // FIXME? Test that verification and policy enforcement works, using signatures from fixtures
+		c.Skip(fmt.Sprintf("Signing not supported: %v", err))
+	}
+
 	manifestPath := "fixtures/image.manifest.json"
 	dockerReference := "testing/smoketest"
 
