@@ -34,7 +34,8 @@ type SkopeoSuite struct {
 }
 
 func (s *SkopeoSuite) SetUpSuite(c *check.C) {
-
+	_, err := exec.LookPath(skopeoBinary)
+	c.Assert(err, check.IsNil)
 }
 
 func (s *SkopeoSuite) TearDownSuite(c *check.C) {
@@ -42,9 +43,6 @@ func (s *SkopeoSuite) TearDownSuite(c *check.C) {
 }
 
 func (s *SkopeoSuite) SetUpTest(c *check.C) {
-	_, err := exec.LookPath(skopeoBinary)
-	c.Assert(err, check.IsNil)
-
 	s.regV1 = setupRegistryV1At(c, privateRegistryURL0, false) // TODO:(runcom)
 	s.regV2 = setupRegistryV2At(c, privateRegistryURL1, false, false)
 	s.regV2Shema1 = setupRegistryV2At(c, privateRegistryURL2, false, true)
