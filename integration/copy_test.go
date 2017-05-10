@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -103,9 +104,9 @@ func (s *CopySuite) TestCopySimpleAtomicRegistry(c *check.C) {
 	assertSkopeoSucceeds(c, "", "copy", "docker://estesp/busybox:amd64", "dir:"+dir1)
 	// "push": dir: → atomic:
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--debug", "copy", "dir:"+dir1, "atomic:localhost:5000/myns/unsigned:unsigned")
-	// The result of pushing and pulling is an unmodified image.
+	// The result of pushing and pulling is an equivalent image, except for schema1 embedded names.
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/unsigned:unsigned", "dir:"+dir2)
-	destructiveCheckDirImagesAreEqual(c, dir1, dir2)
+	assertSchema1DirImagesAreEqualExceptNames(c, dir1, "estesp/busybox:amd64", dir2, "myns/unsigned:unsigned")
 }
 
 // The most basic (skopeo copy) use:
@@ -139,11 +140,10 @@ func (s *CopySuite) TestCopySimple(c *check.C) {
 	c.Assert(err, check.IsNil)
 }
 
-// Check whether dir: images in dir1 and dir2 are equal.
-// WARNING: This modifies the contents of dir1 and dir2!
-func destructiveCheckDirImagesAreEqual(c *check.C, dir1, dir2 string) {
+// Check whether dir: images in dir1 and dir2 are equal, ignoring schema1 signatures.
+func assertDirImagesAreEqual(c *check.C, dir1, dir2 string) {
 	// The manifests may have different JWS signatures; so, compare the manifests by digests, which
-	// strips the signatures, and remove them, comparing the rest file by file.
+	// strips the signatures.
 	digests := []digest.Digest{}
 	for _, dir := range []string{dir1, dir2} {
 		manifestPath := filepath.Join(dir, "manifest.json")
@@ -152,12 +152,37 @@ func destructiveCheckDirImagesAreEqual(c *check.C, dir1, dir2 string) {
 		digest, err := manifest.Digest(m)
 		c.Assert(err, check.IsNil)
 		digests = append(digests, digest)
-		err = os.Remove(manifestPath)
-		c.Assert(err, check.IsNil)
-		c.Logf("Manifest file %s (digest %s) removed", manifestPath, digest)
 	}
 	c.Assert(digests[0], check.Equals, digests[1])
-	out := combinedOutputOfCommand(c, "diff", "-urN", dir1, dir2)
+	// Then compare the rest file by file.
+	out := combinedOutputOfCommand(c, "diff", "-urN", "-x", "manifest.json", dir1, dir2)
+	c.Assert(out, check.Equals, "")
+}
+
+// Check whether schema1 dir: images in dir1 and dir2 are equal, ignoring schema1 signatures and the embedded path/tag values, which should have the expected values.
+func assertSchema1DirImagesAreEqualExceptNames(c *check.C, dir1, ref1, dir2, ref2 string) {
+	// The manifests may have different JWS signatures and names; so, unmarshal and delete these elements.
+	manifests := []map[string]interface{}{}
+	for dir, ref := range map[string]string{dir1: ref1, dir2: ref2} {
+		manifestPath := filepath.Join(dir, "manifest.json")
+		m, err := ioutil.ReadFile(manifestPath)
+		c.Assert(err, check.IsNil)
+		data := map[string]interface{}{}
+		err = json.Unmarshal(m, &data)
+		c.Assert(err, check.IsNil)
+		c.Assert(data["schemaVersion"], check.Equals, float64(1))
+		colon := strings.LastIndex(ref, ":")
+		c.Assert(colon, check.Not(check.Equals), -1)
+		c.Assert(data["name"], check.Equals, ref[:colon])
+		c.Assert(data["tag"], check.Equals, ref[colon+1:])
+		for _, key := range []string{"signatures", "name", "tag"} {
+			delete(data, key)
+		}
+		manifests = append(manifests, data)
+	}
+	c.Assert(manifests[0], check.DeepEquals, manifests[1])
+	// Then compare the rest file by file.
+	out := combinedOutputOfCommand(c, "diff", "-urN", "-x", "manifest.json", dir1, dir2)
 	c.Assert(out, check.Equals, "")
 }
 
@@ -176,7 +201,7 @@ func (s *CopySuite) TestCopyStreaming(c *check.C) {
 	// Compare (copies of) the original and the copy:
 	assertSkopeoSucceeds(c, "", "copy", "docker://estesp/busybox:amd64", "dir:"+dir1)
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/unsigned:streaming", "dir:"+dir2)
-	destructiveCheckDirImagesAreEqual(c, dir1, dir2)
+	assertSchema1DirImagesAreEqualExceptNames(c, dir1, "estesp/busybox:amd64", dir2, "myns/unsigned:streaming")
 	// FIXME: Also check pushing to docker://
 }
 
@@ -253,34 +278,34 @@ func (s *CopySuite) TestCopySignatures(c *check.C) {
 
 	// type: signedBy
 	// Sign the images
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "--sign-by", "personal@example.com", "docker://busybox:1.23", "atomic:localhost:5000/myns/personal:personal")
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "--sign-by", "official@example.com", "docker://busybox:1.23.2", "atomic:localhost:5000/myns/official:official")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "--sign-by", "personal@example.com", "docker://busybox:1.26", "atomic:localhost:5006/myns/personal:personal")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "--sign-by", "official@example.com", "docker://busybox:1.26.1", "atomic:localhost:5006/myns/official:official")
 	// Verify that we can pull them
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5000/myns/personal:personal", dirDest)
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5000/myns/official:official", dirDest)
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5006/myns/personal:personal", dirDest)
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5006/myns/official:official", dirDest)
 	// Verify that mis-signed images are rejected
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/personal:personal", "atomic:localhost:5000/myns/official:attack")
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/official:official", "atomic:localhost:5000/myns/personal:attack")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5006/myns/personal:personal", "atomic:localhost:5006/myns/official:attack")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5006/myns/official:official", "atomic:localhost:5006/myns/personal:attack")
 	assertSkopeoFails(c, ".*Source image rejected: Invalid GPG signature.*",
-		"--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5000/myns/personal:attack", dirDest)
+		"--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5006/myns/personal:attack", dirDest)
 	assertSkopeoFails(c, ".*Source image rejected: Invalid GPG signature.*",
-		"--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5000/myns/official:attack", dirDest)
+		"--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5006/myns/official:attack", dirDest)
 
 	// Verify that signed identity is verified.
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/official:official", "atomic:localhost:5000/myns/naming:test1")
-	assertSkopeoFails(c, ".*Source image rejected: Signature for identity localhost:5000/myns/official:official is not accepted.*",
-		"--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5000/myns/naming:test1", dirDest)
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5006/myns/official:official", "atomic:localhost:5006/myns/naming:test1")
+	assertSkopeoFails(c, ".*Source image rejected: Signature for identity localhost:5006/myns/official:official is not accepted.*",
+		"--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5006/myns/naming:test1", dirDest)
 	// signedIdentity works
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/official:official", "atomic:localhost:5000/myns/naming:naming")
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5000/myns/naming:naming", dirDest)
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5006/myns/official:official", "atomic:localhost:5006/myns/naming:naming")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5006/myns/naming:naming", dirDest)
 
 	// Verify that cosigning requirements are enforced
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5000/myns/official:official", "atomic:localhost:5000/myns/cosigned:cosigned")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "atomic:localhost:5006/myns/official:official", "atomic:localhost:5006/myns/cosigned:cosigned")
 	assertSkopeoFails(c, ".*Source image rejected: Invalid GPG signature.*",
-		"--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5000/myns/cosigned:cosigned", dirDest)
+		"--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5006/myns/cosigned:cosigned", dirDest)
 
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "--sign-by", "personal@example.com", "atomic:localhost:5000/myns/official:official", "atomic:localhost:5000/myns/cosigned:cosigned")
-	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5000/myns/cosigned:cosigned", dirDest)
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "copy", "--sign-by", "personal@example.com", "atomic:localhost:5006/myns/official:official", "atomic:localhost:5006/myns/cosigned:cosigned")
+	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "copy", "atomic:localhost:5006/myns/cosigned:cosigned", dirDest)
 }
 
 // --policy copy for dir: sources
@@ -342,10 +367,10 @@ func (s *CopySuite) TestCopyCompression(c *check.C) {
 	defer os.RemoveAll(topDir)
 
 	for i, t := range []struct{ fixture, remote string }{
-		//{"uncompressed-image-s1", "docker://" + v2DockerRegistryURL + "/compression/compression:s1"}, // FIXME: depends on push to tag working
-		//{"uncompressed-image-s2", "docker://" + v2DockerRegistryURL + "/compression/compression:s2"}, // FIXME: depends on push to tag working
+		{"uncompressed-image-s1", "docker://" + v2DockerRegistryURL + "/compression/compression:s1"},
+		{"uncompressed-image-s2", "docker://" + v2DockerRegistryURL + "/compression/compression:s2"},
 		{"uncompressed-image-s1", "atomic:localhost:5000/myns/compression:s1"},
-		//{"uncompressed-image-s2", "atomic:localhost:5000/myns/compression:s2"}, // FIXME: The unresolved "MANIFEST_UNKNOWN"/"unexpected end of JSON input" failure
+		{"uncompressed-image-s2", "atomic:localhost:5000/myns/compression:s2"},
 	} {
 		dir := filepath.Join(topDir, fmt.Sprintf("case%d", i))
 		err := os.MkdirAll(dir, 0755)
@@ -501,7 +526,7 @@ func (s *CopySuite) TestCopyAtomicExtension(c *check.C) {
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--policy", policy, "--registries.d", registriesDir,
 		"copy", "docker://localhost:5000/myns/extension:atomic", dirDest+"/dirAD")
 	// Both access methods result in the same data.
-	destructiveCheckDirImagesAreEqual(c, filepath.Join(topDir, "dirAA"), filepath.Join(topDir, "dirAD"))
+	assertDirImagesAreEqual(c, filepath.Join(topDir, "dirAA"), filepath.Join(topDir, "dirAD"))
 
 	// Get another image (different so that they don't share signatures, and sign it using docker://)
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--registries.d", registriesDir,
@@ -514,7 +539,7 @@ func (s *CopySuite) TestCopyAtomicExtension(c *check.C) {
 	assertSkopeoSucceeds(c, "", "--debug", "--tls-verify=false", "--policy", policy, "--registries.d", registriesDir,
 		"copy", "docker://localhost:5000/myns/extension:extension", dirDest+"/dirDD")
 	// Both access methods result in the same data.
-	destructiveCheckDirImagesAreEqual(c, filepath.Join(topDir, "dirDA"), filepath.Join(topDir, "dirDD"))
+	assertDirImagesAreEqual(c, filepath.Join(topDir, "dirDA"), filepath.Join(topDir, "dirDD"))
 }
 
 func (s *SkopeoSuite) TestCopySrcWithAuth(c *check.C) {
@@ -547,13 +572,7 @@ func (s *CopySuite) TestCopySchemaConversion(c *check.C) {
 	// Test conversion / schema autodetection both for the OpenShift embedded registry…
 	s.testCopySchemaConversionRegistries(c, "docker://localhost:5005/myns/schema1", "docker://localhost:5006/myns/schema2")
 	// … and for various docker/distribution registry versions.
-	if false {
-		// FIXME: This does not currently work, because the schema1-only docker/distribution registry we have (unlike newer versions)
-		// enforces that a schema1 manifest contains a matching tag field. Our _s2→s1 conversion_ code does set the tag correctly,
-		// but a mere copy of schema1→schema1 changing the tag does not update the manifest.
-		// So, enabling this test results in a successful schema2→schema1 conversion, followed by a schema1→schema1 copy failure.
-		s.testCopySchemaConversionRegistries(c, "docker://"+v2s1DockerRegistryURL+"/schema1", "docker://"+v2DockerRegistryURL+"/schema2")
-	}
+	s.testCopySchemaConversionRegistries(c, "docker://"+v2s1DockerRegistryURL+"/schema1", "docker://"+v2DockerRegistryURL+"/schema2")
 }
 
 func (s *CopySuite) testCopySchemaConversionRegistries(c *check.C, schema1Registry, schema2Registry string) {

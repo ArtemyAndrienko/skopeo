@@ -45,46 +45,46 @@
             ]
         },
         "atomic": {
-            "localhost:5000/myns/personal": [
+            "localhost:5006/myns/personal": [
                 {
                     "type": "signedBy",
                     "keyType": "GPGKeys",
                     "keyPath": "@keydir@/personal-pubkey.gpg"
                 }
             ],
-            "localhost:5000/myns/official": [
+            "localhost:5006/myns/official": [
                 {
                     "type": "signedBy",
                     "keyType": "GPGKeys",
                     "keyPath": "@keydir@/official-pubkey.gpg"
                 }
             ],
-            "localhost:5000/myns/naming:test1": [
+            "localhost:5006/myns/naming:test1": [
                 {
                     "type": "signedBy",
                     "keyType": "GPGKeys",
                     "keyPath": "@keydir@/official-pubkey.gpg"
                 }
             ],
-            "localhost:5000/myns/naming:naming": [
+            "localhost:5006/myns/naming:naming": [
                 {
                     "type": "signedBy",
                     "keyType": "GPGKeys",
                     "keyPath": "@keydir@/official-pubkey.gpg",
                     "signedIdentity": {
                         "type": "exactRepository",
-                        "dockerRepository": "localhost:5000/myns/official"
+                        "dockerRepository": "localhost:5006/myns/official"
                     }
                 }
             ],
-            "localhost:5000/myns/cosigned:cosigned": [
+            "localhost:5006/myns/cosigned:cosigned": [
                 {
                     "type": "signedBy",
                     "keyType": "GPGKeys",
                     "keyPath": "@keydir@/official-pubkey.gpg",
                     "signedIdentity": {
                         "type": "exactRepository",
-                        "dockerRepository": "localhost:5000/myns/official"
+                        "dockerRepository": "localhost:5006/myns/official"
                     }
                 },
                 {
