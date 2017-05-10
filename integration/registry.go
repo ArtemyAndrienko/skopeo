@@ -31,7 +31,7 @@ func setupRegistryV2At(c *check.C, url string, auth, schema1 bool) *testRegistry
 	c.Assert(err, check.IsNil)
 
 	// Wait for registry to be ready to serve requests.
-	for i := 0; i != 5; i++ {
+	for i := 0; i != 50; i++ {
 		if err = reg.Ping(); err == nil {
 			break
 		}
