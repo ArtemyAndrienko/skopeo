@@ -129,7 +129,7 @@ If you built from source:
 ```sh
 $ sudo make install
 ```
-`skopeo` is also available from Fedora 23:
+`skopeo` is also available from Fedora 23 (and later):
 ```sh
 sudo dnf install skopeo
 ```
