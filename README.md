@@ -113,22 +113,17 @@ Building without a container requires a bit more manual work and setup in your e
 - It does not require root privileges (after dependencies are installed)
 - It is faster, therefore more convenient for developing `skopeo`.
 
-Make sure to clone the repository in your `GOPATH` - otherwise compilation fails.
+Install the necessary dependencies:
+```sh
+Fedora$ sudo dnf install gpgme-devel libassuan-devel btrfs-progs-devel device-mapper-devel
+macOS$ brew install gpgme
+```
+
+Make sure to clone this repository in your `GOPATH` - otherwise compilation fails.
 
 ```sh
 $ git clone https://github.com/projectatomic/skopeo $GOPATH/src/github.com/projectatomic/skopeo
 $ cd $GOPATH/src/github.com/projectatomic/skopeo && make binary-local
-```
-
-To build localy on OSX:
-```sh
-$ brew install gpgme
-$ make binary-local
-```
-
-You may need to install additional development packages: `gpgme-devel` and `libassuan-devel`
-```sh
-$ sudo dnf install gpgme-devel libassuan-devel btrfs-progs-devel device-mapper-devel
 ```
 
 ### Building in a container
