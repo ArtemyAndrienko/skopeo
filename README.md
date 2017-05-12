@@ -160,9 +160,7 @@ TODO
 -
 - list all images on registry?
 - registry v2 search?
-- support output to docker load tar(s)
 - show repo tags via flag or when reference isn't tagged or digested
-- add tests (integration with deployed registries in container - Docker-like)
 - support rkt/appc image spec
 
 NOT TODO
