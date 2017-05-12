@@ -154,7 +154,7 @@ $ sudo make install
 ```
 `skopeo` is also available from Fedora 23 (and later):
 ```sh
-sudo dnf install skopeo
+$ sudo dnf install skopeo
 ```
 TODO
 -
