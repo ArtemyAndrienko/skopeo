@@ -103,10 +103,14 @@ you'll get an error. You can fix this by either logging in (via `docker login`) 
 
 Building
 -
-To build the `skopeo` binary you need at least Go 1.5 because it uses the latest `GO15VENDOREXPERIMENT` flag. Also, make sure to clone the repository in your `GOPATH` - otherwise compilation fails.
+To build the `skopeo` binary you need at least Go 1.5 because it uses the latest `GO15VENDOREXPERIMENT` flag.
+
+### Building without a container
+Make sure to clone the repository in your `GOPATH` - otherwise compilation fails.
+
 ```sh
 $ git clone https://github.com/projectatomic/skopeo $GOPATH/src/github.com/projectatomic/skopeo
-$ cd $GOPATH/src/github.com/projectatomic/skopeo && make all
+$ cd $GOPATH/src/github.com/projectatomic/skopeo && make binary-local
 ```
 
 To build localy on OSX:
@@ -118,6 +122,12 @@ $ make binary-local
 You may need to install additional development packages: `gpgme-devel` and `libassuan-devel`
 ```sh
 $ sudo dnf install gpgme-devel libassuan-devel btrfs-progs-devel device-mapper-devel
+```
+
+### Building in a container
+If your system has a `docker` command and can run Linux containers,
+```sh
+$ make binary # Or (make all) to also build documentation, see below.
 ```
 
 ### Building documentation
