@@ -105,7 +105,8 @@ Building
 -
 To build the manual you will need go-md2man.
 ```sh
-$ sudo apt-get install go-md2man
+Debian$ sudo apt-get install go-md2man
+Fedora$ sudo dnf install go-md2man
 ```
 To build the `skopeo` binary you need at least Go 1.5 because it uses the latest `GO15VENDOREXPERIMENT` flag. Also, make sure to clone the repository in your `GOPATH` - otherwise compilation fails.
 ```sh
