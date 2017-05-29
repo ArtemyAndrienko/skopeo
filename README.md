@@ -105,7 +105,14 @@ Building
 -
 To build the `skopeo` binary you need at least Go 1.5 because it uses the latest `GO15VENDOREXPERIMENT` flag.
 
+There are two ways to build skopeo: in a container, or locally without a container.  Choose the one which better matches your needs and environment.
+
 ### Building without a container
+Building without a container requires a bit more manual work and setup in your environment, but it is more flexible:
+- It should work in more environments (e.g. for native macOS builds)
+- It does not require root privileges (after dependencies are installed)
+- It is faster, therefore more convenient for developing `skopeo`.
+
 Make sure to clone the repository in your `GOPATH` - otherwise compilation fails.
 
 ```sh
@@ -125,7 +132,10 @@ $ sudo dnf install gpgme-devel libassuan-devel btrfs-progs-devel device-mapper-d
 ```
 
 ### Building in a container
-If your system has a `docker` command and can run Linux containers,
+Building in a container is simpler, but more restrictive:
+- It requires the `docker` command and the ability to run Linux containers
+- The created executable is a Linux executable, and depends on dynamic libraries which may only be available only in a container of a similar Linux distribution.
+
 ```sh
 $ make binary # Or (make all) to also build documentation, see below.
 ```
