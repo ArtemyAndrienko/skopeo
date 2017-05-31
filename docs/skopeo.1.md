@@ -2,7 +2,7 @@
 % Jhon Honce
 % August 2016
 # NAME
-skopeo -- Various operations with container images images and container image registries
+skopeo -- Various operations with container images and container image registries
 # SYNOPSIS
 **skopeo** [_global options_] _command_ [_command options_]
 # DESCRIPTION
