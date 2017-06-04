@@ -107,7 +107,7 @@ To build the manual you will need go-md2man.
 ```sh
 $ sudo apt-get install go-md2man
 ```
-To build the `skopeo` binary you need at least Go 1.5 because it uses the latest `GO15VENDOREXPERIMENT` flag. Also, make sure to clone the repository in your `GOPATH` - otherwise compilation fails.  
+To build the `skopeo` binary you need at least Go 1.5 because it uses the latest `GO15VENDOREXPERIMENT` flag. Also, make sure to clone the repository in your `GOPATH` - otherwise compilation fails.
 ```sh
 $ git clone https://github.com/projectatomic/skopeo $GOPATH/src/github.com/projectatomic/skopeo
 $ cd $GOPATH/src/github.com/projectatomic/skopeo && make all
@@ -121,7 +121,7 @@ $ make binary-local
 
 You may need to install additional development packages: `gpgme-devel` and `libassuan-devel`
 ```sh
-$ dnf install gpgme-devel libassuan-devel
+$ sudo dnf install gpgme-devel libassuan-devel btrfs-progs-devel device-mapper-devel
 ```
 Installing
 -
