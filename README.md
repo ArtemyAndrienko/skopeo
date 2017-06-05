@@ -103,26 +103,49 @@ you'll get an error. You can fix this by either logging in (via `docker login`) 
 
 Building
 -
-To build the manual you will need go-md2man.
+To build the `skopeo` binary you need at least Go 1.5 because it uses the latest `GO15VENDOREXPERIMENT` flag.
+
+There are two ways to build skopeo: in a container, or locally without a container.  Choose the one which better matches your needs and environment.
+
+### Building without a container
+Building without a container requires a bit more manual work and setup in your environment, but it is more flexible:
+- It should work in more environments (e.g. for native macOS builds)
+- It does not require root privileges (after dependencies are installed)
+- It is faster, therefore more convenient for developing `skopeo`.
+
+Install the necessary dependencies:
 ```sh
-$ sudo apt-get install go-md2man
+Fedora$ sudo dnf install gpgme-devel libassuan-devel btrfs-progs-devel device-mapper-devel
+macOS$ brew install gpgme
 ```
-To build the `skopeo` binary you need at least Go 1.5 because it uses the latest `GO15VENDOREXPERIMENT` flag. Also, make sure to clone the repository in your `GOPATH` - otherwise compilation fails.
+
+Make sure to clone this repository in your `GOPATH` - otherwise compilation fails.
+
 ```sh
 $ git clone https://github.com/projectatomic/skopeo $GOPATH/src/github.com/projectatomic/skopeo
-$ cd $GOPATH/src/github.com/projectatomic/skopeo && make all
+$ cd $GOPATH/src/github.com/projectatomic/skopeo && make binary-local
 ```
 
-To build localy on OSX:
+### Building in a container
+Building in a container is simpler, but more restrictive:
+- It requires the `docker` command and the ability to run Linux containers
+- The created executable is a Linux executable, and depends on dynamic libraries which may only be available only in a container of a similar Linux distribution.
+
 ```sh
-$ brew install gpgme
-$ make binary-local
+$ make binary # Or (make all) to also build documentation, see below.
 ```
 
-You may need to install additional development packages: `gpgme-devel` and `libassuan-devel`
+### Building documentation
+To build the manual you will need go-md2man.
 ```sh
-$ sudo dnf install gpgme-devel libassuan-devel btrfs-progs-devel device-mapper-devel
+Debian$ sudo apt-get install go-md2man
+Fedora$ sudo dnf install go-md2man
 ```
+Then
+```sh
+$ make docs
+```
+
 Installing
 -
 If you built from source:
@@ -131,15 +154,13 @@ $ sudo make install
 ```
 `skopeo` is also available from Fedora 23 (and later):
 ```sh
-sudo dnf install skopeo
+$ sudo dnf install skopeo
 ```
 TODO
 -
 - list all images on registry?
 - registry v2 search?
-- support output to docker load tar(s)
 - show repo tags via flag or when reference isn't tagged or digested
-- add tests (integration with deployed registries in container - Docker-like)
 - support rkt/appc image spec
 
 NOT TODO
@@ -163,10 +184,20 @@ In order to update an existing dependency:
 - update the relevant dependency line in `vendor.conf`
 - run `vndr github.com/pkg/errors`
 
-In order to test out new PRs from [containers/image](https://github.com/containers/image) to not break `skopeo`:
+When new PRs for [containers/image](https://github.com/containers/image) break `skopeo` (i.e. `containers/image` tests fail in `make test-skopeo`):
 
+- create out a new branch in your `skopeo` checkout and switch to it
 - update `vendor.conf`. Find out the `containers/image` dependency; update it to vendor from your own branch and your own repository fork (e.g. `github.com/containers/image my-branch https://github.com/runcom/image`)
 - run `vndr github.com/containers/image`
+- make any other necessary changes in the skopeo repo (e.g. add other dependencies now requied by `containers/image`, or update skopeo for changed `containers/image` API)
+- optionally add new integration tests to the skopeo repo
+- submit the resulting branch as a skopeo PR, marked “DO NOT MERGE”
+- iterate until tests pass and the PR is reviewed
+- then the original `containers/image` PR can be merged, disregarding its `make test-skopeo` failure
+- as soon as possible after that, in the skopeo PR, restore the `containers/image` line in `vendor.conf` to use `containers/image:master`
+- run `vndr github.com/containers/image`
+- update the skopeo PR with the result, drop the “DO NOT MERGE” marking
+- after tests complete succcesfully again, merge the skopeo PR
 
 License
 -
