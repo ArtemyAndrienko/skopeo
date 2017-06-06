@@ -91,6 +91,11 @@ func (s *CopySuite) TestCopyFailsWithManifestList(c *check.C) {
 	assertSkopeoFails(c, ".*can not copy docker://estesp/busybox:latest: manifest contains multiple images.*", "copy", "docker://estesp/busybox:latest", "dir:somedir")
 }
 
+func (s *CopySuite) TestCopyFailsWhenImageOSDoesntMatchRuntimeOS(c *check.C) {
+	c.Skip("can't run this on Travis")
+	assertSkopeoFails(c, `.*image operating system "windows" cannot be used on "linux".*`, "copy", "docker://microsoft/windowsservercore", "containers-storage:test")
+}
+
 func (s *CopySuite) TestCopySimpleAtomicRegistry(c *check.C) {
 	dir1, err := ioutil.TempDir("", "copy-1")
 	c.Assert(err, check.IsNil)
