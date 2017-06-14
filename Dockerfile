@@ -6,6 +6,7 @@ RUN dnf -y update && dnf install -y make git golang golang-github-cpuguy83-go-md
 	device-mapper-devel \
 	# gpgme bindings deps
 	libassuan-devel gpgme-devel \
+	ostree-devel \
 	gnupg
 
 # Install two versions of the registry. The first is an older version that
