@@ -2,7 +2,6 @@ package storage
 
 import (
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -11,6 +10,7 @@ import (
 	"github.com/containers/storage/pkg/ioutils"
 	"github.com/containers/storage/pkg/stringid"
 	"github.com/containers/storage/pkg/truncindex"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -49,11 +49,32 @@ type Image struct {
 	Flags map[string]interface{} `json:"flags,omitempty"`
 }
 
+// ROImageStore provides bookkeeping for information about Images.
+type ROImageStore interface {
+	ROFileBasedStore
+	ROMetadataStore
+	ROBigDataStore
+
+	// Exists checks if there is an image with the given ID or name.
+	Exists(id string) bool
+
+	// Get retrieves information about an image given an ID or name.
+	Get(id string) (*Image, error)
+
+	// Lookup attempts to translate a name to an ID.  Most methods do this
+	// implicitly.
+	Lookup(name string) (string, error)
+
+	// Images returns a slice enumerating the known images.
+	Images() ([]Image, error)
+}
+
 // ImageStore provides bookkeeping for information about Images.
 type ImageStore interface {
-	FileBasedStore
-	MetadataStore
-	BigDataStore
+	ROImageStore
+	RWFileBasedStore
+	RWMetadataStore
+	RWBigDataStore
 	FlaggableStore
 
 	// Create creates an image that has a specified ID (or a random one) and
@@ -65,37 +86,28 @@ type ImageStore interface {
 	// supplied values.
 	SetNames(id string, names []string) error
 
-	// Exists checks if there is an image with the given ID or name.
-	Exists(id string) bool
-
-	// Get retrieves information about an image given an ID or name.
-	Get(id string) (*Image, error)
-
 	// Delete removes the record of the image.
 	Delete(id string) error
 
 	// Wipe removes records of all images.
 	Wipe() error
-
-	// Lookup attempts to translate a name to an ID.  Most methods do this
-	// implicitly.
-	Lookup(name string) (string, error)
-
-	// Images returns a slice enumerating the known images.
-	Images() ([]Image, error)
 }
 
 type imageStore struct {
 	lockfile Locker
 	dir      string
-	images   []Image
+	images   []*Image
 	idindex  *truncindex.TruncIndex
 	byid     map[string]*Image
 	byname   map[string]*Image
 }
 
 func (r *imageStore) Images() ([]Image, error) {
-	return r.images, nil
+	images := make([]Image, len(r.images))
+	for i := range r.images {
+		images[i] = *(r.images[i])
+	}
+	return images, nil
 }
 
 func (r *imageStore) imagespath() string {
@@ -111,41 +123,46 @@ func (r *imageStore) datapath(id, key string) string {
 }
 
 func (r *imageStore) Load() error {
-	needSave := false
+	shouldSave := false
 	rpath := r.imagespath()
 	data, err := ioutil.ReadFile(rpath)
 	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
-	images := []Image{}
+	images := []*Image{}
 	idlist := []string{}
 	ids := make(map[string]*Image)
 	names := make(map[string]*Image)
 	if err = json.Unmarshal(data, &images); len(data) == 0 || err == nil {
 		for n, image := range images {
-			ids[image.ID] = &images[n]
+			ids[image.ID] = images[n]
 			idlist = append(idlist, image.ID)
 			for _, name := range image.Names {
 				if conflict, ok := names[name]; ok {
 					r.removeName(conflict, name)
-					needSave = true
+					shouldSave = true
 				}
-				names[name] = &images[n]
+				names[name] = images[n]
 			}
 		}
+	}
+	if shouldSave && !r.IsReadWrite() {
+		return errors.New("image store assigns the same name to multiple images")
 	}
 	r.images = images
 	r.idindex = truncindex.NewTruncIndex(idlist)
 	r.byid = ids
 	r.byname = names
-	if needSave {
-		r.Touch()
+	if shouldSave {
 		return r.Save()
 	}
 	return nil
 }
 
 func (r *imageStore) Save() error {
+	if !r.IsReadWrite() {
+		return errors.Wrapf(ErrStoreIsReadOnly, "not allowed to modify the image store at %q", r.imagespath())
+	}
 	rpath := r.imagespath()
 	if err := os.MkdirAll(filepath.Dir(rpath), 0700); err != nil {
 		return err
@@ -154,6 +171,7 @@ func (r *imageStore) Save() error {
 	if err != nil {
 		return err
 	}
+	defer r.Touch()
 	return ioutils.AtomicWriteFile(rpath, jdata, 0600)
 }
 
@@ -170,7 +188,27 @@ func newImageStore(dir string) (ImageStore, error) {
 	istore := imageStore{
 		lockfile: lockfile,
 		dir:      dir,
-		images:   []Image{},
+		images:   []*Image{},
+		byid:     make(map[string]*Image),
+		byname:   make(map[string]*Image),
+	}
+	if err := istore.Load(); err != nil {
+		return nil, err
+	}
+	return &istore, nil
+}
+
+func newROImageStore(dir string) (ROImageStore, error) {
+	lockfile, err := GetROLockfile(filepath.Join(dir, "images.lock"))
+	if err != nil {
+		return nil, err
+	}
+	lockfile.Lock()
+	defer lockfile.Unlock()
+	istore := imageStore{
+		lockfile: lockfile,
+		dir:      dir,
+		images:   []*Image{},
 		byid:     make(map[string]*Image),
 		byname:   make(map[string]*Image),
 	}
@@ -193,6 +231,9 @@ func (r *imageStore) lookup(id string) (*Image, bool) {
 }
 
 func (r *imageStore) ClearFlag(id string, flag string) error {
+	if !r.IsReadWrite() {
+		return errors.Wrapf(ErrStoreIsReadOnly, "not allowed to clear flags on images at %q", r.imagespath())
+	}
 	image, ok := r.lookup(id)
 	if !ok {
 		return ErrImageUnknown
@@ -202,6 +243,9 @@ func (r *imageStore) ClearFlag(id string, flag string) error {
 }
 
 func (r *imageStore) SetFlag(id string, flag string, value interface{}) error {
+	if !r.IsReadWrite() {
+		return errors.Wrapf(ErrStoreIsReadOnly, "not allowed to set flags on images at %q", r.imagespath())
+	}
 	image, ok := r.lookup(id)
 	if !ok {
 		return ErrImageUnknown
@@ -211,6 +255,9 @@ func (r *imageStore) SetFlag(id string, flag string, value interface{}) error {
 }
 
 func (r *imageStore) Create(id string, names []string, layer, metadata string) (image *Image, err error) {
+	if !r.IsReadWrite() {
+		return nil, errors.Wrapf(ErrStoreIsReadOnly, "not allowed to create new images at %q", r.imagespath())
+	}
 	if id == "" {
 		id = stringid.GenerateRandomID()
 		_, idInUse := r.byid[id]
@@ -228,7 +275,7 @@ func (r *imageStore) Create(id string, names []string, layer, metadata string) (
 		}
 	}
 	if err == nil {
-		newImage := Image{
+		image = &Image{
 			ID:           id,
 			Names:        names,
 			TopLayer:     layer,
@@ -237,8 +284,7 @@ func (r *imageStore) Create(id string, names []string, layer, metadata string) (
 			BigDataSizes: make(map[string]int64),
 			Flags:        make(map[string]interface{}),
 		}
-		r.images = append(r.images, newImage)
-		image = &r.images[len(r.images)-1]
+		r.images = append(r.images, image)
 		r.idindex.Add(id)
 		r.byid[id] = image
 		for _, name := range names {
@@ -257,6 +303,9 @@ func (r *imageStore) Metadata(id string) (string, error) {
 }
 
 func (r *imageStore) SetMetadata(id, metadata string) error {
+	if !r.IsReadWrite() {
+		return errors.Wrapf(ErrStoreIsReadOnly, "not allowed to modify image metadata at %q", r.imagespath())
+	}
 	if image, ok := r.lookup(id); ok {
 		image.Metadata = metadata
 		return r.Save()
@@ -269,6 +318,9 @@ func (r *imageStore) removeName(image *Image, name string) {
 }
 
 func (r *imageStore) SetNames(id string, names []string) error {
+	if !r.IsReadWrite() {
+		return errors.Wrapf(ErrStoreIsReadOnly, "not allowed to change image name assignments at %q", r.imagespath())
+	}
 	if image, ok := r.lookup(id); ok {
 		for _, name := range image.Names {
 			delete(r.byname, name)
@@ -286,12 +338,15 @@ func (r *imageStore) SetNames(id string, names []string) error {
 }
 
 func (r *imageStore) Delete(id string) error {
+	if !r.IsReadWrite() {
+		return errors.Wrapf(ErrStoreIsReadOnly, "not allowed to delete images at %q", r.imagespath())
+	}
 	image, ok := r.lookup(id)
 	if !ok {
 		return ErrImageUnknown
 	}
 	id = image.ID
-	newImages := []Image{}
+	newImages := []*Image{}
 	for _, candidate := range r.images {
 		if candidate.ID != id {
 			newImages = append(newImages, candidate)
@@ -359,6 +414,9 @@ func (r *imageStore) BigDataNames(id string) ([]string, error) {
 }
 
 func (r *imageStore) SetBigData(id, key string, data []byte) error {
+	if !r.IsReadWrite() {
+		return errors.Wrapf(ErrStoreIsReadOnly, "not allowed to save data items associated with images at %q", r.imagespath())
+	}
 	image, ok := r.lookup(id)
 	if !ok {
 		return ErrImageUnknown
@@ -393,6 +451,9 @@ func (r *imageStore) SetBigData(id, key string, data []byte) error {
 }
 
 func (r *imageStore) Wipe() error {
+	if !r.IsReadWrite() {
+		return errors.Wrapf(ErrStoreIsReadOnly, "not allowed to delete images at %q", r.imagespath())
+	}
 	ids := []string{}
 	for id := range r.byid {
 		ids = append(ids, id)
@@ -419,6 +480,10 @@ func (r *imageStore) Touch() error {
 
 func (r *imageStore) Modified() (bool, error) {
 	return r.lockfile.Modified()
+}
+
+func (r *imageStore) IsReadWrite() bool {
+	return r.lockfile.IsReadWrite()
 }
 
 func (r *imageStore) TouchedSince(when time.Time) bool {
