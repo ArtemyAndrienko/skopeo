@@ -46,7 +46,7 @@ var deleteCmd = cli.Command{
 		},
 		cli.BoolTFlag{
 			Name:  "tls-verify",
-			Usage: "require HTTPS and verify certificates when talking to docker registries (defaults to true)",
+			Usage: "require HTTPS and verify certificates when talking to container registries (defaults to true)",
 		},
 	},
 }

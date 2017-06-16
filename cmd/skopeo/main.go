@@ -33,7 +33,7 @@ func createApp() *cli.App {
 		},
 		cli.BoolTFlag{
 			Name:   "tls-verify",
-			Usage:  "require HTTPS and verify certificates when talking to docker registries (defaults to true)",
+			Usage:  "require HTTPS and verify certificates when talking to container registries (defaults to true)",
 			Hidden: true,
 		},
 		cli.StringFlag{
@@ -48,7 +48,7 @@ func createApp() *cli.App {
 		cli.StringFlag{
 			Name:  "registries.d",
 			Value: "",
-			Usage: "use registry configuration files in `DIR` (e.g. for docker signature storage)",
+			Usage: "use registry configuration files in `DIR` (e.g. for container signature storage)",
 		},
 	}
 	app.Before = func(c *cli.Context) error {

@@ -94,7 +94,7 @@ var copyCmd = cli.Command{
 		},
 		cli.BoolTFlag{
 			Name:  "src-tls-verify",
-			Usage: "require HTTPS and verify certificates when talking to the docker source registry (defaults to true)",
+			Usage: "require HTTPS and verify certificates when talking to the container source registry (defaults to true)",
 		},
 		cli.StringFlag{
 			Name:  "dest-cert-dir",
@@ -103,7 +103,7 @@ var copyCmd = cli.Command{
 		},
 		cli.BoolTFlag{
 			Name:  "dest-tls-verify",
-			Usage: "require HTTPS and verify certificates when talking to the docker destination registry (defaults to true)",
+			Usage: "require HTTPS and verify certificates when talking to the container destination registry (defaults to true)",
 		},
 		cli.StringFlag{
 			Name:  "dest-ostree-tmp-dir",
