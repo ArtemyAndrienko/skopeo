@@ -12,26 +12,29 @@ It also allows you to copy container images between various registries, possibly
 ## IMAGE NAMES
 Most commands refer to container images, using a _transport_`:`_details_ format. The following formats are supported:
 
-  **atomic:**_namespace_**/**_stream_**:**_tag_
-  An image in the current project of the current default Atomic
-  Registry. The current project and Atomic Registry instance are by
-  default read from `$HOME/.kube/config`, which is set e.g. using
-  `(oc login)`.
+  **atomic:**_hostname_**/**_namespace_**/**_stream_**:**_tag_
+  An image served by an OpenShift(Atomic) Registry server. The current OpenShift project and OpenShift Registry instance are by default read from `$HOME/.kube/config`, which is set e.g. using `(oc login)`.
+
+  **containers-storage://**_docker-reference_
+  An image located in a local containers/storage image store.  Location and image store specified in /etc/containers/storage.conf
 
   **dir:**_path_
-  An existing local directory _path_ storing the manifest, layer
-  tarballs and signatures as individual files. This is a
-  non-standardized format, primarily useful for debugging or
-  noninvasive container inspection.
+  An existing local directory _path_ storing the manifest, layer tarballs and signatures as individual files. This is a non-standardized format, primarily useful for debugging or noninvasive container inspection.
 
   **docker://**_docker-reference_
-  An image in a registry implementing the "Docker Registry HTTP API V2".
-  By default, uses the authorization state in `$HOME/.docker/config.json`,
-  which is set e.g. using `(docker login)`.
+  An image in a registry implementing the "Docker Registry HTTP API V2". By default, uses the authorization state in `$HOME/.docker/config.json`, which is set e.g. using `(docker login)`.
+
+  **docker-archive:**_path_[**:**_docker-reference_]
+  An image is stored in the `docker save` formated file.  _docker-reference_ is only used when creating such a file, and it must not contain a digest.
+
+  **docker-daemon:**_docker-reference_
+  An image _docker-reference_ stored in the docker daemon internal storage.  _docker-reference_ must contain either a tag or a digest.  Alternatively, when reading images, the format can also be docker-daemon:algo:digest (an image ID).
 
   **oci:**_path_**:**_tag_
-  An image _tag_ in a directory compliant with "Open Container Image
-  Layout Specification" at _path_.
+  An image _tag_ in a directory compliant with "Open Container Image Layout Specification" at _path_.
+
+  **ostree:**_image_[**@**_/absolute/repo/path_]
+  An image in local OSTree repository.  _/absolute/repo/path_ defaults to _/ostree/repo_.
 
 # OPTIONS
 
