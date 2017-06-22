@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:17.04
 
 RUN apt-get update && apt-get install -y \
     golang \
@@ -6,7 +6,9 @@ RUN apt-get update && apt-get install -y \
     git-core \
     libdevmapper-dev \
     libgpgme11-dev \
-    go-md2man
+    go-md2man \
+    libglib2.0-dev \
+    libostree-dev
 
 ENV GOPATH=/
 WORKDIR /src/github.com/projectatomic/skopeo
