@@ -634,11 +634,14 @@ func (d *Driver) Remove(id string) error {
 }
 
 // Get the requested filesystem id.
-func (d *Driver) Get(id, mountLabel string, uidMaps, gidMaps []idtools.IDMap) (string, error) {
+func (d *Driver) Get(id string, options graphdriver.MountOpts) (string, error) {
 	dir := d.subvolumesDirID(id)
 	st, err := os.Stat(dir)
 	if err != nil {
 		return "", err
+	}
+	if len(options.Options) > 0 {
+		return "", fmt.Errorf("btrfs driver does not support mount options")
 	}
 
 	if !st.IsDir() {

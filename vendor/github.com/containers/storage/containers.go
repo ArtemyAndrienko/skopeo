@@ -133,6 +133,27 @@ func copyContainer(c *Container) *Container {
 	}
 }
 
+func (c *Container) MountLabel() string {
+	if label, ok := c.Flags["MountLabel"].(string); ok {
+		return label
+	}
+	return ""
+}
+
+func (c *Container) ProcessLabel() string {
+	if label, ok := c.Flags["ProcessLabel"].(string); ok {
+		return label
+	}
+	return ""
+}
+
+func (c *Container) MountOpts() []string {
+	if mountOpts, ok := c.Flags["MountOpts"].([]string); ok {
+		return mountOpts
+	}
+	return nil
+}
+
 func (r *containerStore) Containers() ([]Container, error) {
 	containers := make([]Container, len(r.containers))
 	for i := range r.containers {
@@ -279,6 +300,9 @@ func (r *containerStore) Create(id string, names []string, image, layer, metadat
 	if _, idInUse := r.byid[id]; idInUse {
 		return nil, ErrDuplicateID
 	}
+	if options.MountOpts != nil {
+		options.Flags["MountOpts"] = append([]string{}, options.MountOpts...)
+	}
 	names = dedupeNames(names)
 	for _, name := range names {
 		if _, nameInUse := r.byname[name]; nameInUse {
@@ -297,7 +321,7 @@ func (r *containerStore) Create(id string, names []string, image, layer, metadat
 			BigDataSizes:   make(map[string]int64),
 			BigDataDigests: make(map[string]digest.Digest),
 			Created:        time.Now().UTC(),
-			Flags:          make(map[string]interface{}),
+			Flags:          copyStringInterfaceMap(options.Flags),
 			UIDMap:         copyIDMap(options.UIDMap),
 			GIDMap:         copyIDMap(options.GIDMap),
 		}

@@ -76,7 +76,7 @@ func TestContextFromGlobalOptions(t *testing.T) {
 		OSChoice:                          "overridden-os",
 		OCISharedBlobDirPath:              "/srv/shared-blob-dir",
 		DockerCertPath:                    "/srv/cert-dir",
-		DockerInsecureSkipTLSVerify:       true,
+		DockerInsecureSkipTLSVerify:       types.OptionalBoolTrue,
 		DockerAuthConfig:                  &types.DockerAuthConfig{Username: "creds-user", Password: "creds-password"},
 		OSTreeTmpDirPath:                  "/srv/ostree-tmp-dir",
 		DockerDaemonCertPath:              "/srv/cert-dir",
@@ -87,18 +87,19 @@ func TestContextFromGlobalOptions(t *testing.T) {
 
 	// Global/per-command tlsVerify behavior
 	for _, c := range []struct {
-		global, cmd                          string
-		expectedDocker, expectedDockerDaemon bool
+		global, cmd          string
+		expectedDocker       types.OptionalBool
+		expectedDockerDaemon bool
 	}{
-		{"", "", false, false},
-		{"", "false", true, true},
-		{"", "true", false, false},
-		{"false", "", true, false},
-		{"false", "false", true, true},
-		{"false", "true", false, false},
-		{"true", "", false, false},
-		{"true", "false", true, true},
-		{"true", "true", false, false},
+		{"", "", types.OptionalBoolUndefined, false},
+		{"", "false", types.OptionalBoolTrue, true},
+		{"", "true", types.OptionalBoolFalse, false},
+		{"false", "", types.OptionalBoolTrue, false},
+		{"false", "false", types.OptionalBoolTrue, true},
+		{"false", "true", types.OptionalBoolFalse, false},
+		{"true", "", types.OptionalBoolFalse, false},
+		{"true", "false", types.OptionalBoolTrue, true},
+		{"true", "true", types.OptionalBoolFalse, false},
 	} {
 		globalFlags := []string{}
 		if c.global != "" {
