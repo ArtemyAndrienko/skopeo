@@ -7,4 +7,4 @@ mkdir -vp ${_projectatomic}
 ln -vsf $(pwd) ${_projectatomic}/skopeo
 
 cd ${_projectatomic}/skopeo
-make validate-local test-unit-local binary-local BUILDTAGS=containers_image_ostree_stub
+make validate-local test-unit-local binary-local
