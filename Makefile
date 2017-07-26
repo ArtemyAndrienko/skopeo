@@ -34,7 +34,8 @@ MANPAGES_MD = $(wildcard docs/*.md)
 
 BTRFS_BUILD_TAG = $(shell hack/btrfs_tag.sh)
 LIBDM_BUILD_TAG = $(shell hack/libdm_tag.sh)
-LOCAL_BUILD_TAGS = $(BTRFS_BUILD_TAG) $(LIBDM_BUILD_TAG)
+DARWIN_BUILD_TAG = $(shell hack/darwin_tag.sh)
+LOCAL_BUILD_TAGS = $(BTRFS_BUILD_TAG) $(LIBDM_BUILD_TAG) $(DARWIN_BUILD_TAG)
 BUILDTAGS += $(LOCAL_BUILD_TAGS)
 
 #   make all DEBUG=1

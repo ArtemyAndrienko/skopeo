@@ -1,10 +1,18 @@
-sudo: required
 
-services:
-  - docker
+matrix:
+  include:
+  -  os: linux
+     sudo: required
+     services:
+       - docker
+  -  os: osx
 
 notifications:
   email: false
 
+install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install gpgme ; fi
+
 script:
-  - make check
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]];   then hack/travis_osx.sh ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then make check ; fi
