@@ -8,3 +8,5 @@ ln -vsf $(pwd) ${_projectatomic}/skopeo
 
 cd ${_projectatomic}/skopeo
 make validate-local test-unit-local binary-local
+sudo make install
+skopeo -v
