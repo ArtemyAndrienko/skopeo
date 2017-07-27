@@ -2,7 +2,13 @@
 
 export GO15VENDOREXPERIMENT=1
 
+ifeq ($(shell uname),Darwin)
+PREFIX ?= ${DESTDIR}/usr/local
+DARWIN_BUILD_TAG=containers_image_ostree_stub
+else
 PREFIX ?= ${DESTDIR}/usr
+endif
+
 INSTALLDIR=${PREFIX}/bin
 MANINSTALLDIR=${PREFIX}/share/man
 CONTAINERSSYSCONFIGDIR=${DESTDIR}/etc/containers
@@ -34,7 +40,6 @@ MANPAGES_MD = $(wildcard docs/*.md)
 
 BTRFS_BUILD_TAG = $(shell hack/btrfs_tag.sh)
 LIBDM_BUILD_TAG = $(shell hack/libdm_tag.sh)
-DARWIN_BUILD_TAG = $(shell hack/darwin_tag.sh)
 LOCAL_BUILD_TAGS = $(BTRFS_BUILD_TAG) $(LIBDM_BUILD_TAG) $(DARWIN_BUILD_TAG)
 BUILDTAGS += $(LOCAL_BUILD_TAGS)
 
@@ -77,17 +82,22 @@ clean:
 
 install: install-binary install-docs install-completions
 	install -d -m 755 ${SIGSTOREDIR}
-	install -D -m 644 default-policy.json ${CONTAINERSSYSCONFIGDIR}/policy.json
-	install -D -m 644 default.yaml ${REGISTRIESDDIR}/default.yaml
+	install -d -m 755 ${CONTAINERSSYSCONFIGDIR}
+	install -m 644 default-policy.json ${CONTAINERSSYSCONFIGDIR}/policy.json
+	install -d -m 755 ${REGISTRIESDDIR}
+	install -m 644 default.yaml ${REGISTRIESDDIR}/default.yaml
 
 install-binary: ./skopeo
-	install -D -m 755 skopeo ${INSTALLDIR}/skopeo
+	install -d -m 755 ${INSTALLDIR}
+	install -m 755 skopeo ${INSTALLDIR}/skopeo
 
 install-docs: docs/skopeo.1
-	install -D -m 644 docs/skopeo.1 ${MANINSTALLDIR}/man1/skopeo.1
+	install -d -m 755 ${MANINSTALLDIR}/man1
+	install -m 644 docs/skopeo.1 ${MANINSTALLDIR}/man1/skopeo.1
 
 install-completions:
-	install -m 644 -D completions/bash/skopeo ${BASHINSTALLDIR}/skopeo
+	install -m 755 -d ${BASHINSTALLDIR}
+	install -m 644 completions/bash/skopeo ${BASHINSTALLDIR}/skopeo
 
 shell: build-container
 	$(DOCKER_RUN_DOCKER) bash
