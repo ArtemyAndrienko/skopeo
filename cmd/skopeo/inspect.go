@@ -6,12 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/containers/image/docker"
 	"github.com/containers/image/manifest"
 	"github.com/containers/image/transports"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
 

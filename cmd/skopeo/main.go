@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/containers/image/signature"
 	"github.com/containers/storage/pkg/reexec"
 	"github.com/projectatomic/skopeo/version"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
 
