@@ -72,9 +72,8 @@ func parseImage(c *cli.Context) (types.Image, error) {
 }
 
 // parseImageSource converts image URL-like string to an ImageSource.
-// requestedManifestMIMETypes is as in types.ImageReference.NewImageSource.
 // The caller must call .Close() on the returned ImageSource.
-func parseImageSource(c *cli.Context, name string, requestedManifestMIMETypes []string) (types.ImageSource, error) {
+func parseImageSource(c *cli.Context, name string) (types.ImageSource, error) {
 	ref, err := alltransports.ParseImageName(name)
 	if err != nil {
 		return nil, err
@@ -83,5 +82,5 @@ func parseImageSource(c *cli.Context, name string, requestedManifestMIMETypes []
 	if err != nil {
 		return nil, err
 	}
-	return ref.NewImageSource(ctx, requestedManifestMIMETypes)
+	return ref.NewImageSource(ctx)
 }
