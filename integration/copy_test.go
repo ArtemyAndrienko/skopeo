@@ -137,14 +137,20 @@ func (s *CopySuite) TestCopySimple(c *check.C) {
 	out := combinedOutputOfCommand(c, "diff", "-urN", dir1, dir2)
 	c.Assert(out, check.Equals, "")
 
-	// docker v2s2 -> OCI image layout
+	// docker v2s2 -> OCI image layout with image name
 	// ociDest will be created by oci: if it doesn't exist
 	// so don't create it here to exercise auto-creation
-	ociDest := "busybox-latest"
+	ociDest := "busybox-latest-image"
+	ociImgName := "busybox"
 	defer os.RemoveAll(ociDest)
-	assertSkopeoSucceeds(c, "", "copy", "docker://busybox:latest", "oci:"+ociDest)
+	assertSkopeoSucceeds(c, "", "copy", "docker://busybox:latest", "oci:"+ociDest+":"+ociImgName)
 	_, err = os.Stat(ociDest)
 	c.Assert(err, check.IsNil)
+
+	// docker v2s2 -> OCI image layout without image name
+	ociDest = "busybox-latest-noimage"
+	defer os.RemoveAll(ociDest)
+	assertSkopeoFails(c, ".*Error initializing destination oci:busybox-latest-noimage:: cannot save image with empty image.ref.name.*", "copy", "docker://busybox:latest", "oci:"+ociDest)
 }
 
 // Check whether dir: images in dir1 and dir2 are equal, ignoring schema1 signatures.
