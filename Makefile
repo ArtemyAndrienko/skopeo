@@ -29,6 +29,10 @@ ifeq ($(DEBUG), 1)
   override GOGCFLAGS += -N -l
 endif
 
+ifeq ($(shell go env GOOS), linux)
+  GO_DYN_FLAGS="-buildmode=pie"
+endif
+
 GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null)
 DOCKER_IMAGE := skopeo-dev$(if $(GIT_BRANCH),:$(GIT_BRANCH))
 # set env like gobuildtag?
@@ -71,7 +75,7 @@ binary-static: cmd/skopeo
 
 # Build w/o using Docker containers
 binary-local:
-	$(GPGME_ENV) $(GO) build -ldflags "-X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo
+	$(GPGME_ENV) $(GO) build ${GO_DYN_FLAGS} -ldflags "-X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo
 
 binary-local-static:
 	$(GPGME_ENV) $(GO) build -ldflags "-extldflags \"-static\" -X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo
