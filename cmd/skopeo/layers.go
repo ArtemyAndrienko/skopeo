@@ -8,7 +8,6 @@ import (
 
 	"github.com/containers/image/directory"
 	"github.com/containers/image/image"
-	"github.com/containers/image/manifest"
 	"github.com/containers/image/types"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
@@ -25,12 +24,7 @@ var layersCmd = cli.Command{
 		if c.NArg() == 0 {
 			return errors.New("Usage: layers imageReference [layer...]")
 		}
-		rawSource, err := parseImageSource(c, c.Args()[0], []string{
-			// TODO: skopeo layers only supports these now
-			// eventually we'll remove this command altogether...
-			manifest.DockerV2Schema1SignedMediaType,
-			manifest.DockerV2Schema1MediaType,
-		})
+		rawSource, err := parseImageSource(c, c.Args()[0])
 		if err != nil {
 			return err
 		}
