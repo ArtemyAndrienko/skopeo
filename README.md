@@ -115,7 +115,7 @@ Building without a container requires a bit more manual work and setup in your e
 
 Install the necessary dependencies:
 ```sh
-Fedora$ sudo dnf install gpgme-devel libassuan-devel btrfs-progs-devel device-mapper-devel
+Fedora$ sudo dnf builddep skopeo
 macOS$ brew install gpgme
 ```
 
