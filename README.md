@@ -1,16 +1,44 @@
 skopeo [![Build Status](https://travis-ci.org/projectatomic/skopeo.svg?branch=master)](https://travis-ci.org/projectatomic/skopeo)
 =
 
-_Please be aware that `skopeo` is still a work in progress and it currently supports only registry API V2_
+`skopeo` is a command line utility that performs various operations on container images and image repositories.  Skopeo works with API V2 registries such as Docker registries, the Atomic registry, private registries, local directories and local OCI-layout directories.  Skopeo does not require a daemon to be running to perform these operations which consist of:
 
-`skopeo` is a command line utility for various operations on container images and image repositories.
+ * Inspecting an image showing its properties including its layers.
+ * Copying an image from and to various storage mechanisms.
+ * Deleting an image from an image repository.
+ * When required by the repository, skopeo can pass the appropriate credentials and certificates for authentication.
+
+ Skopeo operates on the following image and repository types:
+
+ * containers-storage:docker-reference
+         An image located in a local containers/storage image store.  Location and image store specified in /etc/containers/storage.conf
+
+ * dir:path
+         An existing local directory path storing the manifest, layer tarballs and signatures as individual files. This is a non-standardized format, primarily useful for debugging or noninvasive container inspection.
+
+ * docker://docker-reference
+         An image in a registry implementing the "Docker Registry HTTP API V2". By default, uses the authorization state in $HOME/.docker/config.json, which is set e.g. using (docker login).
+
+ * docker-archive:path[:docker-reference]
+         An image is stored in the `docker save` formated file.  docker-reference is only used when creating such a file, and it must not contain a digest.
+
+ * docker-daemon:docker-reference
+         An image docker-reference stored in the docker daemon internal storage.  docker-reference must contain either a tag or a digest.  Alternatively, when reading images, the format can also be docker-daemon:algo:digest (an image ID).
+
+ * oci:path:tag
+         An image tag in a directory compliant with "Open Container Image Layout Specification" at path.
+
+ * ostree:image[@/absolute/repo/path]
+         An image in local OSTree repository.  /absolute/repo/path defaults to /ostree/repo.
 
 Inspecting a repository
 -
 `skopeo` is able to _inspect_ a repository on a Docker registry and fetch images layers.
-By _inspect_ I mean it fetches the repository's manifest and it is able to show you a `docker inspect`-like
+The _inspect_ command fetches the repository's manifest and it is able to show you a `docker inspect`-like
 json output about a whole repository or a tag. This tool, in contrast to `docker inspect`, helps you gather useful information about
-a repository or a tag before pulling it (using disk space) - e.g. - which tags are available for the given repository? which labels does the image have?
+a repository or a tag before pulling it (using disk space).  The inspect command can show you which tags are available for the given 
+repository, the labels the image has, the creation date and operating system of the image and more.  
+
 
 Examples:
 ```sh

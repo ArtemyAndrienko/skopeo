@@ -12,10 +12,7 @@ It also allows you to copy container images between various registries, possibly
 ## IMAGE NAMES
 Most commands refer to container images, using a _transport_`:`_details_ format. The following formats are supported:
 
-  **atomic:**_hostname_**/**_namespace_**/**_stream_**:**_tag_
-  An image served by an OpenShift(Atomic) Registry server. The current OpenShift project and OpenShift Registry instance are by default read from `$HOME/.kube/config`, which is set e.g. using `(oc login)`.
-
-  **containers-storage://**_docker-reference_
+  **containers-storage:**_docker-reference_
   An image located in a local containers/storage image store.  Location and image store specified in /etc/containers/storage.conf
 
   **dir:**_path_
