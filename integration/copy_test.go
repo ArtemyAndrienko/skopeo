@@ -90,6 +90,7 @@ func (s *CopySuite) TearDownSuite(c *check.C) {
 }
 
 func (s *CopySuite) TestCopyFailsWithManifestList(c *check.C) {
+	c.ExpectFailure("manifest-list-hotfix sacrificed hotfixes for being able to copy images")
 	assertSkopeoFails(c, ".*can not copy docker://estesp/busybox:latest: manifest contains multiple images.*", "copy", "docker://estesp/busybox:latest", "dir:somedir")
 }
 
