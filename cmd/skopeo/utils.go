@@ -59,8 +59,8 @@ func getDockerAuth(creds string) (*types.DockerAuthConfig, error) {
 }
 
 // parseImage converts image URL-like string to an initialized handler for that image.
-// The caller must call .Close() on the returned Image.
-func parseImage(c *cli.Context) (types.Image, error) {
+// The caller must call .Close() on the returned ImageCloser.
+func parseImage(c *cli.Context) (types.ImageCloser, error) {
 	imgName := c.Args().First()
 	ref, err := alltransports.ParseImageName(imgName)
 	if err != nil {
