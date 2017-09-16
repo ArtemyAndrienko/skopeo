@@ -24,11 +24,15 @@ var layersCmd = cli.Command{
 		if c.NArg() == 0 {
 			return errors.New("Usage: layers imageReference [layer...]")
 		}
+		ctx, err := contextFromGlobalOptions(c, "")
+		if err != nil {
+			return err
+		}
 		rawSource, err := parseImageSource(c, c.Args()[0])
 		if err != nil {
 			return err
 		}
-		src, err := image.FromSource(rawSource)
+		src, err := image.FromSource(ctx, rawSource)
 		if err != nil {
 			if closeErr := rawSource.Close(); closeErr != nil {
 				return errors.Wrapf(err, " (close error: %v)", closeErr)

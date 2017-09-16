@@ -43,6 +43,10 @@ Most commands refer to container images, using a _transport_`:`_details_ format.
 
   **--registries.d** _dir_ use registry configuration files in _dir_ (e.g. for container signature storage), overriding the default path.
 
+  **--override-arch** _arch_ Use _arch_ instead of the architecture of the machine for choosing images.
+
+  **--override-os** _OS_ Use _OS_ instead of the running OS for choosing images.
+
   **--help**|**-h** Show help
 
   **--version**|**-v** print the version number

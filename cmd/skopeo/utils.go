@@ -11,8 +11,10 @@ import (
 
 func contextFromGlobalOptions(c *cli.Context, flagPrefix string) (*types.SystemContext, error) {
 	ctx := &types.SystemContext{
-		RegistriesDirPath: c.GlobalString("registries.d"),
-		DockerCertPath:    c.String(flagPrefix + "cert-dir"),
+		RegistriesDirPath:  c.GlobalString("registries.d"),
+		ArchitectureChoice: c.GlobalString("override-arch"),
+		OSChoice:           c.GlobalString("override-os"),
+		DockerCertPath:     c.String(flagPrefix + "cert-dir"),
 		// DEPRECATED: keep this here for backward compatibility, but override
 		// them if per subcommand flags are provided (see below).
 		DockerInsecureSkipTLSVerify: !c.GlobalBoolT("tls-verify"),

@@ -103,6 +103,8 @@ _skopeo_skopeo() {
      local options_with_args="
 	   --policy
 	   --registries.d
+       --override-arch
+       --override-os
      "
      local boolean_options="
 	   --insecure-policy
