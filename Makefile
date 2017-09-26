@@ -16,6 +16,7 @@ REGISTRIESDDIR=${CONTAINERSSYSCONFIGDIR}/registries.d
 SIGSTOREDIR=${DESTDIR}/var/lib/atomic/sigstore
 BASHINSTALLDIR=${PREFIX}/share/bash-completion/completions
 GO_MD2MAN ?= go-md2man
+GO ?= go
 
 ifeq ($(DEBUG), 1)
   override GOGCFLAGS += -N -l
@@ -63,10 +64,10 @@ binary-static: cmd/skopeo
 
 # Build w/o using Docker containers
 binary-local:
-	go build -ldflags "-X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo
+	$(GO) build -ldflags "-X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo
 
 binary-local-static:
-	go build -ldflags "-extldflags \"-static\" -X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo
+	$(GO) build -ldflags "-extldflags \"-static\" -X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo
 
 build-container:
 	docker build ${DOCKER_BUILD_ARGS} -t "$(DOCKER_IMAGE)" .
@@ -122,4 +123,4 @@ validate-local:
 	hack/make.sh validate-git-marks validate-gofmt validate-lint validate-vet
 
 test-unit-local:
-	go test -tags "$(BUILDTAGS)" $$(go list -tags "$(BUILDTAGS)" -e ./... | grep -v '^github\.com/projectatomic/skopeo/\(integration\|vendor/.*\)$$')
+	$(GO) test -tags "$(BUILDTAGS)" $$($(GO) list -tags "$(BUILDTAGS)" -e ./... | grep -v '^github\.com/projectatomic/skopeo/\(integration\|vendor/.*\)$$')
