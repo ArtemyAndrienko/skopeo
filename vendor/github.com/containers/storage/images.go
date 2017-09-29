@@ -13,11 +13,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-var (
-	// ErrImageUnknown indicates that there was no image with the specified name or ID
-	ErrImageUnknown = errors.New("image not known")
-)
-
 // An Image is a reference to a layer and an associated metadata string.
 type Image struct {
 	// ID is either one which was specified at create-time, or a random
@@ -29,8 +24,9 @@ type Image struct {
 	// unique among images.
 	Names []string `json:"names,omitempty"`
 
-	// TopLayer is the ID of the topmost layer of the image itself.
-	// Multiple images can refer to the same top layer.
+	// TopLayer is the ID of the topmost layer of the image itself, if the
+	// image contains one or more layers.  Multiple images can refer to the
+	// same top layer.
 	TopLayer string `json:"layer"`
 
 	// Metadata is data we keep for the convenience of the caller.  It is not
@@ -153,7 +149,7 @@ func (r *imageStore) Load() error {
 		}
 	}
 	if shouldSave && !r.IsReadWrite() {
-		return errors.New("image store assigns the same name to multiple images")
+		return ErrDuplicateImageNames
 	}
 	r.images = images
 	r.idindex = truncindex.NewTruncIndex(idlist)
@@ -275,6 +271,7 @@ func (r *imageStore) Create(id string, names []string, layer, metadata string, c
 	if _, idInUse := r.byid[id]; idInUse {
 		return nil, ErrDuplicateID
 	}
+	names = dedupeNames(names)
 	for _, name := range names {
 		if _, nameInUse := r.byname[name]; nameInUse {
 			return nil, ErrDuplicateName
@@ -331,6 +328,7 @@ func (r *imageStore) SetNames(id string, names []string) error {
 	if !r.IsReadWrite() {
 		return errors.Wrapf(ErrStoreIsReadOnly, "not allowed to change image name assignments at %q", r.imagespath())
 	}
+	names = dedupeNames(names)
 	if image, ok := r.lookup(id); ok {
 		for _, name := range image.Names {
 			delete(r.byname, name)

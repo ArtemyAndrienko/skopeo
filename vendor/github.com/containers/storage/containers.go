@@ -2,7 +2,6 @@ package storage
 
 import (
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -11,11 +10,6 @@ import (
 	"github.com/containers/storage/pkg/ioutils"
 	"github.com/containers/storage/pkg/stringid"
 	"github.com/containers/storage/pkg/truncindex"
-)
-
-var (
-	// ErrContainerUnknown indicates that there was no container with the specified name or ID
-	ErrContainerUnknown = errors.New("container not known")
 )
 
 // A Container is a reference to a read-write layer with metadata.
@@ -245,6 +239,7 @@ func (r *containerStore) Create(id string, names []string, image, layer, metadat
 	if _, idInUse := r.byid[id]; idInUse {
 		return nil, ErrDuplicateID
 	}
+	names = dedupeNames(names)
 	for _, name := range names {
 		if _, nameInUse := r.byname[name]; nameInUse {
 			return nil, ErrDuplicateName
@@ -294,6 +289,7 @@ func (r *containerStore) removeName(container *Container, name string) {
 }
 
 func (r *containerStore) SetNames(id string, names []string) error {
+	names = dedupeNames(names)
 	if container, ok := r.lookup(id); ok {
 		for _, name := range container.Names {
 			delete(r.byname, name)
