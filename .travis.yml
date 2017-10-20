@@ -11,7 +11,13 @@ notifications:
   email: false
 
 install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install gpgme ; fi
+  # NOTE: The (brew update) should not be necessary, and slows things down;
+  # we include it as a workaround for https://github.com/Homebrew/brew/issues/3299
+  # ideally Travis should bake the (brew update) into its images
+  # (https://github.com/travis-ci/travis-ci/issues/8552 ), but that’s only going
+  # to happen around November 2017 per https://blog.travis-ci.com/2017-10-16-a-new-default-os-x-image-is-coming .
+  # Remove the (brew update) at that time.
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update && brew install gpgme ; fi
 
 script:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]];   then hack/travis_osx.sh ; fi
