@@ -17,6 +17,7 @@ func contextFromGlobalOptions(c *cli.Context, flagPrefix string) (*types.SystemC
 		// them if per subcommand flags are provided (see below).
 		DockerInsecureSkipTLSVerify: !c.GlobalBoolT("tls-verify"),
 		OSTreeTmpDirPath:            c.String(flagPrefix + "ostree-tmp-dir"),
+		OCISharedBlobDirPath:        c.String(flagPrefix + "shared-blob-dir"),
 	}
 	if c.IsSet(flagPrefix + "tls-verify") {
 		ctx.DockerInsecureSkipTLSVerify = !c.BoolT(flagPrefix + "tls-verify")

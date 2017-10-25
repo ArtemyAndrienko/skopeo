@@ -121,5 +121,15 @@ var copyCmd = cli.Command{
 			Value: "",
 			Usage: "`DIRECTORY` to use for OSTree temporary files",
 		},
+		cli.StringFlag{
+			Name:  "src-shared-blob-dir",
+			Value: "",
+			Usage: "`DIRECTORY` to use to fetch retrieved blobs (OCI layout sources only)",
+		},
+		cli.StringFlag{
+			Name:  "dest-shared-blob-dir",
+			Value: "",
+			Usage: "`DIRECTORY` to use to store retrieved blobs (OCI layout destinations only)",
+		},
 	},
 }
