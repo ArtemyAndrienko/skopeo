@@ -8,7 +8,9 @@ that we follow.
 * [Reporting Issues](#reporting-issues)
 * [Submitting Pull Requests](#submitting-pull-requests)
 * [Communications](#communications)
+<!--
 * [Becoming a Maintainer](#becoming-a-maintainer)
+-->
 
 ## Reporting Issues
 
@@ -37,9 +39,9 @@ It's ok to just open up a PR with the fix, but make sure you include the same
 information you would have included in an issue - like how to reproduce it.
 
 PRs for new features should include some background on what use cases the
-new code is trying to address. And, when possible and it makes, try to break-up
+new code is trying to address. When possible and when it makes sense, try to break-up
 larger PRs into smaller ones - it's easier to review smaller
-code changes. But, only if those smaller ones make sense as stand-alone PRs.
+code changes. But only if those smaller ones make sense as stand-alone PRs.
 
 Regardless of the type of PR, all PRs should include:
 * well documented code changes
@@ -115,7 +117,7 @@ commit automatically with `git commit -s`.
 
 ## Communications
 
-For general questions, or dicsussions, please use the 
+For general questions, or discussions, please use the 
 IRC group on `irc.freenode.net` called `container-projects`
 that has been setup.
 
