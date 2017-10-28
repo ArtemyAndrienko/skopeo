@@ -35,6 +35,7 @@ RUN set -x \
 	&& (cd "$GOPATH/src/github.com/openshift/origin" && make clean build && make all WHAT=cmd/dockerregistry) \
 	&& cp -a "$GOPATH/src/github.com/openshift/origin/_output/local/bin/linux"/*/* /usr/local/bin \
 	&& cp "$GOPATH/src/github.com/openshift/origin/images/dockerregistry/config.yml" /atomic-registry-config.yml \
+	&& rm -rf "$GOPATH" \
 	&& mkdir /registry
 
 ENV GOPATH /usr/share/gocode:/go
