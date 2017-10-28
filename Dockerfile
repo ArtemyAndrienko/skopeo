@@ -9,7 +9,8 @@ RUN dnf -y update && dnf install -y make git golang golang-github-cpuguy83-go-md
 	ostree-devel \
 	gnupg \
 	# OpenShift deps
-	which tar wget hostname util-linux bsdtar socat ethtool device-mapper iptables tree findutils nmap-ncat e2fsprogs xfsprogs lsof docker iproute
+	which tar wget hostname util-linux bsdtar socat ethtool device-mapper iptables tree findutils nmap-ncat e2fsprogs xfsprogs lsof docker iproute \
+	&& dnf clean all
 
 # Install two versions of the registry. The first is an older version that
 # only supports schema1 manifests. The second is a newer version that supports
