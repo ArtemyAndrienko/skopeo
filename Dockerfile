@@ -13,9 +13,9 @@ RUN dnf -y update && dnf install -y make git golang golang-github-cpuguy83-go-md
 # only supports schema1 manifests. The second is a newer version that supports
 # both. This allows integration-cli tests to cover push/pull with both schema1
 # and schema2 manifests.
-ENV REGISTRY_COMMIT_SCHEMA1 ec87e9b6971d831f0eff752ddb54fb64693e51cd
-ENV REGISTRY_COMMIT 47a064d4195a9b56133891bbb13620c3ac83a827
 RUN set -x \
+	&& REGISTRY_COMMIT_SCHEMA1=ec87e9b6971d831f0eff752ddb54fb64693e51cd \
+	&& REGISTRY_COMMIT=47a064d4195a9b56133891bbb13620c3ac83a827 \
 	&& export GOPATH="$(mktemp -d)" \
 	&& git clone https://github.com/docker/distribution.git "$GOPATH/src/github.com/docker/distribution" \
 	&& (cd "$GOPATH/src/github.com/docker/distribution" && git checkout -q "$REGISTRY_COMMIT") \
