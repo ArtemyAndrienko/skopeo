@@ -7,7 +7,9 @@ RUN dnf -y update && dnf install -y make git golang golang-github-cpuguy83-go-md
 	# gpgme bindings deps
 	libassuan-devel gpgme-devel \
 	ostree-devel \
-	gnupg
+	gnupg \
+	# OpenShift deps
+	which tar wget hostname util-linux bsdtar socat ethtool device-mapper iptables tree findutils nmap-ncat e2fsprogs xfsprogs lsof docker iproute
 
 # Install two versions of the registry. The first is an older version that
 # only supports schema1 manifests. The second is a newer version that supports
@@ -27,7 +29,6 @@ RUN set -x \
 	&& rm -rf "$GOPATH"
 
 RUN set -x \
-	&& yum install -y which git tar wget hostname util-linux bsdtar socat ethtool device-mapper iptables tree findutils nmap-ncat e2fsprogs xfsprogs lsof docker iproute \
 	&& export GOPATH=$(mktemp -d) \
 	&& git clone --depth 1 -b v1.5.0-alpha.3 git://github.com/openshift/origin "$GOPATH/src/github.com/openshift/origin" \
 	&& (cd "$GOPATH/src/github.com/openshift/origin" && make clean build && make all WHAT=cmd/dockerregistry) \
