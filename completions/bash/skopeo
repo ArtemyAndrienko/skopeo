@@ -20,20 +20,24 @@ _complete_() {
 }
 
 _skopeo_copy() {
-     local options_with_args="
-	--sign-by
-	--src-creds --screds
-	--src-cert-dir
-	--src-tls-verify
-	--dest-creds --dcreds
-	--dest-cert-dir
-	--dest-ostree-tmp-dir
-	--dest-tls-verify
-     "
-     local boolean_options="
-	--remove-signatures
-     "
-     _complete_ "$options_with_args" "$boolean_options"
+    local options_with_args="
+    --format -f
+    --sign-by
+    --src-creds --screds
+    --src-cert-dir
+    --src-tls-verify
+    --dest-creds --dcreds
+    --dest-cert-dir
+    --dest-ostree-tmp-dir
+    --dest-tls-verify
+    "
+
+    local boolean_options="
+    --dest-compress
+    --remove-signatures
+    "
+
+    _complete_ "$options_with_args" "$boolean_options"
 }
 
 _skopeo_inspect() {

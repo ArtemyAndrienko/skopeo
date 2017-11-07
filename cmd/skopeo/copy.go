@@ -7,9 +7,11 @@ import (
 	"strings"
 
 	"github.com/containers/image/copy"
+	"github.com/containers/image/manifest"
 	"github.com/containers/image/transports"
 	"github.com/containers/image/transports/alltransports"
 	"github.com/containers/image/types"
+	imgspecv1 "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/urfave/cli"
 )
 
@@ -55,12 +57,27 @@ func copyHandler(context *cli.Context) error {
 		return err
 	}
 
+	var manifestType string
+	if context.IsSet("format") {
+		switch context.String("format") {
+		case "oci":
+			manifestType = imgspecv1.MediaTypeImageManifest
+		case "v2s1":
+			manifestType = manifest.DockerV2Schema1SignedMediaType
+		case "v2s2":
+			manifestType = manifest.DockerV2Schema2MediaType
+		default:
+			return fmt.Errorf("unknown format %q. Choose on of the supported formats: 'oci', 'v2s1', or 'v2s2'", context.String("format"))
+		}
+	}
+
 	return copy.Image(policyContext, destRef, srcRef, &copy.Options{
-		RemoveSignatures: removeSignatures,
-		SignBy:           signBy,
-		ReportWriter:     os.Stdout,
-		SourceCtx:        sourceCtx,
-		DestinationCtx:   destinationCtx,
+		RemoveSignatures:      removeSignatures,
+		SignBy:                signBy,
+		ReportWriter:          os.Stdout,
+		SourceCtx:             sourceCtx,
+		DestinationCtx:        destinationCtx,
+		ForceManifestMIMEType: manifestType,
 	})
 }
 
@@ -130,6 +147,14 @@ var copyCmd = cli.Command{
 			Name:  "dest-shared-blob-dir",
 			Value: "",
 			Usage: "`DIRECTORY` to use to store retrieved blobs (OCI layout destinations only)",
+		},
+		cli.StringFlag{
+			Name:  "format, f",
+			Usage: "`MANIFEST TYPE` (oci, v2s1, or v2s2) to use when saving image to directory using the 'dir:' transport (default is manifest type of source)",
+		},
+		cli.BoolFlag{
+			Name:  "dest-compress",
+			Usage: "Compress tarball image layers when saving to directory using the 'dir' transport. (default is same compression type as source)",
 		},
 	},
 }
