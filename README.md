@@ -82,7 +82,7 @@ local directories, and local OCI-layout directories:
 ```sh
 $ skopeo copy docker://busybox:1-glibc atomic:myns/unsigned:streaming
 $ skopeo copy docker://busybox:latest dir:existingemptydirectory
-$ skopeo copy docker://busybox:latest oci:busybox_ocilayout
+$ skopeo copy docker://busybox:latest oci:busybox_ocilayout:latest
 ```
 
 Deleting images
