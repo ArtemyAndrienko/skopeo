@@ -15,6 +15,7 @@ import (
 	"github.com/containers/image/signature"
 	"github.com/go-check/check"
 	"github.com/opencontainers/go-digest"
+	imgspecv1 "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/opencontainers/image-tools/image"
 )
 
@@ -589,6 +590,32 @@ func (s *CopySuite) TestCopySchemaConversion(c *check.C) {
 	s.testCopySchemaConversionRegistries(c, "docker://localhost:5005/myns/schema1", "docker://localhost:5006/myns/schema2")
 	// … and for various docker/distribution registry versions.
 	s.testCopySchemaConversionRegistries(c, "docker://"+v2s1DockerRegistryURL+"/schema1", "docker://"+v2DockerRegistryURL+"/schema2")
+}
+
+func (s *CopySuite) TestCopyManifestConversion(c *check.C) {
+	topDir, err := ioutil.TempDir("", "manifest-conversion")
+	c.Assert(err, check.IsNil)
+	defer os.RemoveAll(topDir)
+	srcDir := filepath.Join(topDir, "source")
+	destDir1 := filepath.Join(topDir, "dest1")
+	destDir2 := filepath.Join(topDir, "dest2")
+
+	// oci to v2s1 and vice-versa not supported yet
+	// get v2s2 manifest type
+	assertSkopeoSucceeds(c, "", "copy", "docker://busybox", "dir:"+srcDir)
+	verifyManifestMIMEType(c, srcDir, manifest.DockerV2Schema2MediaType)
+	// convert from v2s2 to oci
+	assertSkopeoSucceeds(c, "", "copy", "--format=oci", "dir:"+srcDir, "dir:"+destDir1)
+	verifyManifestMIMEType(c, destDir1, imgspecv1.MediaTypeImageManifest)
+	// convert from oci to v2s2
+	assertSkopeoSucceeds(c, "", "copy", "--format=v2s2", "dir:"+destDir1, "dir:"+destDir2)
+	verifyManifestMIMEType(c, destDir2, manifest.DockerV2Schema2MediaType)
+	// convert from v2s2 to v2s1
+	assertSkopeoSucceeds(c, "", "copy", "--format=v2s1", "dir:"+srcDir, "dir:"+destDir1)
+	verifyManifestMIMEType(c, destDir1, manifest.DockerV2Schema1SignedMediaType)
+	// convert from v2s1 to v2s2
+	assertSkopeoSucceeds(c, "", "copy", "--format=v2s2", "dir:"+destDir1, "dir:"+destDir2)
+	verifyManifestMIMEType(c, destDir2, manifest.DockerV2Schema2MediaType)
 }
 
 func (s *CopySuite) testCopySchemaConversionRegistries(c *check.C, schema1Registry, schema2Registry string) {

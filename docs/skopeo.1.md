@@ -60,11 +60,15 @@ Uses the system's trust policy to validate images, rejects images not trusted by
 
   _destination-image_ use the "image name" format described above
 
+  **--format, -f** _manifest-type_ Manifest type (oci, v2s1, or v2s2) to use when saving image to directory using the 'dir:' transport (default is manifest type of source)
+
   **--remove-signatures** do not copy signatures, if any, from _source-image_. Necessary when copying a signed image to a destination which does not support signatures.
 
   **--sign-by=**_key-id_ add a signature using that key ID for an image name corresponding to _destination-image_
 
   **--src-creds** _username[:password]_ for accessing the source registry
+
+  **--dest-compress** _bool-value_ Compress tarball image layers when saving to directory using the 'dir' transport. (default is same compression type as source)
 
   **--dest-creds** _username[:password]_ for accessing the destination registry
 
