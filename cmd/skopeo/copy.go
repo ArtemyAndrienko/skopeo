@@ -97,6 +97,10 @@ var copyCmd = cli.Command{
 	Action:    copyHandler,
 	// FIXME: Do we need to namespace the GPG aspect?
 	Flags: []cli.Flag{
+		cli.StringFlag{
+			Name:  "authfile",
+			Usage: "path of the authentication file. Default is ${XDG_RUNTIME_DIR}/containers/auth.json",
+		},
 		cli.BoolFlag{
 			Name:  "remove-signatures",
 			Usage: "Do not copy signatures from SOURCE-IMAGE",
