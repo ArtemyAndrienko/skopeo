@@ -90,9 +90,11 @@ func (s *CopySuite) TearDownSuite(c *check.C) {
 	}
 }
 
-func (s *CopySuite) TestCopyFailsWithManifestList(c *check.C) {
-	c.ExpectFailure("manifest-list-hotfix sacrificed hotfixes for being able to copy images")
-	assertSkopeoFails(c, ".*can not copy docker://estesp/busybox:latest: manifest contains multiple images.*", "copy", "docker://estesp/busybox:latest", "dir:somedir")
+func (s *CopySuite) TestCopyWithManifestList(c *check.C) {
+	dir, err := ioutil.TempDir("", "copy-manifest-list")
+	c.Assert(err, check.IsNil)
+	defer os.RemoveAll(dir)
+	assertSkopeoSucceeds(c, "", "copy", "docker://estesp/busybox:latest", "dir:"+dir)
 }
 
 func (s *CopySuite) TestCopyFailsWhenImageOSDoesntMatchRuntimeOS(c *check.C) {

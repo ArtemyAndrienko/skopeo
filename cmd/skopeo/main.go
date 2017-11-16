@@ -50,6 +50,16 @@ func createApp() *cli.App {
 			Value: "",
 			Usage: "use registry configuration files in `DIR` (e.g. for container signature storage)",
 		},
+		cli.StringFlag{
+			Name:  "override-arch",
+			Value: "",
+			Usage: "use `ARCH` instead of the architecture of the machine for choosing images",
+		},
+		cli.StringFlag{
+			Name:  "override-os",
+			Value: "",
+			Usage: "use `OS` instead of the running OS for choosing images",
+		},
 	}
 	app.Before = func(c *cli.Context) error {
 		if c.GlobalBool("debug") {
