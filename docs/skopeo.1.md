@@ -2,13 +2,25 @@
 % Jhon Honce
 % August 2016
 # NAME
-skopeo -- Various operations with container images and container image registries
+skopeo -- Command line utility used to interact with local and remote container images and container image registries
 # SYNOPSIS
 **skopeo** [_global options_] _command_ [_command options_]
 # DESCRIPTION
-`skopeo` is a command line utility providing various operations with container images and container image registries. For example, it is able to inspect a repository on a container registry and fetch image. It fetches the repository's manifest and it is able to show you a `docker inspect`-like json output about a whole repository or a tag. This tool, in contrast to `docker inspect`, helps you gather useful information about a repository or a tag without requiring you to run `docker pull` - e.g. - which tags are available for the given repository? which labels the image has?
+`skopeo` is a command line utility providing various operations with container images and container image registries.
 
-It also allows you to copy container images between various registries, possibly converting them as necessary, and to sign and verify images.
+`skopeo` can copy container images between various containers image stores, converting them as necessary.  For example you can use `skopeo` to copy container images from one container registry to another.
+
+`skopeo` can convert a Docker schema 2 or schema 1 container image to an OCI image.
+
+`skopeo` can inspect a repository on a container registry without needlessly pulling the image. Pulling an image from a repository, especially a remote repository, is an expensive network and storage operation. Skopeo fetches the repository's manifest and displays a `docker inspect`-like json output about the repository or a tag. `skopeo`, in contrast to `docker inspect`, helps you gather useful information about a repository or a tag without requiring you to run `docker pull` - e.g. - Which tags are available for the given repository? Which labels does the image have?
+
+`skopeo` can sign and verify container images.
+
+`skopeo` can delete container images from a remote container registry.
+
+Note: `skopeo` does not require any container runtimes to be running, to do most of
+its functionality.  It also does not require root, unless you are copying images into a container runtime storage backend, like the docker daemon or github.com/containers/storage.
+
 ## IMAGE NAMES
 Most commands refer to container images, using a _transport_`:`_details_ format. The following formats are supported:
 
@@ -22,10 +34,10 @@ Most commands refer to container images, using a _transport_`:`_details_ format.
   An image in a registry implementing the "Docker Registry HTTP API V2". By default, uses the authorization state in either `$XDG_RUNTIME_DIR/containers/auth.json`, which is set using `(kpod login)`. If the authorization state is not found there, `$HOME/.docker/config.json` is checked, which is set using `(docker login)`.
 
   **docker-archive:**_path_[**:**_docker-reference_]
-  An image is stored in the `docker save` formated file.  _docker-reference_ is only used when creating such a file, and it must not contain a digest.
+  An image is stored in the `docker save` formatted file.  _docker-reference_ is only used when creating such a file, and it must not contain a digest.
 
   **docker-daemon:**_docker-reference_
-  An image _docker-reference_ stored in the docker daemon internal storage.  _docker-reference_ must contain either a tag or a digest.  Alternatively, when reading images, the format can also be docker-daemon:algo:digest (an image ID).
+  An image _docker-reference_ stored in the docker daemon internal storage.  _docker-reference_ must contain either a tag or a digest.  Alternatively, when reading images, the format can be docker-daemon:algo:digest (an image ID).
 
   **oci:**_path_**:**_tag_
   An image _tag_ in a directory compliant with "Open Container Image Layout Specification" at _path_.
@@ -96,10 +108,17 @@ Existing signatures, if any, are preserved as well.
 ## skopeo delete
 **skopeo delete** _image-name_
 
-Mark _image-name_ for deletion.  To release the allocated disk space, you need to execute the container registry garabage collector. E.g.,
+Mark _image-name_ for deletion.  To release the allocated disk space, you must login to the container registry server and execute the container registry garbage collector. E.g.,
 
-```sh
-$ docker exec -it registry bin/registry garbage-collect /etc/docker/registry/config.yml
+```
+/usr/bin/registry garbage-collect /etc/docker-distribution/registry/config.yml
+
+Note: sometimes the config.yml is stored in /etc/docker/registry/config.yml
+
+If you are running the container registry inside of a container you would execute something like:
+
+$ docker exec -it registry /usr/bin/registry garbage-collect /etc/docker-distribution/registry/config.yml
+
 ```
 
   **--authfile** _path_
