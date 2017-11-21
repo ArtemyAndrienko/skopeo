@@ -42,6 +42,10 @@ var deleteCmd = cli.Command{
 	Action:    deleteHandler,
 	Flags: []cli.Flag{
 		cli.StringFlag{
+			Name:  "authfile",
+			Usage: "path of the authentication file. Default is ${XDG_RUNTIME_DIR}/containers/auth.json",
+		},
+		cli.StringFlag{
 			Name:  "creds",
 			Value: "",
 			Usage: "Use `USERNAME[:PASSWORD]` for accessing the registry",

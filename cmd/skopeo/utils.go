@@ -21,6 +21,7 @@ func contextFromGlobalOptions(c *cli.Context, flagPrefix string) (*types.SystemC
 		OSTreeTmpDirPath:            c.String(flagPrefix + "ostree-tmp-dir"),
 		OCISharedBlobDirPath:        c.String(flagPrefix + "shared-blob-dir"),
 		DirForceCompress:            c.Bool(flagPrefix + "compress"),
+		AuthFilePath:                c.String("authfile"),
 	}
 	if c.IsSet(flagPrefix + "tls-verify") {
 		ctx.DockerInsecureSkipTLSVerify = !c.BoolT(flagPrefix + "tls-verify")

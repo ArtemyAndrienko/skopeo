@@ -19,7 +19,7 @@ Most commands refer to container images, using a _transport_`:`_details_ format.
   An existing local directory _path_ storing the manifest, layer tarballs and signatures as individual files. This is a non-standardized format, primarily useful for debugging or noninvasive container inspection.
 
   **docker://**_docker-reference_
-  An image in a registry implementing the "Docker Registry HTTP API V2". By default, uses the authorization state in `$HOME/.docker/config.json`, which is set e.g. using `(docker login)`.
+  An image in a registry implementing the "Docker Registry HTTP API V2". By default, uses the authorization state in either `$XDG_RUNTIME_DIR/containers/auth.json`, which is set using `(kpod login)`. If the authorization state is not found there, `$HOME/.docker/config.json` is checked, which is set using `(docker login)`.
 
   **docker-archive:**_path_[**:**_docker-reference_]
   An image is stored in the `docker save` formated file.  _docker-reference_ is only used when creating such a file, and it must not contain a digest.
@@ -64,6 +64,11 @@ Uses the system's trust policy to validate images, rejects images not trusted by
 
   _destination-image_ use the "image name" format described above
 
+  **--authfile** _path_
+
+  Path of the authentication file. Default is ${XDG_RUNTIME\_DIR}/containers/auth.json, which is set using `kpod login`.
+  If the authorization state is not found there, $HOME/.docker/config.json is checked, which is set using `docker login`.
+
   **--format, -f** _manifest-type_ Manifest type (oci, v2s1, or v2s2) to use when saving image to directory using the 'dir:' transport (default is manifest type of source)
 
   **--remove-signatures** do not copy signatures, if any, from _source-image_. Necessary when copying a signed image to a destination which does not support signatures.
@@ -97,6 +102,11 @@ Mark _image-name_ for deletion.  To release the allocated disk space, you need t
 $ docker exec -it registry bin/registry garbage-collect /etc/docker/registry/config.yml
 ```
 
+  **--authfile** _path_
+
+  Path of the authentication file. Default is ${XDG_RUNTIME\_DIR}/containers/auth.json, which is set using `kpod login`.
+  If the authorization state is not found there, $HOME/.docker/config.json is checked, which is set using `docker login`.
+
   **--creds** _username[:password]_ for accessing the registry
 
   **--cert-dir** _path_ Use certificates at _path_ (*.crt, *.cert, *.key) to connect to the registry
@@ -113,6 +123,11 @@ Return low-level information about _image-name_ in a registry
   **--raw** output raw manifest, default is to format in JSON
 
   _image-name_ name of image to retrieve information about
+
+  **--authfile** _path_
+
+  Path of the authentication file. Default is ${XDG_RUNTIME\_DIR}/containers/auth.json, which is set using `kpod login`.
+  If the authorization state is not found there, $HOME/.docker/config.json is checked, which is set using `docker login`.
 
   **--creds** _username[:password]_ for accessing the registry
 
@@ -244,6 +259,9 @@ See `skopeo copy` above for the preferred method of signing images.
 $ skopeo standalone-verify busybox-manifest.json registry.example.com/example/busybox 1D8230F6CDB6A06716E414C1DB72F2188BB46CC8  busybox.signature
 Signature verified, digest sha256:20bf21ed457b390829cdbeec8795a7bea1626991fda603e0d01b4e7f60427e55
 ```
+
+# SEE ALSO
+kpod-login(1), docker-login(1)
 
 # AUTHORS
 

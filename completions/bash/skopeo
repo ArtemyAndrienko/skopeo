@@ -21,6 +21,7 @@ _complete_() {
 
 _skopeo_copy() {
     local options_with_args="
+    --authfile
     --format -f
     --sign-by
     --src-creds --screds
@@ -42,12 +43,13 @@ _skopeo_copy() {
 
 _skopeo_inspect() {
      local options_with_args="
-	--creds
-	--cert-dir
+     --authfile
+     --creds
+     --cert-dir
      "
      local boolean_options="
-	--raw
-	--tls-verify
+     --raw
+     --tls-verify
     "
     _complete_ "$options_with_args" "$boolean_options"
 }
@@ -79,11 +81,12 @@ _skopeo_manifest_digest() {
 
 _skopeo_delete() {
      local options_with_args="
-	   --creds
-	   --cert-dir
+     --authfile
+     --creds
+     --cert-dir
      "
      local boolean_options="
-	   --tls-verify
+     --tls-verify
      "
     _complete_ "$options_with_args" "$boolean_options"
 }

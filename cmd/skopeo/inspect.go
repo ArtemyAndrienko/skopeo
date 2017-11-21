@@ -43,6 +43,10 @@ var inspectCmd = cli.Command{
 	ArgsUsage: "IMAGE-NAME",
 	Flags: []cli.Flag{
 		cli.StringFlag{
+			Name:  "authfile",
+			Usage: "path of the authentication file. Default is ${XDG_RUNTIME_DIR}/containers/auth.json",
+		},
+		cli.StringFlag{
 			Name:  "cert-dir",
 			Value: "",
 			Usage: "use certificates at `PATH` (*.crt, *.cert, *.key) to connect to the registry",
