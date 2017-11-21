@@ -5,10 +5,15 @@ skopeo [![Build Status](https://travis-ci.org/projectatomic/skopeo.svg?branch=ma
 
 ----
 
-`skopeo` is a command line utility that performs various operations on container images and image repositories.  Skopeo works with API V2 registries such as Docker registries, the Atomic registry, private registries, local directories and local OCI-layout directories.  Skopeo does not require a daemon to be running to perform these operations which consist of:
+`skopeo` is a command line utility that performs various operations on container images and image repositories.
 
- * Inspecting an image showing its properties including its layers.
+`skopeo` can work with (OCI images)[https://github.com/opencontainers/image-spec] as well as the original Docker v2 images.
+
+Skopeo works with API V2 registries such as Docker registries, the Atomic registry, private registries, local directories and local OCI-layout directories.  Skopeo does not require a daemon to be running to perform these operations which consist of:
+
  * Copying an image from and to various storage mechanisms.
+   For example you can copy images from one registry to another, without requiring priviledge.
+ * Inspecting a remote image showing its properties including its layers, without requiring you to pull the image to the host.
  * Deleting an image from an image repository.
  * When required by the repository, skopeo can pass the appropriate credentials and certificates for authentication.
 
@@ -79,9 +84,20 @@ $ skopeo inspect docker://docker.io/fedora:rawhide | jq '.Digest'
 
 Copying images
 -
-`skopeo` can copy container images between various storage mechanisms,
-e.g. Docker registries (including the Docker Hub), the Atomic Registry,
-local directories, and local OCI-layout directories:
+`skopeo` can copy container images between various storage mechanisms, including:
+* Docker distribution based registries
+
+  -  The Docker Hub, OpenShift, GCR, Artifactory, Quay ...
+
+* Container Storage backends
+
+  -  Docker daemon storage
+
+  -  github.com/containers/storage (Backend for CRI-O, Buildah and friends)
+
+* Local directories
+
+* Local OCI-layout directories
 
 ```sh
 $ skopeo copy docker://busybox:1-glibc atomic:myns/unsigned:streaming
