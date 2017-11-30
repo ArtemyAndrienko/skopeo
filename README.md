@@ -7,7 +7,7 @@ skopeo [![Build Status](https://travis-ci.org/projectatomic/skopeo.svg?branch=ma
 
 `skopeo` is a command line utility that performs various operations on container images and image repositories.
 
-`skopeo` can work with (OCI images)[https://github.com/opencontainers/image-spec] as well as the original Docker v2 images.
+`skopeo` can work with [OCI images](https://github.com/opencontainers/image-spec) as well as the original Docker v2 images.
 
 Skopeo works with API V2 registries such as Docker registries, the Atomic registry, private registries, local directories and local OCI-layout directories.  Skopeo does not require a daemon to be running to perform these operations which consist of:
 
