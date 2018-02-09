@@ -67,7 +67,7 @@ func (v Validator) Validate(src io.Reader) error {
 		}
 	}
 
-	sl := gojsonschema.NewReferenceLoaderFileSystem("file:///"+specs[v], fs)
+	sl := newFSLoaderFactory(schemaNamespaces, fs).New(specs[v])
 	ml := gojsonschema.NewStringLoader(string(buf))
 
 	result, err := gojsonschema.Validate(sl, ml)
@@ -157,7 +157,7 @@ func validateIndex(r io.Reader) error {
 
 	err = json.Unmarshal(buf, &header)
 	if err != nil {
-		return errors.Wrap(err, "manifestlist format mismatch")
+		return errors.Wrap(err, "index format mismatch")
 	}
 
 	for _, manifest := range header.Manifests {
@@ -217,8 +217,8 @@ func checkPlatform(OS string, Architecture string) {
 					return
 				}
 			}
-			fmt.Printf("warning: combination of %q and %q is invalid.", OS, Architecture)
+			fmt.Printf("warning: combination of %q and %q is invalid.\n", OS, Architecture)
 		}
 	}
-	fmt.Printf("warning: operating system %q of the bundle is not supported yet.", OS)
+	fmt.Printf("warning: operating system %q of the bundle is not supported yet.\n", OS)
 }
