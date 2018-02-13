@@ -21,7 +21,7 @@ type inspectOutput struct {
 	Tag           string `json:",omitempty"`
 	Digest        digest.Digest
 	RepoTags      []string
-	Created       time.Time
+	Created       *time.Time
 	DockerVersion string
 	Labels        map[string]string
 	Architecture  string
