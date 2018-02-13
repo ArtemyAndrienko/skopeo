@@ -462,6 +462,12 @@ type store struct {
 // GetStore attempts to find an already-created Store object matching the
 // specified location and graph driver, and if it can't, it creates and
 // initializes a new Store object, and the underlying storage that it controls.
+//
+// If StoreOptions `options` haven't been fully populated, then DefaultStoreOptions are used.
+//
+// These defaults observe environment variables:
+//  * `STORAGE_DRIVER` for the name of the storage driver to attempt to use
+//  * `STORAGE_OPTS` for the string of options to pass to the driver
 func GetStore(options StoreOptions) (Store, error) {
 	if options.RunRoot == "" && options.GraphRoot == "" && options.GraphDriverName == "" && len(options.GraphDriverOptions) == 0 {
 		options = DefaultStoreOptions
@@ -2270,14 +2276,15 @@ func (s *store) Shutdown(force bool) ([]string, error) {
 		return mounted, err
 	}
 
+	s.graphLock.Lock()
+	defer s.graphLock.Unlock()
+
 	rlstore.Lock()
 	defer rlstore.Unlock()
 	if modified, err := rlstore.Modified(); modified || err != nil {
 		rlstore.Load()
 	}
 
-	s.graphLock.Lock()
-	defer s.graphLock.Unlock()
 	layers, err := rlstore.Layers()
 	if err != nil {
 		return mounted, err
@@ -2341,6 +2348,41 @@ func stringSliceWithoutValue(slice []string, value string) []string {
 		modified = append(modified, v)
 	}
 	return modified
+}
+
+func copyStringSlice(slice []string) []string {
+	if len(slice) == 0 {
+		return nil
+	}
+	ret := make([]string, len(slice))
+	copy(ret, slice)
+	return ret
+}
+
+func copyStringInt64Map(m map[string]int64) map[string]int64 {
+	ret := make(map[string]int64, len(m))
+	for k, v := range m {
+		ret[k] = v
+	}
+	return ret
+}
+
+func copyStringDigestMap(m map[string]digest.Digest) map[string]digest.Digest {
+	ret := make(map[string]digest.Digest, len(m))
+	for k, v := range m {
+		ret[k] = v
+	}
+	return ret
+}
+
+// copyStringInterfaceMap still forces us to assume that the interface{} is
+// a non-pointer scalar value
+func copyStringInterfaceMap(m map[string]interface{}) map[string]interface{} {
+	ret := make(map[string]interface{}, len(m))
+	for k, v := range m {
+		ret[k] = v
+	}
+	return ret
 }
 
 const configFile = "/etc/containers/storage.conf"
