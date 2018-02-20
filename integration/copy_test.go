@@ -379,7 +379,7 @@ func (s *CopySuite) TestCopyDirSignatures(c *check.C) {
 
 // Compression during copy
 func (s *CopySuite) TestCopyCompression(c *check.C) {
-	const uncompresssedLayerFile = "160d823fdc48e62f97ba62df31e55424f8f5eb6b679c865eec6e59adfe304710.tar"
+	const uncompresssedLayerFile = "160d823fdc48e62f97ba62df31e55424f8f5eb6b679c865eec6e59adfe304710"
 
 	topDir, err := ioutil.TempDir("", "compression-top")
 	c.Assert(err, check.IsNil)
@@ -411,9 +411,7 @@ func (s *CopySuite) TestCopyCompression(c *check.C) {
 		fis, err := dirf.Readdir(-1)
 		c.Assert(err, check.IsNil)
 		for _, fi := range fis {
-			if strings.HasSuffix(fi.Name(), ".tar") {
-				c.Assert(fi.Size() < 2048, check.Equals, true)
-			}
+			c.Assert(fi.Size() < 2048, check.Equals, true)
 		}
 	}
 }
