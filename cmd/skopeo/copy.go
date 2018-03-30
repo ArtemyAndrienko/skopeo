@@ -122,20 +122,20 @@ var copyCmd = cli.Command{
 		cli.StringFlag{
 			Name:  "src-cert-dir",
 			Value: "",
-			Usage: "use certificates at `PATH` (*.crt, *.cert, *.key) to connect to the source registry",
+			Usage: "use certificates at `PATH` (*.crt, *.cert, *.key) to connect to the source registry or daemon",
 		},
 		cli.BoolTFlag{
 			Name:  "src-tls-verify",
-			Usage: "require HTTPS and verify certificates when talking to the container source registry (defaults to true)",
+			Usage: "require HTTPS and verify certificates when talking to the container source registry or daemon (defaults to true)",
 		},
 		cli.StringFlag{
 			Name:  "dest-cert-dir",
 			Value: "",
-			Usage: "use certificates at `PATH` (*.crt, *.cert, *.key) to connect to the destination registry",
+			Usage: "use certificates at `PATH` (*.crt, *.cert, *.key) to connect to the destination registry or daemon",
 		},
 		cli.BoolTFlag{
 			Name:  "dest-tls-verify",
-			Usage: "require HTTPS and verify certificates when talking to the container destination registry (defaults to true)",
+			Usage: "require HTTPS and verify certificates when talking to the container destination registry or daemon (defaults to true)",
 		},
 		cli.StringFlag{
 			Name:  "dest-ostree-tmp-dir",
@@ -159,6 +159,16 @@ var copyCmd = cli.Command{
 		cli.BoolFlag{
 			Name:  "dest-compress",
 			Usage: "Compress tarball image layers when saving to directory using the 'dir' transport. (default is same compression type as source)",
+		},
+		cli.StringFlag{
+			Name:  "src-daemon-host",
+			Value: "",
+			Usage: "use docker daemon host at `HOST` (docker-daemon sources only)",
+		},
+		cli.StringFlag{
+			Name:  "dest-daemon-host",
+			Value: "",
+			Usage: "use docker daemon host at `HOST` (docker-daemon destinations only)",
 		},
 	},
 }

@@ -31,6 +31,8 @@ _skopeo_copy() {
     --dest-cert-dir
     --dest-ostree-tmp-dir
     --dest-tls-verify
+    --src-daemon-host
+    --dest-daemon-host
     "
 
     local boolean_options="
