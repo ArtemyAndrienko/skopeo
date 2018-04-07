@@ -17,11 +17,14 @@ func contextFromGlobalOptions(c *cli.Context, flagPrefix string) (*types.SystemC
 		DockerCertPath:     c.String(flagPrefix + "cert-dir"),
 		// DEPRECATED: keep this here for backward compatibility, but override
 		// them if per subcommand flags are provided (see below).
-		DockerInsecureSkipTLSVerify: !c.GlobalBoolT("tls-verify"),
-		OSTreeTmpDirPath:            c.String(flagPrefix + "ostree-tmp-dir"),
-		OCISharedBlobDirPath:        c.String(flagPrefix + "shared-blob-dir"),
-		DirForceCompress:            c.Bool(flagPrefix + "compress"),
-		AuthFilePath:                c.String("authfile"),
+		DockerInsecureSkipTLSVerify:       !c.GlobalBoolT("tls-verify"),
+		OSTreeTmpDirPath:                  c.String(flagPrefix + "ostree-tmp-dir"),
+		OCISharedBlobDirPath:              c.String(flagPrefix + "shared-blob-dir"),
+		DirForceCompress:                  c.Bool(flagPrefix + "compress"),
+		AuthFilePath:                      c.String("authfile"),
+		DockerDaemonHost:                  c.String(flagPrefix + "daemon-host"),
+		DockerDaemonCertPath:              c.String(flagPrefix + "cert-dir"),
+		DockerDaemonInsecureSkipTLSVerify: !c.BoolT(flagPrefix + "tls-verify"),
 	}
 	if c.IsSet(flagPrefix + "tls-verify") {
 		ctx.DockerInsecureSkipTLSVerify = !c.BoolT(flagPrefix + "tls-verify")

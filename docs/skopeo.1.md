@@ -93,15 +93,19 @@ Uses the system's trust policy to validate images, rejects images not trusted by
 
   **--dest-creds** _username[:password]_ for accessing the destination registry
 
-  **--src-cert-dir** _path_ Use certificates at _path_ (*.crt, *.cert, *.key) to connect to the source registry
+  **--src-cert-dir** _path_ Use certificates at _path_ (*.crt, *.cert, *.key) to connect to the source registry or daemon
 
-  **--src-tls-verify** _bool-value_ Require HTTPS and verify certificates when talking to container source registry (defaults to true)
+  **--src-tls-verify** _bool-value_ Require HTTPS and verify certificates when talking to container source registry or daemon (defaults to true)
 
-  **--dest-cert-dir** _path_ Use certificates at _path_ (*.crt, *.cert, *.key) to connect to the destination registry
+  **--dest-cert-dir** _path_ Use certificates at _path_ (*.crt, *.cert, *.key) to connect to the destination registry or daemon
 
   **--dest-ostree-tmp-dir** _path_ Directory to use for OSTree temporary files.
 
-  **--dest-tls-verify** _bool-value_ Require HTTPS and verify certificates when talking to container destination registry (defaults to true)
+  **--dest-tls-verify** _bool-value_ Require HTTPS and verify certificates when talking to container destination registry or daemon (defaults to true)
+
+  **--src-daemon-host** _host_ Copy from docker daemon at _host_. If _host_ starts with `tcp://`, HTTPS is enabled by default. To use plain HTTP, use the form `http://` (default is `unix:///var/run/docker.sock`).
+
+  **--dest-daemon-host** _host_ Copy to docker daemon at _host_. If _host_ starts with `tcp://`, HTTPS is enabled by default. To use plain HTTP, use the form `http://` (default is `unix:///var/run/docker.sock`).
 
 Existing signatures, if any, are preserved as well.
 
