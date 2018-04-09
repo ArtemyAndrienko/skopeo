@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -30,36 +31,36 @@ func contextsFromGlobalOptions(c *cli.Context) (*types.SystemContext, *types.Sys
 	return sourceCtx, destinationCtx, nil
 }
 
-func copyHandler(context *cli.Context) error {
-	if len(context.Args()) != 2 {
+func copyHandler(c *cli.Context) error {
+	if len(c.Args()) != 2 {
 		return errors.New("Usage: copy source destination")
 	}
 
-	policyContext, err := getPolicyContext(context)
+	policyContext, err := getPolicyContext(c)
 	if err != nil {
 		return fmt.Errorf("Error loading trust policy: %v", err)
 	}
 	defer policyContext.Destroy()
 
-	srcRef, err := alltransports.ParseImageName(context.Args()[0])
+	srcRef, err := alltransports.ParseImageName(c.Args()[0])
 	if err != nil {
-		return fmt.Errorf("Invalid source name %s: %v", context.Args()[0], err)
+		return fmt.Errorf("Invalid source name %s: %v", c.Args()[0], err)
 	}
-	destRef, err := alltransports.ParseImageName(context.Args()[1])
+	destRef, err := alltransports.ParseImageName(c.Args()[1])
 	if err != nil {
-		return fmt.Errorf("Invalid destination name %s: %v", context.Args()[1], err)
+		return fmt.Errorf("Invalid destination name %s: %v", c.Args()[1], err)
 	}
-	signBy := context.String("sign-by")
-	removeSignatures := context.Bool("remove-signatures")
+	signBy := c.String("sign-by")
+	removeSignatures := c.Bool("remove-signatures")
 
-	sourceCtx, destinationCtx, err := contextsFromGlobalOptions(context)
+	sourceCtx, destinationCtx, err := contextsFromGlobalOptions(c)
 	if err != nil {
 		return err
 	}
 
 	var manifestType string
-	if context.IsSet("format") {
-		switch context.String("format") {
+	if c.IsSet("format") {
+		switch c.String("format") {
 		case "oci":
 			manifestType = imgspecv1.MediaTypeImageManifest
 		case "v2s1":
@@ -67,11 +68,11 @@ func copyHandler(context *cli.Context) error {
 		case "v2s2":
 			manifestType = manifest.DockerV2Schema2MediaType
 		default:
-			return fmt.Errorf("unknown format %q. Choose on of the supported formats: 'oci', 'v2s1', or 'v2s2'", context.String("format"))
+			return fmt.Errorf("unknown format %q. Choose on of the supported formats: 'oci', 'v2s1', or 'v2s2'", c.String("format"))
 		}
 	}
 
-	return copy.Image(policyContext, destRef, srcRef, &copy.Options{
+	return copy.Image(context.Background(), policyContext, destRef, srcRef, &copy.Options{
 		RemoveSignatures:      removeSignatures,
 		SignBy:                signBy,
 		ReportWriter:          os.Stdout,

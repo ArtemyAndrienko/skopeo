@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"strings"
 
@@ -66,29 +67,29 @@ func getDockerAuth(creds string) (*types.DockerAuthConfig, error) {
 
 // parseImage converts image URL-like string to an initialized handler for that image.
 // The caller must call .Close() on the returned ImageCloser.
-func parseImage(c *cli.Context) (types.ImageCloser, error) {
+func parseImage(ctx context.Context, c *cli.Context) (types.ImageCloser, error) {
 	imgName := c.Args().First()
 	ref, err := alltransports.ParseImageName(imgName)
 	if err != nil {
 		return nil, err
 	}
-	ctx, err := contextFromGlobalOptions(c, "")
+	sys, err := contextFromGlobalOptions(c, "")
 	if err != nil {
 		return nil, err
 	}
-	return ref.NewImage(ctx)
+	return ref.NewImage(ctx, sys)
 }
 
 // parseImageSource converts image URL-like string to an ImageSource.
 // The caller must call .Close() on the returned ImageSource.
-func parseImageSource(c *cli.Context, name string) (types.ImageSource, error) {
+func parseImageSource(ctx context.Context, c *cli.Context, name string) (types.ImageSource, error) {
 	ref, err := alltransports.ParseImageName(name)
 	if err != nil {
 		return nil, err
 	}
-	ctx, err := contextFromGlobalOptions(c, "")
+	sys, err := contextFromGlobalOptions(c, "")
 	if err != nil {
 		return nil, err
 	}
-	return ref.NewImageSource(ctx)
+	return ref.NewImageSource(ctx, sys)
 }
