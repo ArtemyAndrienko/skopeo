@@ -10,14 +10,14 @@ import (
 	"github.com/urfave/cli"
 )
 
-func standaloneSign(context *cli.Context) error {
-	outputFile := context.String("output")
-	if len(context.Args()) != 3 || outputFile == "" {
+func standaloneSign(c *cli.Context) error {
+	outputFile := c.String("output")
+	if len(c.Args()) != 3 || outputFile == "" {
 		return errors.New("Usage: skopeo standalone-sign manifest docker-reference key-fingerprint -o signature")
 	}
-	manifestPath := context.Args()[0]
-	dockerReference := context.Args()[1]
-	fingerprint := context.Args()[2]
+	manifestPath := c.Args()[0]
+	dockerReference := c.Args()[1]
+	fingerprint := c.Args()[2]
 
 	manifest, err := ioutil.ReadFile(manifestPath)
 	if err != nil {
@@ -53,14 +53,14 @@ var standaloneSignCmd = cli.Command{
 	},
 }
 
-func standaloneVerify(context *cli.Context) error {
-	if len(context.Args()) != 4 {
+func standaloneVerify(c *cli.Context) error {
+	if len(c.Args()) != 4 {
 		return errors.New("Usage: skopeo standalone-verify manifest docker-reference key-fingerprint signature")
 	}
-	manifestPath := context.Args()[0]
-	expectedDockerReference := context.Args()[1]
-	expectedFingerprint := context.Args()[2]
-	signaturePath := context.Args()[3]
+	manifestPath := c.Args()[0]
+	expectedDockerReference := c.Args()[1]
+	expectedFingerprint := c.Args()[2]
+	signaturePath := c.Args()[3]
 
 	unverifiedManifest, err := ioutil.ReadFile(manifestPath)
 	if err != nil {
@@ -81,7 +81,7 @@ func standaloneVerify(context *cli.Context) error {
 		return fmt.Errorf("Error verifying signature: %v", err)
 	}
 
-	fmt.Fprintf(context.App.Writer, "Signature verified, digest %s\n", sig.DockerManifestDigest)
+	fmt.Fprintf(c.App.Writer, "Signature verified, digest %s\n", sig.DockerManifestDigest)
 	return nil
 }
 
@@ -92,11 +92,11 @@ var standaloneVerifyCmd = cli.Command{
 	Action:    standaloneVerify,
 }
 
-func untrustedSignatureDump(context *cli.Context) error {
-	if len(context.Args()) != 1 {
+func untrustedSignatureDump(c *cli.Context) error {
+	if len(c.Args()) != 1 {
 		return errors.New("Usage: skopeo untrusted-signature-dump-without-verification signature")
 	}
-	untrustedSignaturePath := context.Args()[0]
+	untrustedSignaturePath := c.Args()[0]
 
 	untrustedSignature, err := ioutil.ReadFile(untrustedSignaturePath)
 	if err != nil {
@@ -111,7 +111,7 @@ func untrustedSignatureDump(context *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintln(context.App.Writer, string(untrustedOut))
+	fmt.Fprintln(c.App.Writer, string(untrustedOut))
 	return nil
 }
 

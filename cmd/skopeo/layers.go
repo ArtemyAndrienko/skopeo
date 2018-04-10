@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -24,15 +25,18 @@ var layersCmd = cli.Command{
 		if c.NArg() == 0 {
 			return errors.New("Usage: layers imageReference [layer...]")
 		}
-		ctx, err := contextFromGlobalOptions(c, "")
+
+		ctx := context.Background()
+
+		sys, err := contextFromGlobalOptions(c, "")
 		if err != nil {
 			return err
 		}
-		rawSource, err := parseImageSource(c, c.Args()[0])
+		rawSource, err := parseImageSource(ctx, c, c.Args()[0])
 		if err != nil {
 			return err
 		}
-		src, err := image.FromSource(ctx, rawSource)
+		src, err := image.FromSource(ctx, sys, rawSource)
 		if err != nil {
 			if closeErr := rawSource.Close(); closeErr != nil {
 				return errors.Wrapf(err, " (close error: %v)", closeErr)
@@ -85,7 +89,7 @@ var layersCmd = cli.Command{
 		if err != nil {
 			return err
 		}
-		dest, err := tmpDirRef.NewImageDestination(nil)
+		dest, err := tmpDirRef.NewImageDestination(ctx, nil)
 		if err != nil {
 			return err
 		}
@@ -97,11 +101,11 @@ var layersCmd = cli.Command{
 		}()
 
 		for _, bd := range blobDigests {
-			r, blobSize, err := rawSource.GetBlob(types.BlobInfo{Digest: bd.digest, Size: -1})
+			r, blobSize, err := rawSource.GetBlob(ctx, types.BlobInfo{Digest: bd.digest, Size: -1})
 			if err != nil {
 				return err
 			}
-			if _, err := dest.PutBlob(r, types.BlobInfo{Digest: bd.digest, Size: blobSize}, bd.isConfig); err != nil {
+			if _, err := dest.PutBlob(ctx, r, types.BlobInfo{Digest: bd.digest, Size: blobSize}, bd.isConfig); err != nil {
 				if closeErr := r.Close(); closeErr != nil {
 					return errors.Wrapf(err, " (close error: %v)", closeErr)
 				}
@@ -109,14 +113,14 @@ var layersCmd = cli.Command{
 			}
 		}
 
-		manifest, _, err := src.Manifest()
+		manifest, _, err := src.Manifest(ctx)
 		if err != nil {
 			return err
 		}
-		if err := dest.PutManifest(manifest); err != nil {
+		if err := dest.PutManifest(ctx, manifest); err != nil {
 			return err
 		}
 
-		return dest.Commit()
+		return dest.Commit(ctx)
 	},
 }

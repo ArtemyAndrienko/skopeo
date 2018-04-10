@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -10,21 +11,21 @@ import (
 	"github.com/urfave/cli"
 )
 
-func deleteHandler(context *cli.Context) error {
-	if len(context.Args()) != 1 {
+func deleteHandler(c *cli.Context) error {
+	if len(c.Args()) != 1 {
 		return errors.New("Usage: delete imageReference")
 	}
 
-	ref, err := alltransports.ParseImageName(context.Args()[0])
+	ref, err := alltransports.ParseImageName(c.Args()[0])
 	if err != nil {
-		return fmt.Errorf("Invalid source name %s: %v", context.Args()[0], err)
+		return fmt.Errorf("Invalid source name %s: %v", c.Args()[0], err)
 	}
 
-	ctx, err := contextFromGlobalOptions(context, "")
+	sys, err := contextFromGlobalOptions(c, "")
 	if err != nil {
 		return err
 	}
-	return ref.DeleteImage(ctx)
+	return ref.DeleteImage(context.Background(), sys)
 }
 
 var deleteCmd = cli.Command{

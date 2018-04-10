@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -66,7 +67,9 @@ var inspectCmd = cli.Command{
 		},
 	},
 	Action: func(c *cli.Context) (retErr error) {
-		img, err := parseImage(c)
+		ctx := context.Background()
+
+		img, err := parseImage(ctx, c)
 		if err != nil {
 			return err
 		}
@@ -77,7 +80,7 @@ var inspectCmd = cli.Command{
 			}
 		}()
 
-		rawManifest, _, err := img.Manifest()
+		rawManifest, _, err := img.Manifest(ctx)
 		if err != nil {
 			return err
 		}
@@ -88,7 +91,7 @@ var inspectCmd = cli.Command{
 			}
 			return nil
 		}
-		imgInspect, err := img.Inspect()
+		imgInspect, err := img.Inspect(ctx)
 		if err != nil {
 			return err
 		}
@@ -110,7 +113,7 @@ var inspectCmd = cli.Command{
 		}
 		if dockerImg, ok := img.(*docker.Image); ok {
 			outputData.Name = dockerImg.SourceRefFullName()
-			outputData.RepoTags, err = dockerImg.GetRepositoryTags()
+			outputData.RepoTags, err = dockerImg.GetRepositoryTags(ctx)
 			if err != nil {
 				// some registries may decide to block the "list all tags" endpoint
 				// gracefully allow the inspect to continue in this case. Currently
