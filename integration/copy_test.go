@@ -154,7 +154,7 @@ func (s *CopySuite) TestCopySimple(c *check.C) {
 	// docker v2s2 -> OCI image layout without image name
 	ociDest = "busybox-latest-noimage"
 	defer os.RemoveAll(ociDest)
-	assertSkopeoFails(c, ".*Error initializing destination oci:busybox-latest-noimage:: cannot save image with empty image.ref.name.*", "copy", "docker://busybox:latest", "oci:"+ociDest)
+	assertSkopeoFails(c, ".*Error initializing destination oci:busybox-latest-noimage:: cannot save image with empty reference name.*", "copy", "docker://busybox:latest", "oci:"+ociDest)
 }
 
 // Check whether dir: images in dir1 and dir2 are equal, ignoring schema1 signatures.
