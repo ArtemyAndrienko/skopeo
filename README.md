@@ -149,8 +149,16 @@ $ skopeo copy --src-creds=testuser:testpassword docker://myregistrydomain.com:50
 If your cli config is found but it doesn't contain the necessary credentials for the queried registry
 you'll get an error. You can fix this by either logging in (via `docker login`) or providing `--creds` or `--src-creds|--dest-creds`.
 
-Building
+
+Obtaining skopeo
 -
+`skopeo` may already be packaged in your distribution, for example on Fedora 23 and later you can install it using
+```sh
+$ sudo dnf install skopeo
+```
+
+Otherwise, read on for building and installing it from source:
+
 To build the `skopeo` binary you need at least Go 1.5 because it uses the latest `GO15VENDOREXPERIMENT` flag.
 
 There are two ways to build skopeo: in a container, or locally without a container.  Choose the one which better matches your needs and environment.
@@ -194,16 +202,12 @@ Then
 $ make docs
 ```
 
-Installing
--
-If you built from source:
+### Installation
+Finally, after the binary and documentation is built:
 ```sh
 $ sudo make install
 ```
-`skopeo` is also available from Fedora 23 (and later):
-```sh
-$ sudo dnf install skopeo
-```
+
 TODO
 -
 - list all images on registry?
