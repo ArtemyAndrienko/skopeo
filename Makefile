@@ -135,3 +135,6 @@ validate-local:
 
 test-unit-local:
 	$(GPGME_ENV) $(GO) test -tags "$(BUILDTAGS)" $$($(GO) list -tags "$(BUILDTAGS)" -e ./... | grep -v '^github\.com/projectatomic/skopeo/\(integration\|vendor/.*\)$$')
+
+vendor: vendor.conf
+	vndr -whitelist '^github.com/containers/image/docs/.*'

@@ -224,30 +224,30 @@ CONTRIBUTING
 
 ### Dependencies management
 
-`skopeo` uses [`vndr`](https://github.com/LK4D4/vndr) for dependencies management.
+Make sure [`vndr`](https://github.com/LK4D4/vndr) is installed.
 
 In order to add a new dependency to this project:
 
 - add a new line to `vendor.conf` according to `vndr` rules (e.g. `github.com/pkg/errors master`)
-- run `vndr github.com/pkg/errors`
+- run `make vendor`
 
 In order to update an existing dependency:
 
 - update the relevant dependency line in `vendor.conf`
-- run `vndr github.com/pkg/errors`
+- run `make vendor`
 
 When new PRs for [containers/image](https://github.com/containers/image) break `skopeo` (i.e. `containers/image` tests fail in `make test-skopeo`):
 
 - create out a new branch in your `skopeo` checkout and switch to it
 - update `vendor.conf`. Find out the `containers/image` dependency; update it to vendor from your own branch and your own repository fork (e.g. `github.com/containers/image my-branch https://github.com/runcom/image`)
-- run `vndr github.com/containers/image`
+- run `make vendor`
 - make any other necessary changes in the skopeo repo (e.g. add other dependencies now requied by `containers/image`, or update skopeo for changed `containers/image` API)
 - optionally add new integration tests to the skopeo repo
 - submit the resulting branch as a skopeo PR, marked “DO NOT MERGE”
 - iterate until tests pass and the PR is reviewed
 - then the original `containers/image` PR can be merged, disregarding its `make test-skopeo` failure
 - as soon as possible after that, in the skopeo PR, restore the `containers/image` line in `vendor.conf` to use `containers/image:master`
-- run `vndr github.com/containers/image`
+- run `make vendor`
 - update the skopeo PR with the result, drop the “DO NOT MERGE” marking
 - after tests complete succcesfully again, merge the skopeo PR
 
