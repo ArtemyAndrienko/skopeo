@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -34,7 +33,7 @@ func contextsFromGlobalOptions(c *cli.Context) (*types.SystemContext, *types.Sys
 
 func copyHandler(c *cli.Context) error {
 	if len(c.Args()) != 2 {
-		return errors.New("Usage: copy source destination")
+		return cli.ShowCommandHelp(c, "copy")
 	}
 
 	policyContext, err := getPolicyContext(c)
