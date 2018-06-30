@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -33,7 +34,8 @@ func contextsFromGlobalOptions(c *cli.Context) (*types.SystemContext, *types.Sys
 
 func copyHandler(c *cli.Context) error {
 	if len(c.Args()) != 2 {
-		return cli.ShowCommandHelp(c, "copy")
+		cli.ShowCommandHelp(c, "copy")
+		return errors.New("Exactly two arguments expected")
 	}
 
 	policyContext, err := getPolicyContext(c)
