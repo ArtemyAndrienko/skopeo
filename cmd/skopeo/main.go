@@ -75,14 +75,14 @@ func createApp() *cli.App {
 		return nil
 	}
 	app.Commands = []cli.Command{
-		copyCmd,
-		inspectCmd,
-		layersCmd,
-		deleteCmd,
-		manifestDigestCmd,
-		standaloneSignCmd,
-		standaloneVerifyCmd,
-		untrustedSignatureDumpCmd,
+		copyCmd(),
+		inspectCmd(),
+		layersCmd(),
+		deleteCmd(),
+		manifestDigestCmd(),
+		standaloneSignCmd(),
+		standaloneVerifyCmd(),
+		untrustedSignatureDumpCmd(),
 	}
 	return app
 }

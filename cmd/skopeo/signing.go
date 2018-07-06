@@ -10,7 +10,26 @@ import (
 	"github.com/urfave/cli"
 )
 
-func standaloneSign(c *cli.Context) error {
+type standaloneSignOptions struct {
+}
+
+func standaloneSignCmd() cli.Command {
+	opts := standaloneSignOptions{}
+	return cli.Command{
+		Name:      "standalone-sign",
+		Usage:     "Create a signature using local files",
+		ArgsUsage: "MANIFEST DOCKER-REFERENCE KEY-FINGERPRINT",
+		Action:    opts.run,
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "output, o",
+				Usage: "output the signature to `SIGNATURE`",
+			},
+		},
+	}
+}
+
+func (opts *standaloneSignOptions) run(c *cli.Context) error {
 	outputFile := c.String("output")
 	if len(c.Args()) != 3 || outputFile == "" {
 		return errors.New("Usage: skopeo standalone-sign manifest docker-reference key-fingerprint -o signature")
@@ -40,20 +59,20 @@ func standaloneSign(c *cli.Context) error {
 	return nil
 }
 
-var standaloneSignCmd = cli.Command{
-	Name:      "standalone-sign",
-	Usage:     "Create a signature using local files",
-	ArgsUsage: "MANIFEST DOCKER-REFERENCE KEY-FINGERPRINT",
-	Action:    standaloneSign,
-	Flags: []cli.Flag{
-		cli.StringFlag{
-			Name:  "output, o",
-			Usage: "output the signature to `SIGNATURE`",
-		},
-	},
+type standaloneVerifyOptions struct {
 }
 
-func standaloneVerify(c *cli.Context) error {
+func standaloneVerifyCmd() cli.Command {
+	opts := standaloneVerifyOptions{}
+	return cli.Command{
+		Name:      "standalone-verify",
+		Usage:     "Verify a signature using local files",
+		ArgsUsage: "MANIFEST DOCKER-REFERENCE KEY-FINGERPRINT SIGNATURE",
+		Action:    opts.run,
+	}
+}
+
+func (opts *standaloneVerifyOptions) run(c *cli.Context) error {
 	if len(c.Args()) != 4 {
 		return errors.New("Usage: skopeo standalone-verify manifest docker-reference key-fingerprint signature")
 	}
@@ -85,14 +104,27 @@ func standaloneVerify(c *cli.Context) error {
 	return nil
 }
 
-var standaloneVerifyCmd = cli.Command{
-	Name:      "standalone-verify",
-	Usage:     "Verify a signature using local files",
-	ArgsUsage: "MANIFEST DOCKER-REFERENCE KEY-FINGERPRINT SIGNATURE",
-	Action:    standaloneVerify,
+// WARNING: Do not use the contents of this for ANY security decisions,
+// and be VERY CAREFUL about showing this information to humans in any way which suggest that these values “are probably” reliable.
+// There is NO REASON to expect the values to be correct, or not intentionally misleading
+// (including things like “✅ Verified by $authority”)
+//
+// The subcommand is undocumented, and it may be renamed or entirely disappear in the future.
+type untrustedSignatureDumpOptions struct {
 }
 
-func untrustedSignatureDump(c *cli.Context) error {
+func untrustedSignatureDumpCmd() cli.Command {
+	opts := untrustedSignatureDumpOptions{}
+	return cli.Command{
+		Name:      "untrusted-signature-dump-without-verification",
+		Usage:     "Dump contents of a signature WITHOUT VERIFYING IT",
+		ArgsUsage: "SIGNATURE",
+		Hidden:    true,
+		Action:    opts.run,
+	}
+}
+
+func (opts *untrustedSignatureDumpOptions) run(c *cli.Context) error {
 	if len(c.Args()) != 1 {
 		return errors.New("Usage: skopeo untrusted-signature-dump-without-verification signature")
 	}
@@ -113,18 +145,4 @@ func untrustedSignatureDump(c *cli.Context) error {
 	}
 	fmt.Fprintln(c.App.Writer, string(untrustedOut))
 	return nil
-}
-
-// WARNING: Do not use the contents of this for ANY security decisions,
-// and be VERY CAREFUL about showing this information to humans in any way which suggest that these values “are probably” reliable.
-// There is NO REASON to expect the values to be correct, or not intentionally misleading
-// (including things like “✅ Verified by $authority”)
-//
-// The subcommand is undocumented, and it may be renamed or entirely disappear in the future.
-var untrustedSignatureDumpCmd = cli.Command{
-	Name:      "untrusted-signature-dump-without-verification",
-	Usage:     "Dump contents of a signature WITHOUT VERIFYING IT",
-	ArgsUsage: "SIGNATURE",
-	Hidden:    true,
-	Action:    untrustedSignatureDump,
 }

@@ -9,7 +9,20 @@ import (
 	"github.com/urfave/cli"
 )
 
-func manifestDigest(context *cli.Context) error {
+type manifestDigestOptions struct {
+}
+
+func manifestDigestCmd() cli.Command {
+	opts := manifestDigestOptions{}
+	return cli.Command{
+		Name:      "manifest-digest",
+		Usage:     "Compute a manifest digest of a file",
+		ArgsUsage: "MANIFEST",
+		Action:    opts.run,
+	}
+}
+
+func (opts *manifestDigestOptions) run(context *cli.Context) error {
 	if len(context.Args()) != 1 {
 		return errors.New("Usage: skopeo manifest-digest manifest")
 	}
@@ -25,11 +38,4 @@ func manifestDigest(context *cli.Context) error {
 	}
 	fmt.Fprintf(context.App.Writer, "%s\n", digest)
 	return nil
-}
-
-var manifestDigestCmd = cli.Command{
-	Name:      "manifest-digest",
-	Usage:     "Compute a manifest digest of a file",
-	ArgsUsage: "MANIFEST",
-	Action:    manifestDigest,
 }

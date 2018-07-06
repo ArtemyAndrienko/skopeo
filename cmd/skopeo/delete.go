@@ -10,7 +10,48 @@ import (
 	"github.com/urfave/cli"
 )
 
-func deleteHandler(c *cli.Context) error {
+type deleteOptions struct {
+}
+
+func deleteCmd() cli.Command {
+	opts := deleteOptions{}
+	return cli.Command{
+		Name:  "delete",
+		Usage: "Delete image IMAGE-NAME",
+		Description: fmt.Sprintf(`
+	Delete an "IMAGE_NAME" from a transport
+
+	Supported transports:
+	%s
+
+	See skopeo(1) section "IMAGE NAMES" for the expected format
+	`, strings.Join(transports.ListNames(), ", ")),
+		ArgsUsage: "IMAGE-NAME",
+		Action:    opts.run,
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "authfile",
+				Usage: "path of the authentication file. Default is ${XDG_RUNTIME_DIR}/containers/auth.json",
+			},
+			cli.StringFlag{
+				Name:  "creds",
+				Value: "",
+				Usage: "Use `USERNAME[:PASSWORD]` for accessing the registry",
+			},
+			cli.StringFlag{
+				Name:  "cert-dir",
+				Value: "",
+				Usage: "use certificates at `PATH` (*.crt, *.cert, *.key) to connect to the registry",
+			},
+			cli.BoolTFlag{
+				Name:  "tls-verify",
+				Usage: "require HTTPS and verify certificates when talking to container registries (defaults to true)",
+			},
+		},
+	}
+}
+
+func (opts *deleteOptions) run(c *cli.Context) error {
 	if len(c.Args()) != 1 {
 		return errors.New("Usage: delete imageReference")
 	}
@@ -28,39 +69,4 @@ func deleteHandler(c *cli.Context) error {
 	ctx, cancel := commandTimeoutContextFromGlobalOptions(c)
 	defer cancel()
 	return ref.DeleteImage(ctx, sys)
-}
-
-var deleteCmd = cli.Command{
-	Name:  "delete",
-	Usage: "Delete image IMAGE-NAME",
-	Description: fmt.Sprintf(`
-	Delete an "IMAGE_NAME" from a transport
-
-	Supported transports:
-	%s
-
-	See skopeo(1) section "IMAGE NAMES" for the expected format
-	`, strings.Join(transports.ListNames(), ", ")),
-	ArgsUsage: "IMAGE-NAME",
-	Action:    deleteHandler,
-	Flags: []cli.Flag{
-		cli.StringFlag{
-			Name:  "authfile",
-			Usage: "path of the authentication file. Default is ${XDG_RUNTIME_DIR}/containers/auth.json",
-		},
-		cli.StringFlag{
-			Name:  "creds",
-			Value: "",
-			Usage: "Use `USERNAME[:PASSWORD]` for accessing the registry",
-		},
-		cli.StringFlag{
-			Name:  "cert-dir",
-			Value: "",
-			Usage: "use certificates at `PATH` (*.crt, *.cert, *.key) to connect to the registry",
-		},
-		cli.BoolTFlag{
-			Name:  "tls-verify",
-			Usage: "require HTTPS and verify certificates when talking to container registries (defaults to true)",
-		},
-	},
 }
