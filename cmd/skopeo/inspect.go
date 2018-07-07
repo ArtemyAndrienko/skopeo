@@ -58,10 +58,6 @@ func inspectCmd(global *globalOptions) cli.Command {
 				Name:  "authfile",
 				Usage: "path of the authentication file. Default is ${XDG_RUNTIME_DIR}/containers/auth.json",
 			},
-			cli.BoolTFlag{
-				Name:  "tls-verify",
-				Usage: "require HTTPS and verify certificates when talking to container registries (defaults to true)",
-			},
 			cli.BoolFlag{
 				Name:        "raw",
 				Usage:       "output raw manifest",

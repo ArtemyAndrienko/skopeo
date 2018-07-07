@@ -56,7 +56,6 @@ func fakeContext(t *testing.T, cmdName string, flagPrefix string, globalFlags []
 
 func TestContextFromImageOptions(t *testing.T) {
 	// FIXME: All of this only tests (skopeo copy --dest)
-	// FIXME FIXME: Apparently BoolT values are set to false if the flag is not declared for the specific subcommand!!
 
 	// Default state
 	c, opts := fakeContext(t, "copy", "dest-", []string{}, []string{})

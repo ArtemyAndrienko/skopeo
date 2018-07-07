@@ -17,6 +17,7 @@ type imageOptions struct {
 	flagPrefix     string         // FIXME: Drop this eventually.
 	credsOption    optionalString // username[:password] for accessing a registry
 	dockerCertPath string         // A directory using Docker-like *.{crt,cert,key} files for connecting to a registry or a daemon
+	tlsVerify      optionalBool   // Require HTTPS and verify certificates (for docker: and docker-daemon:)
 }
 
 // imageFlags prepares a collection of CLI flags writing into imageOptions, and the managed imageOptions structure.
@@ -44,29 +45,36 @@ func imageFlags(global *globalOptions, flagPrefix, credsOptionAlias string) ([]c
 			Usage:       "use certificates at `PATH` (*.crt, *.cert, *.key) to connect to the registry or daemon",
 			Destination: &opts.dockerCertPath,
 		},
+		cli.GenericFlag{
+			Name:  flagPrefix + "tls-verify",
+			Usage: "require HTTPS and verify certificates when talking to the container registry or daemon (defaults to true)",
+			Value: newOptionalBoolValue(&opts.tlsVerify),
+		},
 	}, &opts
 }
 
 func contextFromImageOptions(c *cli.Context, opts *imageOptions) (*types.SystemContext, error) {
 	ctx := &types.SystemContext{
-		RegistriesDirPath:                 opts.global.registriesDirPath,
-		ArchitectureChoice:                opts.global.overrideArch,
-		OSChoice:                          opts.global.overrideOS,
-		DockerCertPath:                    opts.dockerCertPath,
-		OSTreeTmpDirPath:                  c.String(opts.flagPrefix + "ostree-tmp-dir"),
-		OCISharedBlobDirPath:              c.String(opts.flagPrefix + "shared-blob-dir"),
-		DirForceCompress:                  c.Bool(opts.flagPrefix + "compress"),
-		AuthFilePath:                      c.String("authfile"),
-		DockerDaemonHost:                  c.String(opts.flagPrefix + "daemon-host"),
-		DockerDaemonCertPath:              opts.dockerCertPath,
-		DockerDaemonInsecureSkipTLSVerify: !c.BoolT(opts.flagPrefix + "tls-verify"),
+		RegistriesDirPath:    opts.global.registriesDirPath,
+		ArchitectureChoice:   opts.global.overrideArch,
+		OSChoice:             opts.global.overrideOS,
+		DockerCertPath:       opts.dockerCertPath,
+		OSTreeTmpDirPath:     c.String(opts.flagPrefix + "ostree-tmp-dir"),
+		OCISharedBlobDirPath: c.String(opts.flagPrefix + "shared-blob-dir"),
+		DirForceCompress:     c.Bool(opts.flagPrefix + "compress"),
+		AuthFilePath:         c.String("authfile"),
+		DockerDaemonHost:     c.String(opts.flagPrefix + "daemon-host"),
+		DockerDaemonCertPath: opts.dockerCertPath,
+	}
+	if opts.tlsVerify.present {
+		ctx.DockerDaemonInsecureSkipTLSVerify = !opts.tlsVerify.value
 	}
 	// DEPRECATED: We support this for backward compatibility, but override it if a per-image flag is provided.
 	if opts.global.tlsVerify.present {
 		ctx.DockerInsecureSkipTLSVerify = types.NewOptionalBool(!opts.global.tlsVerify.value)
 	}
-	if c.IsSet(opts.flagPrefix + "tls-verify") {
-		ctx.DockerInsecureSkipTLSVerify = types.NewOptionalBool(!c.BoolT(opts.flagPrefix + "tls-verify"))
+	if opts.tlsVerify.present {
+		ctx.DockerInsecureSkipTLSVerify = types.NewOptionalBool(!opts.tlsVerify.value)
 	}
 	if opts.credsOption.present {
 		var err error
