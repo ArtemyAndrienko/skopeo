@@ -81,7 +81,7 @@ func (opts *inspectOptions) run(c *cli.Context) (retErr error) {
 	ctx, cancel := opts.global.commandTimeoutContext()
 	defer cancel()
 
-	img, err := parseImage(ctx, c)
+	img, err := parseImage(ctx, c, opts.global)
 	if err != nil {
 		return err
 	}
@@ -127,7 +127,7 @@ func (opts *inspectOptions) run(c *cli.Context) (retErr error) {
 		outputData.Name = dockerRef.Name()
 	}
 	if img.Reference().Transport() == docker.Transport {
-		sys, err := contextFromGlobalOptions(c, "")
+		sys, err := contextFromGlobalOptions(c, opts.global, "")
 		if err != nil {
 			return err
 		}

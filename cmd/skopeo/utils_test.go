@@ -12,8 +12,8 @@ import (
 
 // fakeContext creates inputs for contextFromGlobalOptions.
 // NOTE: This is QUITE FAKE; none of the urfave/cli normalization and the like happens.
-func fakeContext(t *testing.T, cmdName string, globalFlags []string, cmdFlags []string) *cli.Context {
-	app := createApp()
+func fakeContext(t *testing.T, cmdName string, globalFlags []string, cmdFlags []string) (*cli.Context, *globalOptions) {
+	app, global := createApp()
 
 	globalSet := flag.NewFlagSet(app.Name, flag.ContinueOnError)
 	for _, f := range app.Flags {
@@ -31,7 +31,7 @@ func fakeContext(t *testing.T, cmdName string, globalFlags []string, cmdFlags []
 	}
 	err = cmdSet.Parse(cmdFlags)
 	require.NoError(t, err)
-	return cli.NewContext(app, cmdSet, globalCtx)
+	return cli.NewContext(app, cmdSet, globalCtx), global
 }
 
 func TestContextFromGlobalOptions(t *testing.T) {
@@ -39,21 +39,21 @@ func TestContextFromGlobalOptions(t *testing.T) {
 	// FIXME FIXME: Apparently BoolT values are set to false if the flag is not declared for the specific subcommand!!
 
 	// Default state
-	c := fakeContext(t, "copy", []string{}, []string{})
-	res, err := contextFromGlobalOptions(c, "dest-")
+	c, global := fakeContext(t, "copy", []string{}, []string{})
+	res, err := contextFromGlobalOptions(c, global, "dest-")
 	require.NoError(t, err)
 	assert.Equal(t, &types.SystemContext{}, res)
 
 	// Explicitly set everything to default, except for when the default is “not present”
-	c = fakeContext(t, "copy", []string{}, []string{
+	c, global = fakeContext(t, "copy", []string{}, []string{
 		"--dest-compress=false",
 	})
-	res, err = contextFromGlobalOptions(c, "dest-")
+	res, err = contextFromGlobalOptions(c, global, "dest-")
 	require.NoError(t, err)
 	assert.Equal(t, &types.SystemContext{}, res)
 
 	// Set everything to non-default values.
-	c = fakeContext(t, "copy", []string{
+	c, global = fakeContext(t, "copy", []string{
 		"--registries.d", "/srv/registries.d",
 		"--override-arch", "overridden-arch",
 		"--override-os", "overridden-os",
@@ -67,7 +67,7 @@ func TestContextFromGlobalOptions(t *testing.T) {
 		"--dest-tls-verify=false",
 		"--dest-creds", "creds-user:creds-password",
 	})
-	res, err = contextFromGlobalOptions(c, "dest-")
+	res, err = contextFromGlobalOptions(c, global, "dest-")
 	require.NoError(t, err)
 	assert.Equal(t, &types.SystemContext{
 		RegistriesDirPath:                 "/srv/registries.d",
@@ -109,15 +109,15 @@ func TestContextFromGlobalOptions(t *testing.T) {
 		if c.cmd != "" {
 			cmdFlags = append(cmdFlags, "--dest-tls-verify="+c.cmd)
 		}
-		ctx := fakeContext(t, "copy", globalFlags, cmdFlags)
-		res, err = contextFromGlobalOptions(ctx, "dest-")
+		ctx, global := fakeContext(t, "copy", globalFlags, cmdFlags)
+		res, err = contextFromGlobalOptions(ctx, global, "dest-")
 		require.NoError(t, err)
 		assert.Equal(t, c.expectedDocker, res.DockerInsecureSkipTLSVerify, "%#v", c)
 		assert.Equal(t, c.expectedDockerDaemon, res.DockerDaemonInsecureSkipTLSVerify, "%#v", c)
 	}
 
 	// Invalid option values
-	c = fakeContext(t, "copy", []string{}, []string{"--dest-creds", ""})
-	_, err = contextFromGlobalOptions(c, "dest-")
+	c, global = fakeContext(t, "copy", []string{}, []string{"--dest-creds", ""})
+	_, err = contextFromGlobalOptions(c, global, "dest-")
 	assert.Error(t, err)
 }

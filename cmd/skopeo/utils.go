@@ -10,11 +10,11 @@ import (
 	"github.com/urfave/cli"
 )
 
-func contextFromGlobalOptions(c *cli.Context, flagPrefix string) (*types.SystemContext, error) {
+func contextFromGlobalOptions(c *cli.Context, global *globalOptions, flagPrefix string) (*types.SystemContext, error) {
 	ctx := &types.SystemContext{
-		RegistriesDirPath:                 c.GlobalString("registries.d"),
-		ArchitectureChoice:                c.GlobalString("override-arch"),
-		OSChoice:                          c.GlobalString("override-os"),
+		RegistriesDirPath:                 global.registriesDirPath,
+		ArchitectureChoice:                global.overrideArch,
+		OSChoice:                          global.overrideOS,
 		DockerCertPath:                    c.String(flagPrefix + "cert-dir"),
 		OSTreeTmpDirPath:                  c.String(flagPrefix + "ostree-tmp-dir"),
 		OCISharedBlobDirPath:              c.String(flagPrefix + "shared-blob-dir"),
@@ -24,10 +24,9 @@ func contextFromGlobalOptions(c *cli.Context, flagPrefix string) (*types.SystemC
 		DockerDaemonCertPath:              c.String(flagPrefix + "cert-dir"),
 		DockerDaemonInsecureSkipTLSVerify: !c.BoolT(flagPrefix + "tls-verify"),
 	}
-	// DEPRECATED: we support --tls-verify for backward compatibility, but override
-	// it if per-subcommand flags are provided (see below).
-	if c.GlobalIsSet("tls-verify") {
-		ctx.DockerInsecureSkipTLSVerify = types.NewOptionalBool(!c.GlobalBoolT("tls-verify"))
+	// DEPRECATED: We support this for backward compatibility, but override it if a per-image flag is provided.
+	if global.tlsVerify.present {
+		ctx.DockerInsecureSkipTLSVerify = types.NewOptionalBool(!global.tlsVerify.value)
 	}
 	if c.IsSet(flagPrefix + "tls-verify") {
 		ctx.DockerInsecureSkipTLSVerify = types.NewOptionalBool(!c.BoolT(flagPrefix + "tls-verify"))
@@ -69,13 +68,13 @@ func getDockerAuth(creds string) (*types.DockerAuthConfig, error) {
 
 // parseImage converts image URL-like string to an initialized handler for that image.
 // The caller must call .Close() on the returned ImageCloser.
-func parseImage(ctx context.Context, c *cli.Context) (types.ImageCloser, error) {
+func parseImage(ctx context.Context, c *cli.Context, global *globalOptions) (types.ImageCloser, error) {
 	imgName := c.Args().First()
 	ref, err := alltransports.ParseImageName(imgName)
 	if err != nil {
 		return nil, err
 	}
-	sys, err := contextFromGlobalOptions(c, "")
+	sys, err := contextFromGlobalOptions(c, global, "")
 	if err != nil {
 		return nil, err
 	}
@@ -84,12 +83,12 @@ func parseImage(ctx context.Context, c *cli.Context) (types.ImageCloser, error) 
 
 // parseImageSource converts image URL-like string to an ImageSource.
 // The caller must call .Close() on the returned ImageSource.
-func parseImageSource(ctx context.Context, c *cli.Context, name string) (types.ImageSource, error) {
+func parseImageSource(ctx context.Context, c *cli.Context, global *globalOptions, name string) (types.ImageSource, error) {
 	ref, err := alltransports.ParseImageName(name)
 	if err != nil {
 		return nil, err
 	}
-	sys, err := contextFromGlobalOptions(c, "")
+	sys, err := contextFromGlobalOptions(c, global, "")
 	if err != nil {
 		return nil, err
 	}

@@ -39,12 +39,12 @@ func (opts *layersOptions) run(c *cli.Context) (retErr error) {
 	ctx, cancel := opts.global.commandTimeoutContext()
 	defer cancel()
 
-	sys, err := contextFromGlobalOptions(c, "")
+	sys, err := contextFromGlobalOptions(c, opts.global, "")
 	if err != nil {
 		return err
 	}
 	cache := blobinfocache.DefaultCache(sys)
-	rawSource, err := parseImageSource(ctx, c, c.Args()[0])
+	rawSource, err := parseImageSource(ctx, c, opts.global, c.Args()[0])
 	if err != nil {
 		return err
 	}

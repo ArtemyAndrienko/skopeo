@@ -17,13 +17,13 @@ import (
 )
 
 // contextsFromGlobalOptions returns source and destionation types.SystemContext depending on c.
-func contextsFromGlobalOptions(c *cli.Context) (*types.SystemContext, *types.SystemContext, error) {
-	sourceCtx, err := contextFromGlobalOptions(c, "src-")
+func contextsFromGlobalOptions(c *cli.Context, global *globalOptions) (*types.SystemContext, *types.SystemContext, error) {
+	sourceCtx, err := contextFromGlobalOptions(c, global, "src-")
 	if err != nil {
 		return nil, nil, err
 	}
 
-	destinationCtx, err := contextFromGlobalOptions(c, "dest-")
+	destinationCtx, err := contextFromGlobalOptions(c, global, "dest-")
 	if err != nil {
 		return nil, nil, err
 	}
@@ -163,7 +163,7 @@ func (opts *copyOptions) run(c *cli.Context) error {
 		return fmt.Errorf("Invalid destination name %s: %v", c.Args()[1], err)
 	}
 
-	sourceCtx, destinationCtx, err := contextsFromGlobalOptions(c)
+	sourceCtx, destinationCtx, err := contextsFromGlobalOptions(c, opts.global)
 	if err != nil {
 		return err
 	}
