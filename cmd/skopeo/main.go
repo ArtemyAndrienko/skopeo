@@ -15,8 +15,13 @@ import (
 // and will be populated by the Makefile
 var gitCommit = ""
 
+type globalOptions struct {
+}
+
 // createApp returns a cli.App to be run or tested.
 func createApp() *cli.App {
+	opts := globalOptions{}
+
 	app := cli.NewApp()
 	app.EnableBashCompletion = true
 	app.Name = "skopeo"
@@ -65,15 +70,7 @@ func createApp() *cli.App {
 			Usage: "timeout for the command execution",
 		},
 	}
-	app.Before = func(c *cli.Context) error {
-		if c.GlobalBool("debug") {
-			logrus.SetLevel(logrus.DebugLevel)
-		}
-		if c.GlobalIsSet("tls-verify") {
-			logrus.Warn("'--tls-verify' is deprecated, please set this on the specific subcommand")
-		}
-		return nil
-	}
+	app.Before = opts.before
 	app.Commands = []cli.Command{
 		copyCmd(),
 		inspectCmd(),
@@ -85,6 +82,17 @@ func createApp() *cli.App {
 		untrustedSignatureDumpCmd(),
 	}
 	return app
+}
+
+// before is run by the cli package for any command, before running the command-specific handler.
+func (opts *globalOptions) before(c *cli.Context) error {
+	if c.GlobalBool("debug") {
+		logrus.SetLevel(logrus.DebugLevel)
+	}
+	if c.GlobalIsSet("tls-verify") {
+		logrus.Warn("'--tls-verify' is deprecated, please set this on the specific subcommand")
+	}
+	return nil
 }
 
 func main() {
