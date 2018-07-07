@@ -98,16 +98,6 @@ func copyCmd(global *globalOptions) cli.Command {
 				Name:  "dest-compress",
 				Usage: "Compress tarball image layers when saving to directory using the 'dir' transport. (default is same compression type as source)",
 			},
-			cli.StringFlag{
-				Name:  "src-daemon-host",
-				Value: "",
-				Usage: "use docker daemon host at `HOST` (docker-daemon sources only)",
-			},
-			cli.StringFlag{
-				Name:  "dest-daemon-host",
-				Value: "",
-				Usage: "use docker daemon host at `HOST` (docker-daemon destinations only)",
-			},
 		}, srcFlags...), destFlags...),
 	}
 }
