@@ -60,7 +60,7 @@ func TestContextFromImageOptions(t *testing.T) {
 
 	// Default state
 	c, opts := fakeContext(t, "copy", "dest-", []string{}, []string{})
-	res, err := contextFromImageOptions(c, opts, "dest-")
+	res, err := contextFromImageOptions(c, opts)
 	require.NoError(t, err)
 	assert.Equal(t, &types.SystemContext{}, res)
 
@@ -68,7 +68,7 @@ func TestContextFromImageOptions(t *testing.T) {
 	c, opts = fakeContext(t, "copy", "dest-", []string{}, []string{
 		"--dest-compress=false",
 	})
-	res, err = contextFromImageOptions(c, opts, "dest-")
+	res, err = contextFromImageOptions(c, opts)
 	require.NoError(t, err)
 	assert.Equal(t, &types.SystemContext{}, res)
 
@@ -87,7 +87,7 @@ func TestContextFromImageOptions(t *testing.T) {
 		"--dest-tls-verify=false",
 		"--dest-creds", "creds-user:creds-password",
 	})
-	res, err = contextFromImageOptions(c, opts, "dest-")
+	res, err = contextFromImageOptions(c, opts)
 	require.NoError(t, err)
 	assert.Equal(t, &types.SystemContext{
 		RegistriesDirPath:                 "/srv/registries.d",
@@ -130,7 +130,7 @@ func TestContextFromImageOptions(t *testing.T) {
 			cmdFlags = append(cmdFlags, "--dest-tls-verify="+c.cmd)
 		}
 		ctx, opts := fakeContext(t, "copy", "dest-", globalFlags, cmdFlags)
-		res, err = contextFromImageOptions(ctx, opts, "dest-")
+		res, err = contextFromImageOptions(ctx, opts)
 		require.NoError(t, err)
 		assert.Equal(t, c.expectedDocker, res.DockerInsecureSkipTLSVerify, "%#v", c)
 		assert.Equal(t, c.expectedDockerDaemon, res.DockerDaemonInsecureSkipTLSVerify, "%#v", c)
@@ -138,6 +138,6 @@ func TestContextFromImageOptions(t *testing.T) {
 
 	// Invalid option values
 	c, opts = fakeContext(t, "copy", "dest-", []string{}, []string{"--dest-creds", ""})
-	_, err = contextFromImageOptions(c, opts, "dest-")
+	_, err = contextFromImageOptions(c, opts)
 	assert.Error(t, err)
 }

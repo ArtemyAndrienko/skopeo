@@ -67,7 +67,7 @@ func (opts *deleteOptions) run(c *cli.Context) error {
 		return fmt.Errorf("Invalid source name %s: %v", c.Args()[0], err)
 	}
 
-	sys, err := contextFromImageOptions(c, opts.image, "")
+	sys, err := contextFromImageOptions(c, opts.image)
 	if err != nil {
 		return err
 	}

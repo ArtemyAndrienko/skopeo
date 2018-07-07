@@ -45,7 +45,7 @@ func (opts *layersOptions) run(c *cli.Context) (retErr error) {
 	ctx, cancel := opts.global.commandTimeoutContext()
 	defer cancel()
 
-	sys, err := contextFromImageOptions(c, opts.image, "")
+	sys, err := contextFromImageOptions(c, opts.image)
 	if err != nil {
 		return err
 	}

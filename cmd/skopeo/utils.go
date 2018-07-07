@@ -13,39 +13,43 @@ import (
 // imageOptions collects CLI flags which are the same across subcommands, but may be different for each image
 // (e.g. may differ between the source and destination of a copy)
 type imageOptions struct {
-	global *globalOptions // May be shared across several imageOptions instances.
+	global     *globalOptions // May be shared across several imageOptions instances.
+	flagPrefix string         // FIXME: Drop this eventually.
 }
 
 // imageFlags prepares a collection of CLI flags writing into imageOptions, and the managed imageOptions structure.
 func imageFlags(global *globalOptions, flagPrefix string) ([]cli.Flag, *imageOptions) {
-	opts := imageOptions{global: global}
+	opts := imageOptions{
+		global:     global,
+		flagPrefix: flagPrefix,
+	}
 	return []cli.Flag{}, &opts
 }
 
-func contextFromImageOptions(c *cli.Context, opts *imageOptions, flagPrefix string) (*types.SystemContext, error) {
+func contextFromImageOptions(c *cli.Context, opts *imageOptions) (*types.SystemContext, error) {
 	ctx := &types.SystemContext{
 		RegistriesDirPath:                 opts.global.registriesDirPath,
 		ArchitectureChoice:                opts.global.overrideArch,
 		OSChoice:                          opts.global.overrideOS,
-		DockerCertPath:                    c.String(flagPrefix + "cert-dir"),
-		OSTreeTmpDirPath:                  c.String(flagPrefix + "ostree-tmp-dir"),
-		OCISharedBlobDirPath:              c.String(flagPrefix + "shared-blob-dir"),
-		DirForceCompress:                  c.Bool(flagPrefix + "compress"),
+		DockerCertPath:                    c.String(opts.flagPrefix + "cert-dir"),
+		OSTreeTmpDirPath:                  c.String(opts.flagPrefix + "ostree-tmp-dir"),
+		OCISharedBlobDirPath:              c.String(opts.flagPrefix + "shared-blob-dir"),
+		DirForceCompress:                  c.Bool(opts.flagPrefix + "compress"),
 		AuthFilePath:                      c.String("authfile"),
-		DockerDaemonHost:                  c.String(flagPrefix + "daemon-host"),
-		DockerDaemonCertPath:              c.String(flagPrefix + "cert-dir"),
-		DockerDaemonInsecureSkipTLSVerify: !c.BoolT(flagPrefix + "tls-verify"),
+		DockerDaemonHost:                  c.String(opts.flagPrefix + "daemon-host"),
+		DockerDaemonCertPath:              c.String(opts.flagPrefix + "cert-dir"),
+		DockerDaemonInsecureSkipTLSVerify: !c.BoolT(opts.flagPrefix + "tls-verify"),
 	}
 	// DEPRECATED: We support this for backward compatibility, but override it if a per-image flag is provided.
 	if opts.global.tlsVerify.present {
 		ctx.DockerInsecureSkipTLSVerify = types.NewOptionalBool(!opts.global.tlsVerify.value)
 	}
-	if c.IsSet(flagPrefix + "tls-verify") {
-		ctx.DockerInsecureSkipTLSVerify = types.NewOptionalBool(!c.BoolT(flagPrefix + "tls-verify"))
+	if c.IsSet(opts.flagPrefix + "tls-verify") {
+		ctx.DockerInsecureSkipTLSVerify = types.NewOptionalBool(!c.BoolT(opts.flagPrefix + "tls-verify"))
 	}
-	if c.IsSet(flagPrefix + "creds") {
+	if c.IsSet(opts.flagPrefix + "creds") {
 		var err error
-		ctx.DockerAuthConfig, err = getDockerAuth(c.String(flagPrefix + "creds"))
+		ctx.DockerAuthConfig, err = getDockerAuth(c.String(opts.flagPrefix + "creds"))
 		if err != nil {
 			return nil, err
 		}
@@ -86,7 +90,7 @@ func parseImage(ctx context.Context, c *cli.Context, opts *imageOptions) (types.
 	if err != nil {
 		return nil, err
 	}
-	sys, err := contextFromImageOptions(c, opts, "")
+	sys, err := contextFromImageOptions(c, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +104,7 @@ func parseImageSource(ctx context.Context, c *cli.Context, opts *imageOptions, n
 	if err != nil {
 		return nil, err
 	}
-	sys, err := contextFromImageOptions(c, opts, "")
+	sys, err := contextFromImageOptions(c, opts)
 	if err != nil {
 		return nil, err
 	}

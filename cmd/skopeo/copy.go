@@ -18,12 +18,12 @@ import (
 
 // contextsFromCopyOptions returns source and destionation types.SystemContext depending on c.
 func contextsFromCopyOptions(c *cli.Context, opts *copyOptions) (*types.SystemContext, *types.SystemContext, error) {
-	sourceCtx, err := contextFromImageOptions(c, opts.srcImage, "src-")
+	sourceCtx, err := contextFromImageOptions(c, opts.srcImage)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	destinationCtx, err := contextFromImageOptions(c, opts.destImage, "dest-")
+	destinationCtx, err := contextFromImageOptions(c, opts.destImage)
 	if err != nil {
 		return nil, nil, err
 	}
