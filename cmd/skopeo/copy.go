@@ -32,14 +32,15 @@ func contextsFromGlobalOptions(c *cli.Context) (*types.SystemContext, *types.Sys
 }
 
 type copyOptions struct {
+	global            *globalOptions
 	additionalTags    cli.StringSlice // For docker-archive: destinations, in addition to the name:tag specified as destination, also add these
 	removeSignatures  bool            // Do not copy signatures from the source image
 	signByFingerprint string          // Sign the image using a GPG key with the specified fingerprint
 	format            optionalString  // Force conversion of the image to a specified format
 }
 
-func copyCmd() cli.Command {
-	opts := copyOptions{}
+func copyCmd(global *globalOptions) cli.Command {
+	opts := copyOptions{global: global}
 	return cli.Command{
 		Name:  "copy",
 		Usage: "Copy an IMAGE-NAME from one location to another",
@@ -147,7 +148,7 @@ func (opts *copyOptions) run(c *cli.Context) error {
 		return errors.New("Exactly two arguments expected")
 	}
 
-	policyContext, err := getPolicyContext(c)
+	policyContext, err := opts.global.getPolicyContext()
 	if err != nil {
 		return fmt.Errorf("Error loading trust policy: %v", err)
 	}

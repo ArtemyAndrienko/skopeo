@@ -16,7 +16,9 @@ import (
 var gitCommit = ""
 
 type globalOptions struct {
-	debug bool // Enable debug output
+	debug          bool   // Enable debug output
+	policyPath     string // Path to a signature verification policy file
+	insecurePolicy bool   // Use an "allow everything" signature verification policy
 }
 
 // createApp returns a cli.App to be run or tested.
@@ -44,13 +46,14 @@ func createApp() *cli.App {
 			Hidden: true,
 		},
 		cli.StringFlag{
-			Name:  "policy",
-			Value: "",
-			Usage: "Path to a trust policy file",
+			Name:        "policy",
+			Usage:       "Path to a trust policy file",
+			Destination: &opts.policyPath,
 		},
 		cli.BoolFlag{
-			Name:  "insecure-policy",
-			Usage: "run the tool without any policy check",
+			Name:        "insecure-policy",
+			Usage:       "run the tool without any policy check",
+			Destination: &opts.insecurePolicy,
 		},
 		cli.StringFlag{
 			Name:  "registries.d",
@@ -74,7 +77,7 @@ func createApp() *cli.App {
 	}
 	app.Before = opts.before
 	app.Commands = []cli.Command{
-		copyCmd(),
+		copyCmd(&opts),
 		inspectCmd(),
 		layersCmd(),
 		deleteCmd(),
@@ -107,17 +110,16 @@ func main() {
 	}
 }
 
-// getPolicyContext handles the global "policy" flag.
-func getPolicyContext(c *cli.Context) (*signature.PolicyContext, error) {
-	policyPath := c.GlobalString("policy")
-	var policy *signature.Policy // This could be cached across calls, if we had an application context.
+// getPolicyContext returns a *signature.PolicyContext based on opts.
+func (opts *globalOptions) getPolicyContext() (*signature.PolicyContext, error) {
+	var policy *signature.Policy // This could be cached across calls in opts.
 	var err error
-	if c.GlobalBool("insecure-policy") {
+	if opts.insecurePolicy {
 		policy = &signature.Policy{Default: []signature.PolicyRequirement{signature.NewPRInsecureAcceptAnything()}}
-	} else if policyPath == "" {
+	} else if opts.policyPath == "" {
 		policy, err = signature.DefaultPolicy(nil)
 	} else {
-		policy, err = signature.NewPolicyFromFile(policyPath)
+		policy, err = signature.NewPolicyFromFile(opts.policyPath)
 	}
 	if err != nil {
 		return nil, err
