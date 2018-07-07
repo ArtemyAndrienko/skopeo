@@ -89,16 +89,6 @@ func copyCmd(global *globalOptions) cli.Command {
 				Value: "",
 				Usage: "`DIRECTORY` to use for OSTree temporary files",
 			},
-			cli.StringFlag{
-				Name:  "src-shared-blob-dir",
-				Value: "",
-				Usage: "`DIRECTORY` to use to fetch retrieved blobs (OCI layout sources only)",
-			},
-			cli.StringFlag{
-				Name:  "dest-shared-blob-dir",
-				Value: "",
-				Usage: "`DIRECTORY` to use to store retrieved blobs (OCI layout destinations only)",
-			},
 			cli.GenericFlag{
 				Name:  "format, f",
 				Usage: "`MANIFEST TYPE` (oci, v2s1, or v2s2) to use when saving image to directory using the 'dir:' transport (default is manifest type of source)",

@@ -18,6 +18,7 @@ type imageOptions struct {
 	credsOption    optionalString // username[:password] for accessing a registry
 	dockerCertPath string         // A directory using Docker-like *.{crt,cert,key} files for connecting to a registry or a daemon
 	tlsVerify      optionalBool   // Require HTTPS and verify certificates (for docker: and docker-daemon:)
+	sharedBlobDir  string         // A directory to use for OCI blobs, shared across repositories
 }
 
 // imageFlags prepares a collection of CLI flags writing into imageOptions, and the managed imageOptions structure.
@@ -50,6 +51,11 @@ func imageFlags(global *globalOptions, flagPrefix, credsOptionAlias string) ([]c
 			Usage: "require HTTPS and verify certificates when talking to the container registry or daemon (defaults to true)",
 			Value: newOptionalBoolValue(&opts.tlsVerify),
 		},
+		cli.StringFlag{
+			Name:        flagPrefix + "shared-blob-dir",
+			Usage:       "`DIRECTORY` to use to share blobs across OCI repositories",
+			Destination: &opts.sharedBlobDir,
+		},
 	}, &opts
 }
 
@@ -60,7 +66,7 @@ func contextFromImageOptions(c *cli.Context, opts *imageOptions) (*types.SystemC
 		OSChoice:             opts.global.overrideOS,
 		DockerCertPath:       opts.dockerCertPath,
 		OSTreeTmpDirPath:     c.String(opts.flagPrefix + "ostree-tmp-dir"),
-		OCISharedBlobDirPath: c.String(opts.flagPrefix + "shared-blob-dir"),
+		OCISharedBlobDirPath: opts.sharedBlobDir,
 		DirForceCompress:     c.Bool(opts.flagPrefix + "compress"),
 		AuthFilePath:         c.String("authfile"),
 		DockerDaemonHost:     c.String(opts.flagPrefix + "daemon-host"),
