@@ -11,6 +11,7 @@ import (
 )
 
 type standaloneSignOptions struct {
+	output string // Output file path
 }
 
 func standaloneSignCmd() cli.Command {
@@ -22,16 +23,16 @@ func standaloneSignCmd() cli.Command {
 		Action:    opts.run,
 		Flags: []cli.Flag{
 			cli.StringFlag{
-				Name:  "output, o",
-				Usage: "output the signature to `SIGNATURE`",
+				Name:        "output, o",
+				Usage:       "output the signature to `SIGNATURE`",
+				Destination: &opts.output,
 			},
 		},
 	}
 }
 
 func (opts *standaloneSignOptions) run(c *cli.Context) error {
-	outputFile := c.String("output")
-	if len(c.Args()) != 3 || outputFile == "" {
+	if len(c.Args()) != 3 || opts.output == "" {
 		return errors.New("Usage: skopeo standalone-sign manifest docker-reference key-fingerprint -o signature")
 	}
 	manifestPath := c.Args()[0]
@@ -53,8 +54,8 @@ func (opts *standaloneSignOptions) run(c *cli.Context) error {
 		return fmt.Errorf("Error creating signature: %v", err)
 	}
 
-	if err := ioutil.WriteFile(outputFile, signature, 0644); err != nil {
-		return fmt.Errorf("Error writing signature to %s: %v", outputFile, err)
+	if err := ioutil.WriteFile(opts.output, signature, 0644); err != nil {
+		return fmt.Errorf("Error writing signature to %s: %v", opts.output, err)
 	}
 	return nil
 }

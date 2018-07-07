@@ -32,6 +32,10 @@ func contextsFromGlobalOptions(c *cli.Context) (*types.SystemContext, *types.Sys
 }
 
 type copyOptions struct {
+	additionalTags    cli.StringSlice // For docker-archive: destinations, in addition to the name:tag specified as destination, also add these
+	removeSignatures  bool            // Do not copy signatures from the source image
+	signByFingerprint string          // Sign the image using a GPG key with the specified fingerprint
+	format            optionalString  // Force conversion of the image to a specified format
 }
 
 func copyCmd() cli.Command {
@@ -55,18 +59,21 @@ func copyCmd() cli.Command {
 			cli.StringSliceFlag{
 				Name:  "additional-tag",
 				Usage: "additional tags (supports docker-archive)",
+				Value: &opts.additionalTags, // Surprisingly StringSliceFlag does not support Destination:, but modifies Value: in place.
 			},
 			cli.StringFlag{
 				Name:  "authfile",
 				Usage: "path of the authentication file. Default is ${XDG_RUNTIME_DIR}/containers/auth.json",
 			},
 			cli.BoolFlag{
-				Name:  "remove-signatures",
-				Usage: "Do not copy signatures from SOURCE-IMAGE",
+				Name:        "remove-signatures",
+				Usage:       "Do not copy signatures from SOURCE-IMAGE",
+				Destination: &opts.removeSignatures,
 			},
 			cli.StringFlag{
-				Name:  "sign-by",
-				Usage: "Sign the image using a GPG key with the specified `FINGERPRINT`",
+				Name:        "sign-by",
+				Usage:       "Sign the image using a GPG key with the specified `FINGERPRINT`",
+				Destination: &opts.signByFingerprint,
 			},
 			cli.StringFlag{
 				Name:  "src-creds, screds",
@@ -111,9 +118,10 @@ func copyCmd() cli.Command {
 				Value: "",
 				Usage: "`DIRECTORY` to use to store retrieved blobs (OCI layout destinations only)",
 			},
-			cli.StringFlag{
+			cli.GenericFlag{
 				Name:  "format, f",
 				Usage: "`MANIFEST TYPE` (oci, v2s1, or v2s2) to use when saving image to directory using the 'dir:' transport (default is manifest type of source)",
+				Value: newOptionalStringValue(&opts.format),
 			},
 			cli.BoolFlag{
 				Name:  "dest-compress",
@@ -153,8 +161,6 @@ func (opts *copyOptions) run(c *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("Invalid destination name %s: %v", c.Args()[1], err)
 	}
-	signBy := c.String("sign-by")
-	removeSignatures := c.Bool("remove-signatures")
 
 	sourceCtx, destinationCtx, err := contextsFromGlobalOptions(c)
 	if err != nil {
@@ -162,8 +168,8 @@ func (opts *copyOptions) run(c *cli.Context) error {
 	}
 
 	var manifestType string
-	if c.IsSet("format") {
-		switch c.String("format") {
+	if opts.format.present {
+		switch opts.format.value {
 		case "oci":
 			manifestType = imgspecv1.MediaTypeImageManifest
 		case "v2s1":
@@ -171,30 +177,28 @@ func (opts *copyOptions) run(c *cli.Context) error {
 		case "v2s2":
 			manifestType = manifest.DockerV2Schema2MediaType
 		default:
-			return fmt.Errorf("unknown format %q. Choose one of the supported formats: 'oci', 'v2s1', or 'v2s2'", c.String("format"))
+			return fmt.Errorf("unknown format %q. Choose one of the supported formats: 'oci', 'v2s1', or 'v2s2'", opts.format.value)
 		}
 	}
 
-	if c.IsSet("additional-tag") {
-		for _, image := range c.StringSlice("additional-tag") {
-			ref, err := reference.ParseNormalizedNamed(image)
-			if err != nil {
-				return fmt.Errorf("error parsing additional-tag '%s': %v", image, err)
-			}
-			namedTagged, isNamedTagged := ref.(reference.NamedTagged)
-			if !isNamedTagged {
-				return fmt.Errorf("additional-tag '%s' must be a tagged reference", image)
-			}
-			destinationCtx.DockerArchiveAdditionalTags = append(destinationCtx.DockerArchiveAdditionalTags, namedTagged)
+	for _, image := range opts.additionalTags {
+		ref, err := reference.ParseNormalizedNamed(image)
+		if err != nil {
+			return fmt.Errorf("error parsing additional-tag '%s': %v", image, err)
 		}
+		namedTagged, isNamedTagged := ref.(reference.NamedTagged)
+		if !isNamedTagged {
+			return fmt.Errorf("additional-tag '%s' must be a tagged reference", image)
+		}
+		destinationCtx.DockerArchiveAdditionalTags = append(destinationCtx.DockerArchiveAdditionalTags, namedTagged)
 	}
 
 	ctx, cancel := commandTimeoutContextFromGlobalOptions(c)
 	defer cancel()
 
 	_, err = copy.Image(ctx, policyContext, destRef, srcRef, &copy.Options{
-		RemoveSignatures:      removeSignatures,
-		SignBy:                signBy,
+		RemoveSignatures:      opts.removeSignatures,
+		SignBy:                opts.signByFingerprint,
 		ReportWriter:          os.Stdout,
 		SourceCtx:             sourceCtx,
 		DestinationCtx:        destinationCtx,

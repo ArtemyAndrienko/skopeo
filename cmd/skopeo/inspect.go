@@ -30,6 +30,7 @@ type inspectOutput struct {
 }
 
 type inspectOptions struct {
+	raw bool // Output the raw manifest instead of parsing information about the image
 }
 
 func inspectCmd() cli.Command {
@@ -61,8 +62,9 @@ func inspectCmd() cli.Command {
 				Usage: "require HTTPS and verify certificates when talking to container registries (defaults to true)",
 			},
 			cli.BoolFlag{
-				Name:  "raw",
-				Usage: "output raw manifest",
+				Name:        "raw",
+				Usage:       "output raw manifest",
+				Destination: &opts.raw,
 			},
 			cli.StringFlag{
 				Name:  "creds",
@@ -93,7 +95,7 @@ func (opts *inspectOptions) run(c *cli.Context) (retErr error) {
 	if err != nil {
 		return err
 	}
-	if c.Bool("raw") {
+	if opts.raw {
 		_, err := c.App.Writer.Write(rawManifest)
 		if err != nil {
 			return fmt.Errorf("Error writing manifest to standard output: %v", err)
