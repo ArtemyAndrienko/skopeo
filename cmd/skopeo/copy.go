@@ -171,7 +171,7 @@ func (opts *copyOptions) run(c *cli.Context) error {
 		case "v2s2":
 			manifestType = manifest.DockerV2Schema2MediaType
 		default:
-			return fmt.Errorf("unknown format %q. Choose on of the supported formats: 'oci', 'v2s1', or 'v2s2'", c.String("format"))
+			return fmt.Errorf("unknown format %q. Choose one of the supported formats: 'oci', 'v2s1', or 'v2s2'", c.String("format"))
 		}
 	}
 
