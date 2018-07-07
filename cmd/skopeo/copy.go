@@ -84,19 +84,9 @@ func copyCmd(global *globalOptions) cli.Command {
 				Usage:       "Sign the image using a GPG key with the specified `FINGERPRINT`",
 				Destination: &opts.signByFingerprint,
 			},
-			cli.StringFlag{
-				Name:  "src-cert-dir",
-				Value: "",
-				Usage: "use certificates at `PATH` (*.crt, *.cert, *.key) to connect to the source registry or daemon",
-			},
 			cli.BoolTFlag{
 				Name:  "src-tls-verify",
 				Usage: "require HTTPS and verify certificates when talking to the container source registry or daemon (defaults to true)",
-			},
-			cli.StringFlag{
-				Name:  "dest-cert-dir",
-				Value: "",
-				Usage: "use certificates at `PATH` (*.crt, *.cert, *.key) to connect to the destination registry or daemon",
 			},
 			cli.BoolTFlag{
 				Name:  "dest-tls-verify",

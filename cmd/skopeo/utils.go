@@ -13,9 +13,10 @@ import (
 // imageOptions collects CLI flags which are the same across subcommands, but may be different for each image
 // (e.g. may differ between the source and destination of a copy)
 type imageOptions struct {
-	global      *globalOptions // May be shared across several imageOptions instances.
-	flagPrefix  string         // FIXME: Drop this eventually.
-	credsOption optionalString // username[:password] for accessing a registry
+	global         *globalOptions // May be shared across several imageOptions instances.
+	flagPrefix     string         // FIXME: Drop this eventually.
+	credsOption    optionalString // username[:password] for accessing a registry
+	dockerCertPath string         // A directory using Docker-like *.{crt,cert,key} files for connecting to a registry or a daemon
 }
 
 // imageFlags prepares a collection of CLI flags writing into imageOptions, and the managed imageOptions structure.
@@ -38,6 +39,11 @@ func imageFlags(global *globalOptions, flagPrefix, credsOptionAlias string) ([]c
 			Usage: "Use `USERNAME[:PASSWORD]` for accessing the registry",
 			Value: newOptionalStringValue(&opts.credsOption),
 		},
+		cli.StringFlag{
+			Name:        flagPrefix + "cert-dir",
+			Usage:       "use certificates at `PATH` (*.crt, *.cert, *.key) to connect to the registry or daemon",
+			Destination: &opts.dockerCertPath,
+		},
 	}, &opts
 }
 
@@ -46,13 +52,13 @@ func contextFromImageOptions(c *cli.Context, opts *imageOptions) (*types.SystemC
 		RegistriesDirPath:                 opts.global.registriesDirPath,
 		ArchitectureChoice:                opts.global.overrideArch,
 		OSChoice:                          opts.global.overrideOS,
-		DockerCertPath:                    c.String(opts.flagPrefix + "cert-dir"),
+		DockerCertPath:                    opts.dockerCertPath,
 		OSTreeTmpDirPath:                  c.String(opts.flagPrefix + "ostree-tmp-dir"),
 		OCISharedBlobDirPath:              c.String(opts.flagPrefix + "shared-blob-dir"),
 		DirForceCompress:                  c.Bool(opts.flagPrefix + "compress"),
 		AuthFilePath:                      c.String("authfile"),
 		DockerDaemonHost:                  c.String(opts.flagPrefix + "daemon-host"),
-		DockerDaemonCertPath:              c.String(opts.flagPrefix + "cert-dir"),
+		DockerDaemonCertPath:              opts.dockerCertPath,
 		DockerDaemonInsecureSkipTLSVerify: !c.BoolT(opts.flagPrefix + "tls-verify"),
 	}
 	// DEPRECATED: We support this for backward compatibility, but override it if a per-image flag is provided.
