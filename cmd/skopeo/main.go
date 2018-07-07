@@ -16,6 +16,7 @@ import (
 var gitCommit = ""
 
 type globalOptions struct {
+	debug bool // Enable debug output
 }
 
 // createApp returns a cli.App to be run or tested.
@@ -33,8 +34,9 @@ func createApp() *cli.App {
 	app.Usage = "Various operations with container images and container image registries"
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
-			Name:  "debug",
-			Usage: "enable debug output",
+			Name:        "debug",
+			Usage:       "enable debug output",
+			Destination: &opts.debug,
 		},
 		cli.BoolTFlag{
 			Name:   "tls-verify",
@@ -86,7 +88,7 @@ func createApp() *cli.App {
 
 // before is run by the cli package for any command, before running the command-specific handler.
 func (opts *globalOptions) before(c *cli.Context) error {
-	if c.GlobalBool("debug") {
+	if opts.debug {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
 	if c.GlobalIsSet("tls-verify") {
