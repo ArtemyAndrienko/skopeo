@@ -98,6 +98,28 @@ func contextFromImageOptions(c *cli.Context, opts *imageOptions) (*types.SystemC
 	return ctx, nil
 }
 
+// imageDestOptions is a superset of imageOptions specialized for iamge destinations.
+type imageDestOptions struct {
+	*imageOptions
+}
+
+// imageDestFlags prepares a collection of CLI flags writing into imageDestOptions, and the managed imageDestOptions structure.
+func imageDestFlags(global *globalOptions, flagPrefix, credsOptionAlias string) ([]cli.Flag, *imageDestOptions) {
+	genericFlags, genericOptions := imageFlags(global, flagPrefix, credsOptionAlias)
+	opts := imageDestOptions{imageOptions: genericOptions}
+
+	return append(genericFlags, []cli.Flag{}...), &opts
+}
+
+func contextFromImageDestOptions(c *cli.Context, opts *imageDestOptions) (*types.SystemContext, error) {
+	ctx, err := contextFromImageOptions(c, opts.imageOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	return ctx, err
+}
+
 func parseCreds(creds string) (string, string, error) {
 	if creds == "" {
 		return "", "", errors.New("credentials can't be empty")

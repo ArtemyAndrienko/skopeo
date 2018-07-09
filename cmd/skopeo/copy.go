@@ -23,7 +23,7 @@ func contextsFromCopyOptions(c *cli.Context, opts *copyOptions) (*types.SystemCo
 		return nil, nil, err
 	}
 
-	destinationCtx, err := contextFromImageOptions(c, opts.destImage)
+	destinationCtx, err := contextFromImageDestOptions(c, opts.destImage)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -34,7 +34,7 @@ func contextsFromCopyOptions(c *cli.Context, opts *copyOptions) (*types.SystemCo
 type copyOptions struct {
 	global            *globalOptions
 	srcImage          *imageOptions
-	destImage         *imageOptions
+	destImage         *imageDestOptions
 	additionalTags    cli.StringSlice // For docker-archive: destinations, in addition to the name:tag specified as destination, also add these
 	removeSignatures  bool            // Do not copy signatures from the source image
 	signByFingerprint string          // Sign the image using a GPG key with the specified fingerprint
@@ -43,7 +43,7 @@ type copyOptions struct {
 
 func copyCmd(global *globalOptions) cli.Command {
 	srcFlags, srcOpts := imageFlags(global, "src-", "screds")
-	destFlags, destOpts := imageFlags(global, "dest-", "dcreds")
+	destFlags, destOpts := imageDestFlags(global, "dest-", "dcreds")
 	opts := copyOptions{global: global,
 		srcImage:  srcOpts,
 		destImage: destOpts,
