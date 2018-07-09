@@ -71,14 +71,6 @@ func TestContextFromImageOptions(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, &types.SystemContext{}, res)
 
-	// Explicitly set everything to default, except for when the default is “not present”
-	c, opts = fakeImageContext(t, "copy", "dest-", []string{}, []string{
-		"--dest-compress=false",
-	})
-	res, err = contextFromImageOptions(c, opts)
-	require.NoError(t, err)
-	assert.Equal(t, &types.SystemContext{}, res)
-
 	// Set everything to non-default values.
 	c, opts = fakeImageContext(t, "copy", "dest-", []string{
 		"--registries.d", "/srv/registries.d",
@@ -88,7 +80,6 @@ func TestContextFromImageOptions(t *testing.T) {
 		"--authfile", "/srv/authfile",
 		"--dest-cert-dir", "/srv/cert-dir",
 		"--dest-shared-blob-dir", "/srv/shared-blob-dir",
-		"--dest-compress=true",
 		"--dest-daemon-host", "daemon-host.example.com",
 		"--dest-tls-verify=false",
 		"--dest-creds", "creds-user:creds-password",
@@ -107,7 +98,6 @@ func TestContextFromImageOptions(t *testing.T) {
 		DockerDaemonCertPath:              "/srv/cert-dir",
 		DockerDaemonHost:                  "daemon-host.example.com",
 		DockerDaemonInsecureSkipTLSVerify: true,
-		DirForceCompress:                  true,
 	}, res)
 
 	// Global/per-command tlsVerify behavior

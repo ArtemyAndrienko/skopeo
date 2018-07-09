@@ -74,7 +74,6 @@ func contextFromImageOptions(c *cli.Context, opts *imageOptions) (*types.SystemC
 		OSChoice:             opts.global.overrideOS,
 		DockerCertPath:       opts.dockerCertPath,
 		OCISharedBlobDirPath: opts.sharedBlobDir,
-		DirForceCompress:     c.Bool(opts.flagPrefix + "compress"),
 		AuthFilePath:         c.String("authfile"),
 		DockerDaemonHost:     opts.dockerDaemonHost,
 		DockerDaemonCertPath: opts.dockerCertPath,
@@ -102,7 +101,8 @@ func contextFromImageOptions(c *cli.Context, opts *imageOptions) (*types.SystemC
 // imageDestOptions is a superset of imageOptions specialized for iamge destinations.
 type imageDestOptions struct {
 	*imageOptions
-	osTreeTmpDir string // A directory to use for OSTree temporary files
+	osTreeTmpDir        string // A directory to use for OSTree temporary files
+	dirForceCompression bool   // Compress layers when saving to the dir: transport
 }
 
 // imageDestFlags prepares a collection of CLI flags writing into imageDestOptions, and the managed imageDestOptions structure.
@@ -116,6 +116,11 @@ func imageDestFlags(global *globalOptions, flagPrefix, credsOptionAlias string) 
 			Usage:       "`DIRECTORY` to use for OSTree temporary files",
 			Destination: &opts.osTreeTmpDir,
 		},
+		cli.BoolFlag{
+			Name:        flagPrefix + "compress",
+			Usage:       "Compress tarball image layers when saving to directory using the 'dir' transport. (default is same compression type as source)",
+			Destination: &opts.dirForceCompression,
+		},
 	}...), &opts
 }
 
@@ -128,6 +133,7 @@ func contextFromImageDestOptions(c *cli.Context, opts *imageDestOptions) (*types
 	}
 
 	ctx.OSTreeTmpDirPath = opts.osTreeTmpDir
+	ctx.DirForceCompress = opts.dirForceCompression
 	return ctx, err
 }
 

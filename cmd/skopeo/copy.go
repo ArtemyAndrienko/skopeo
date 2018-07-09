@@ -89,10 +89,6 @@ func copyCmd(global *globalOptions) cli.Command {
 				Usage: "`MANIFEST TYPE` (oci, v2s1, or v2s2) to use when saving image to directory using the 'dir:' transport (default is manifest type of source)",
 				Value: newOptionalStringValue(&opts.format),
 			},
-			cli.BoolFlag{
-				Name:  "dest-compress",
-				Usage: "Compress tarball image layers when saving to directory using the 'dir' transport. (default is same compression type as source)",
-			},
 		}, srcFlags...), destFlags...),
 	}
 }
