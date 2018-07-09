@@ -191,6 +191,12 @@ Building in a container is simpler, but more restrictive:
 $ make binary # Or (make all) to also build documentation, see below.
 ```
 
+To build a pure-Go static binary (disables ostree, devicemapper, btrfs, and gpgme):
+
+```sh
+$ make binary-static DISABLE_CGO=1
+```
+
 ### Building documentation
 To build the manual you will need go-md2man.
 ```sh
