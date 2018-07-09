@@ -84,11 +84,6 @@ func copyCmd(global *globalOptions) cli.Command {
 				Usage:       "Sign the image using a GPG key with the specified `FINGERPRINT`",
 				Destination: &opts.signByFingerprint,
 			},
-			cli.StringFlag{
-				Name:  "dest-ostree-tmp-dir",
-				Value: "",
-				Usage: "`DIRECTORY` to use for OSTree temporary files",
-			},
 			cli.GenericFlag{
 				Name:  "format, f",
 				Usage: "`MANIFEST TYPE` (oci, v2s1, or v2s2) to use when saving image to directory using the 'dir:' transport (default is manifest type of source)",

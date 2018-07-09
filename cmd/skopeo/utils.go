@@ -65,13 +65,14 @@ func imageFlags(global *globalOptions, flagPrefix, credsOptionAlias string) ([]c
 	}, &opts
 }
 
+// contextFromImageOptions returns a *types.SystemContext corresponding to opts.
+// It is guaranteed to return a fresh instance, so it is safe to make additional updates to it.
 func contextFromImageOptions(c *cli.Context, opts *imageOptions) (*types.SystemContext, error) {
 	ctx := &types.SystemContext{
 		RegistriesDirPath:    opts.global.registriesDirPath,
 		ArchitectureChoice:   opts.global.overrideArch,
 		OSChoice:             opts.global.overrideOS,
 		DockerCertPath:       opts.dockerCertPath,
-		OSTreeTmpDirPath:     c.String(opts.flagPrefix + "ostree-tmp-dir"),
 		OCISharedBlobDirPath: opts.sharedBlobDir,
 		DirForceCompress:     c.Bool(opts.flagPrefix + "compress"),
 		AuthFilePath:         c.String("authfile"),
@@ -101,6 +102,7 @@ func contextFromImageOptions(c *cli.Context, opts *imageOptions) (*types.SystemC
 // imageDestOptions is a superset of imageOptions specialized for iamge destinations.
 type imageDestOptions struct {
 	*imageOptions
+	osTreeTmpDir string // A directory to use for OSTree temporary files
 }
 
 // imageDestFlags prepares a collection of CLI flags writing into imageDestOptions, and the managed imageDestOptions structure.
@@ -108,15 +110,24 @@ func imageDestFlags(global *globalOptions, flagPrefix, credsOptionAlias string) 
 	genericFlags, genericOptions := imageFlags(global, flagPrefix, credsOptionAlias)
 	opts := imageDestOptions{imageOptions: genericOptions}
 
-	return append(genericFlags, []cli.Flag{}...), &opts
+	return append(genericFlags, []cli.Flag{
+		cli.StringFlag{
+			Name:        flagPrefix + "ostree-tmp-dir",
+			Usage:       "`DIRECTORY` to use for OSTree temporary files",
+			Destination: &opts.osTreeTmpDir,
+		},
+	}...), &opts
 }
 
+// contextFromImageDestOptions returns a *types.SystemContext corresponding to opts.
+// It is guaranteed to return a fresh instance, so it is safe to make additional updates to it.
 func contextFromImageDestOptions(c *cli.Context, opts *imageDestOptions) (*types.SystemContext, error) {
 	ctx, err := contextFromImageOptions(c, opts.imageOptions)
 	if err != nil {
 		return nil, err
 	}
 
+	ctx.OSTreeTmpDirPath = opts.osTreeTmpDir
 	return ctx, err
 }
 
