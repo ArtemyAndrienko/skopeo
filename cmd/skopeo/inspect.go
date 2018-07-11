@@ -69,7 +69,7 @@ func (opts *inspectOptions) run(c *cli.Context) (retErr error) {
 	ctx, cancel := opts.global.commandTimeoutContext()
 	defer cancel()
 
-	img, err := parseImage(ctx, c, opts.image)
+	img, err := parseImage(ctx, opts.image, c.Args().First())
 	if err != nil {
 		return err
 	}

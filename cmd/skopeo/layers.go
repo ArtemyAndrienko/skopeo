@@ -51,7 +51,7 @@ func (opts *layersOptions) run(c *cli.Context) (retErr error) {
 		return err
 	}
 	cache := blobinfocache.DefaultCache(sys)
-	rawSource, err := parseImageSource(ctx, c, opts.image, c.Args()[0])
+	rawSource, err := parseImageSource(ctx, opts.image, c.Args()[0])
 	if err != nil {
 		return err
 	}
