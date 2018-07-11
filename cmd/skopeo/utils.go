@@ -33,7 +33,6 @@ func sharedImageFlags() ([]cli.Flag, *sharedImageOptions) {
 type imageOptions struct {
 	global           *globalOptions      // May be shared across several imageOptions instances.
 	shared           *sharedImageOptions // May be shared across several imageOptions instances.
-	flagPrefix       string              // FIXME: Drop this eventually.
 	credsOption      optionalString      // username[:password] for accessing a registry
 	dockerCertPath   string              // A directory using Docker-like *.{crt,cert,key} files for connecting to a registry or a daemon
 	tlsVerify        optionalBool        // Require HTTPS and verify certificates (for docker: and docker-daemon:)
@@ -44,9 +43,8 @@ type imageOptions struct {
 // imageFlags prepares a collection of CLI flags writing into imageOptions, and the managed imageOptions structure.
 func imageFlags(global *globalOptions, shared *sharedImageOptions, flagPrefix, credsOptionAlias string) ([]cli.Flag, *imageOptions) {
 	opts := imageOptions{
-		global:     global,
-		shared:     shared,
-		flagPrefix: flagPrefix,
+		global: global,
+		shared: shared,
 	}
 
 	// This is horribly ugly, but we need to support the old option forms of (skopeo copy) for compatibility.
