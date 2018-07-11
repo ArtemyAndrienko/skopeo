@@ -135,3 +135,105 @@ func TestOptionalBoolIsBoolFlag(t *testing.T) {
 		assert.True(t, actionRun)
 	}
 }
+
+func TestOptionalStringSet(t *testing.T) {
+	// Really just a smoke test, but differentiating between not present and empty.
+	for _, c := range []string{"", "hello"} {
+		var os optionalString
+		v := newOptionalStringValue(&os)
+		require.False(t, os.present)
+		err := v.Set(c)
+		assert.NoError(t, err, c)
+		assert.Equal(t, c, os.value)
+	}
+
+	// Nothing actually explicitly says that .Set() is never called when the flag is not present on the command line;
+	// so, check that it is not being called, at least in the straightforward case (it's not possible to test that it
+	// is not called in any possible situation).
+	var globalOS, commandOS optionalString
+	actionRun := false
+	app := cli.NewApp()
+	app.EnableBashCompletion = true
+	app.Flags = []cli.Flag{
+		cli.GenericFlag{
+			Name:  "global-OS",
+			Value: newOptionalStringValue(&globalOS),
+		},
+	}
+	app.Commands = []cli.Command{{
+		Name: "cmd",
+		Flags: []cli.Flag{
+			cli.GenericFlag{
+				Name:  "command-OS",
+				Value: newOptionalStringValue(&commandOS),
+			},
+		},
+		Action: func(*cli.Context) error {
+			assert.False(t, globalOS.present)
+			assert.False(t, commandOS.present)
+			actionRun = true
+			return nil
+		},
+	}}
+	err := app.Run([]string{"app", "cmd"})
+	require.NoError(t, err)
+	assert.True(t, actionRun)
+}
+
+func TestOptionalStringString(t *testing.T) {
+	for _, c := range []struct {
+		input    optionalString
+		expected string
+	}{
+		{optionalString{present: true, value: "hello"}, "hello"},
+		{optionalString{present: true, value: ""}, ""},
+		{optionalString{present: false, value: "hello"}, ""},
+		{optionalString{present: false, value: ""}, ""},
+	} {
+		var os optionalString
+		v := newOptionalStringValue(&os)
+		os = c.input
+		res := v.String()
+		assert.Equal(t, c.expected, res)
+	}
+}
+
+func TestOptionalStringIsBoolFlag(t *testing.T) {
+	// NOTE: optionalStringValue does not implement IsBoolFlag!
+	// IsBoolFlag means that the argument value must either be part of the same argument, with =;
+	// if there is no =, the value is set to true.
+	// This differs form other flags, where the argument is required and may be either separated with = or supplied in the next argument.
+	for _, c := range []struct {
+		input        []string
+		expectedOS   optionalString
+		expectedArgs []string
+	}{
+		{[]string{"1", "2"}, optionalString{present: false}, []string{"1", "2"}},                                 // Flag not present
+		{[]string{"--OS=hello", "1", "2"}, optionalString{present: true, value: "hello"}, []string{"1", "2"}},    // --OS=true
+		{[]string{"--OS=", "1", "2"}, optionalString{present: true, value: ""}, []string{"1", "2"}},              // --OS=false
+		{[]string{"--OS", "hello", "1", "2"}, optionalString{present: true, value: "hello"}, []string{"1", "2"}}, // --OS true
+		{[]string{"--OS", "", "1", "2"}, optionalString{present: true, value: ""}, []string{"1", "2"}},           // --OS false
+	} {
+		var os optionalString
+		actionRun := false
+		app := cli.NewApp()
+		app.Commands = []cli.Command{{
+			Name: "cmd",
+			Flags: []cli.Flag{
+				cli.GenericFlag{
+					Name:  "OS",
+					Value: newOptionalStringValue(&os),
+				},
+			},
+			Action: func(ctx *cli.Context) error {
+				assert.Equal(t, c.expectedOS, os)
+				assert.Equal(t, c.expectedArgs, ([]string)(ctx.Args()))
+				actionRun = true
+				return nil
+			},
+		}}
+		err := app.Run(append([]string{"app", "cmd"}, c.input...))
+		require.NoError(t, err)
+		assert.True(t, actionRun)
+	}
+}

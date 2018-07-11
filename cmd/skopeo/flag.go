@@ -43,3 +43,33 @@ func (ob *optionalBoolValue) String() string {
 func (ob *optionalBoolValue) IsBoolFlag() bool {
 	return true
 }
+
+// optionalString is a string with a separate presence flag.
+type optionalString struct {
+	present bool
+	value   string
+}
+
+// optionalString is a cli.Generic == flag.Value implementation equivalent to
+// the one underlying flag.String, except that it records whether the flag has been set.
+// This is distinct from optionalString to (pretend to) force callers to use
+// newoptionalString
+type optionalStringValue optionalString
+
+func newOptionalStringValue(p *optionalString) cli.Generic {
+	p.present = false
+	return (*optionalStringValue)(p)
+}
+
+func (ob *optionalStringValue) Set(s string) error {
+	ob.value = s
+	ob.present = true
+	return nil
+}
+
+func (ob *optionalStringValue) String() string {
+	if !ob.present {
+		return "" // This is, sadly, not round-trip safe: --flag= is interpreted as {present:true, value:""}
+	}
+	return ob.value
+}
