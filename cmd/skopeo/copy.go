@@ -11,25 +11,9 @@ import (
 	"github.com/containers/image/manifest"
 	"github.com/containers/image/transports"
 	"github.com/containers/image/transports/alltransports"
-	"github.com/containers/image/types"
 	imgspecv1 "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/urfave/cli"
 )
-
-// contextsFromCopyOptions returns source and destionation types.SystemContext depending on opts.
-func contextsFromCopyOptions(opts *copyOptions) (*types.SystemContext, *types.SystemContext, error) {
-	sourceCtx, err := opts.srcImage.newSystemContext()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	destinationCtx, err := opts.destImage.newSystemContext()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return sourceCtx, destinationCtx, nil
-}
 
 type copyOptions struct {
 	global            *globalOptions
@@ -111,7 +95,11 @@ func (opts *copyOptions) run(c *cli.Context) error {
 		return fmt.Errorf("Invalid destination name %s: %v", c.Args()[1], err)
 	}
 
-	sourceCtx, destinationCtx, err := contextsFromCopyOptions(opts)
+	sourceCtx, err := opts.srcImage.newSystemContext()
+	if err != nil {
+		return err
+	}
+	destinationCtx, err := opts.destImage.newSystemContext()
 	if err != nil {
 		return err
 	}
