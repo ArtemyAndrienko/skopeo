@@ -138,6 +138,6 @@ func (opts *inspectOptions) run(args []string, stdout io.Writer) (retErr error) 
 	if err != nil {
 		return err
 	}
-	fmt.Fprintln(stdout, string(out))
+	fmt.Fprintf(stdout, "%s\n", string(out))
 	return nil
 }
