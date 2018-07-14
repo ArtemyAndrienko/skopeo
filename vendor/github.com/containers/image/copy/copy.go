@@ -347,6 +347,9 @@ func checkImageDestinationForCurrentRuntimeOS(ctx context.Context, sys *types.Sy
 
 // updateEmbeddedDockerReference handles the Docker reference embedded in Docker schema1 manifests.
 func (ic *imageCopier) updateEmbeddedDockerReference() error {
+	if ic.c.dest.IgnoresEmbeddedDockerReference() {
+		return nil // Destination would prefer us not to update the embedded reference.
+	}
 	destRef := ic.c.dest.Reference().DockerReference()
 	if destRef == nil {
 		return nil // Destination does not care about Docker references
@@ -601,6 +604,7 @@ func computeDiffID(stream io.Reader, decompressor compression.DecompressorFunc) 
 		if err != nil {
 			return "", err
 		}
+		defer s.Close()
 		stream = s
 	}
 
@@ -670,10 +674,12 @@ func (c *copier) copyBlobFromStream(ctx context.Context, srcStream io.Reader, sr
 		inputInfo.Size = -1
 	} else if canModifyBlob && c.dest.DesiredLayerCompression() == types.Decompress && isCompressed {
 		logrus.Debugf("Blob will be decompressed")
-		destStream, err = decompressor(destStream)
+		s, err := decompressor(destStream)
 		if err != nil {
 			return types.BlobInfo{}, err
 		}
+		defer s.Close()
+		destStream = s
 		inputInfo.Digest = ""
 		inputInfo.Size = -1
 	} else {
