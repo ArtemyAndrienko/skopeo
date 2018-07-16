@@ -31,11 +31,16 @@ type inspectOutput struct {
 
 type inspectOptions struct {
 	global *globalOptions
+	image  *imageOptions
 	raw    bool // Output the raw manifest instead of parsing information about the image
 }
 
 func inspectCmd(global *globalOptions) cli.Command {
-	opts := inspectOptions{global: global}
+	imageFlags, imageOpts := imageFlags(global, "")
+	opts := inspectOptions{
+		global: global,
+		image:  imageOpts,
+	}
 	return cli.Command{
 		Name:  "inspect",
 		Usage: "Inspect image IMAGE-NAME",
@@ -48,7 +53,7 @@ func inspectCmd(global *globalOptions) cli.Command {
 	See skopeo(1) section "IMAGE NAMES" for the expected format
 	`, strings.Join(transports.ListNames(), ", ")),
 		ArgsUsage: "IMAGE-NAME",
-		Flags: []cli.Flag{
+		Flags: append([]cli.Flag{
 			cli.StringFlag{
 				Name:  "authfile",
 				Usage: "path of the authentication file. Default is ${XDG_RUNTIME_DIR}/containers/auth.json",
@@ -72,7 +77,7 @@ func inspectCmd(global *globalOptions) cli.Command {
 				Value: "",
 				Usage: "Use `USERNAME[:PASSWORD]` for accessing the registry",
 			},
-		},
+		}, imageFlags...),
 		Action: opts.run,
 	}
 }
@@ -81,7 +86,7 @@ func (opts *inspectOptions) run(c *cli.Context) (retErr error) {
 	ctx, cancel := opts.global.commandTimeoutContext()
 	defer cancel()
 
-	img, err := parseImage(ctx, c, opts.global)
+	img, err := parseImage(ctx, c, opts.image)
 	if err != nil {
 		return err
 	}
@@ -127,7 +132,7 @@ func (opts *inspectOptions) run(c *cli.Context) (retErr error) {
 		outputData.Name = dockerRef.Name()
 	}
 	if img.Reference().Transport() == docker.Transport {
-		sys, err := contextFromGlobalOptions(c, opts.global, "")
+		sys, err := contextFromImageOptions(c, opts.image, "")
 		if err != nil {
 			return err
 		}

@@ -10,11 +10,23 @@ import (
 	"github.com/urfave/cli"
 )
 
-func contextFromGlobalOptions(c *cli.Context, global *globalOptions, flagPrefix string) (*types.SystemContext, error) {
+// imageOptions collects CLI flags which are the same across subcommands, but may be different for each image
+// (e.g. may differ between the source and destination of a copy)
+type imageOptions struct {
+	global *globalOptions // May be shared across several imageOptions instances.
+}
+
+// imageFlags prepares a collection of CLI flags writing into imageOptions, and the managed imageOptions structure.
+func imageFlags(global *globalOptions, flagPrefix string) ([]cli.Flag, *imageOptions) {
+	opts := imageOptions{global: global}
+	return []cli.Flag{}, &opts
+}
+
+func contextFromImageOptions(c *cli.Context, opts *imageOptions, flagPrefix string) (*types.SystemContext, error) {
 	ctx := &types.SystemContext{
-		RegistriesDirPath:                 global.registriesDirPath,
-		ArchitectureChoice:                global.overrideArch,
-		OSChoice:                          global.overrideOS,
+		RegistriesDirPath:                 opts.global.registriesDirPath,
+		ArchitectureChoice:                opts.global.overrideArch,
+		OSChoice:                          opts.global.overrideOS,
 		DockerCertPath:                    c.String(flagPrefix + "cert-dir"),
 		OSTreeTmpDirPath:                  c.String(flagPrefix + "ostree-tmp-dir"),
 		OCISharedBlobDirPath:              c.String(flagPrefix + "shared-blob-dir"),
@@ -25,8 +37,8 @@ func contextFromGlobalOptions(c *cli.Context, global *globalOptions, flagPrefix 
 		DockerDaemonInsecureSkipTLSVerify: !c.BoolT(flagPrefix + "tls-verify"),
 	}
 	// DEPRECATED: We support this for backward compatibility, but override it if a per-image flag is provided.
-	if global.tlsVerify.present {
-		ctx.DockerInsecureSkipTLSVerify = types.NewOptionalBool(!global.tlsVerify.value)
+	if opts.global.tlsVerify.present {
+		ctx.DockerInsecureSkipTLSVerify = types.NewOptionalBool(!opts.global.tlsVerify.value)
 	}
 	if c.IsSet(flagPrefix + "tls-verify") {
 		ctx.DockerInsecureSkipTLSVerify = types.NewOptionalBool(!c.BoolT(flagPrefix + "tls-verify"))
@@ -68,13 +80,13 @@ func getDockerAuth(creds string) (*types.DockerAuthConfig, error) {
 
 // parseImage converts image URL-like string to an initialized handler for that image.
 // The caller must call .Close() on the returned ImageCloser.
-func parseImage(ctx context.Context, c *cli.Context, global *globalOptions) (types.ImageCloser, error) {
+func parseImage(ctx context.Context, c *cli.Context, opts *imageOptions) (types.ImageCloser, error) {
 	imgName := c.Args().First()
 	ref, err := alltransports.ParseImageName(imgName)
 	if err != nil {
 		return nil, err
 	}
-	sys, err := contextFromGlobalOptions(c, global, "")
+	sys, err := contextFromImageOptions(c, opts, "")
 	if err != nil {
 		return nil, err
 	}
@@ -83,12 +95,12 @@ func parseImage(ctx context.Context, c *cli.Context, global *globalOptions) (typ
 
 // parseImageSource converts image URL-like string to an ImageSource.
 // The caller must call .Close() on the returned ImageSource.
-func parseImageSource(ctx context.Context, c *cli.Context, global *globalOptions, name string) (types.ImageSource, error) {
+func parseImageSource(ctx context.Context, c *cli.Context, opts *imageOptions, name string) (types.ImageSource, error) {
 	ref, err := alltransports.ParseImageName(name)
 	if err != nil {
 		return nil, err
 	}
-	sys, err := contextFromGlobalOptions(c, global, "")
+	sys, err := contextFromImageOptions(c, opts, "")
 	if err != nil {
 		return nil, err
 	}

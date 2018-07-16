@@ -17,16 +17,22 @@ import (
 
 type layersOptions struct {
 	global *globalOptions
+	image  *imageOptions
 }
 
 func layersCmd(global *globalOptions) cli.Command {
-	opts := &layersOptions{global: global}
+	imageFlags, imageOpts := imageFlags(global, "")
+	opts := layersOptions{
+		global: global,
+		image:  imageOpts,
+	}
 	return cli.Command{
 		Name:      "layers",
 		Usage:     "Get layers of IMAGE-NAME",
 		ArgsUsage: "IMAGE-NAME [LAYER...]",
 		Hidden:    true,
 		Action:    opts.run,
+		Flags:     imageFlags,
 	}
 }
 
@@ -39,12 +45,12 @@ func (opts *layersOptions) run(c *cli.Context) (retErr error) {
 	ctx, cancel := opts.global.commandTimeoutContext()
 	defer cancel()
 
-	sys, err := contextFromGlobalOptions(c, opts.global, "")
+	sys, err := contextFromImageOptions(c, opts.image, "")
 	if err != nil {
 		return err
 	}
 	cache := blobinfocache.DefaultCache(sys)
-	rawSource, err := parseImageSource(ctx, c, opts.global, c.Args()[0])
+	rawSource, err := parseImageSource(ctx, c, opts.image, c.Args()[0])
 	if err != nil {
 		return err
 	}

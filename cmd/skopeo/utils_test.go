@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"strings"
 	"testing"
 
 	"github.com/containers/image/types"
@@ -10,10 +11,10 @@ import (
 	"github.com/urfave/cli"
 )
 
-// fakeContext creates inputs for contextFromGlobalOptions.
+// fakeContext creates inputs for contextFromImageOptions.
 // NOTE: This is QUITE FAKE; none of the urfave/cli normalization and the like happens.
-func fakeContext(t *testing.T, cmdName string, globalFlags []string, cmdFlags []string) (*cli.Context, *globalOptions) {
-	app, global := createApp()
+func fakeContext(t *testing.T, cmdName string, flagPrefix string, globalFlags []string, cmdFlags []string) (*cli.Context, *imageOptions) {
+	app, globalOpts := createApp()
 
 	globalSet := flag.NewFlagSet(app.Name, flag.ContinueOnError)
 	for _, f := range app.Flags {
@@ -25,35 +26,54 @@ func fakeContext(t *testing.T, cmdName string, globalFlags []string, cmdFlags []
 
 	cmd := app.Command(cmdName)
 	require.NotNil(t, cmd)
-	cmdSet := flag.NewFlagSet(cmd.Name, flag.ContinueOnError)
-	for _, f := range cmd.Flags {
-		f.Apply(cmdSet)
+
+	imageFlags, imageOpts := imageFlags(globalOpts, flagPrefix)
+	appliedFlags := map[string]struct{}{}
+	// Ugly: cmd.Flags includes imageFlags as well.  For now, we need cmd.Flags to apply here
+	// to be able to test the non-Destination: flags, but we must not apply the same flag name twice.
+	// So, primarily use imageFlags (so that Destination: is used as expected), and then follow up with
+	// the remaining flags from cmd.Flags (so that cli.Context.String() etc. works).
+	// This is horribly ugly, but all of this will disappear within this PR.
+	firstName := func(f cli.Flag) string { // We even need to recognize "dest-creds,dcreds".  This will disappear as well.
+		return strings.Split(f.GetName(), ",")[0]
 	}
+	cmdSet := flag.NewFlagSet(cmd.Name, flag.ContinueOnError)
+	for _, f := range imageFlags {
+		f.Apply(cmdSet)
+		appliedFlags[firstName(f)] = struct{}{}
+	}
+	for _, f := range cmd.Flags {
+		if _, ok := appliedFlags[firstName(f)]; !ok {
+			f.Apply(cmdSet)
+			appliedFlags[firstName(f)] = struct{}{}
+		}
+	}
+
 	err = cmdSet.Parse(cmdFlags)
 	require.NoError(t, err)
-	return cli.NewContext(app, cmdSet, globalCtx), global
+	return cli.NewContext(app, cmdSet, globalCtx), imageOpts
 }
 
-func TestContextFromGlobalOptions(t *testing.T) {
+func TestContextFromImageOptions(t *testing.T) {
 	// FIXME: All of this only tests (skopeo copy --dest)
 	// FIXME FIXME: Apparently BoolT values are set to false if the flag is not declared for the specific subcommand!!
 
 	// Default state
-	c, global := fakeContext(t, "copy", []string{}, []string{})
-	res, err := contextFromGlobalOptions(c, global, "dest-")
+	c, opts := fakeContext(t, "copy", "dest-", []string{}, []string{})
+	res, err := contextFromImageOptions(c, opts, "dest-")
 	require.NoError(t, err)
 	assert.Equal(t, &types.SystemContext{}, res)
 
 	// Explicitly set everything to default, except for when the default is “not present”
-	c, global = fakeContext(t, "copy", []string{}, []string{
+	c, opts = fakeContext(t, "copy", "dest-", []string{}, []string{
 		"--dest-compress=false",
 	})
-	res, err = contextFromGlobalOptions(c, global, "dest-")
+	res, err = contextFromImageOptions(c, opts, "dest-")
 	require.NoError(t, err)
 	assert.Equal(t, &types.SystemContext{}, res)
 
 	// Set everything to non-default values.
-	c, global = fakeContext(t, "copy", []string{
+	c, opts = fakeContext(t, "copy", "dest-", []string{
 		"--registries.d", "/srv/registries.d",
 		"--override-arch", "overridden-arch",
 		"--override-os", "overridden-os",
@@ -67,7 +87,7 @@ func TestContextFromGlobalOptions(t *testing.T) {
 		"--dest-tls-verify=false",
 		"--dest-creds", "creds-user:creds-password",
 	})
-	res, err = contextFromGlobalOptions(c, global, "dest-")
+	res, err = contextFromImageOptions(c, opts, "dest-")
 	require.NoError(t, err)
 	assert.Equal(t, &types.SystemContext{
 		RegistriesDirPath:                 "/srv/registries.d",
@@ -109,15 +129,15 @@ func TestContextFromGlobalOptions(t *testing.T) {
 		if c.cmd != "" {
 			cmdFlags = append(cmdFlags, "--dest-tls-verify="+c.cmd)
 		}
-		ctx, global := fakeContext(t, "copy", globalFlags, cmdFlags)
-		res, err = contextFromGlobalOptions(ctx, global, "dest-")
+		ctx, opts := fakeContext(t, "copy", "dest-", globalFlags, cmdFlags)
+		res, err = contextFromImageOptions(ctx, opts, "dest-")
 		require.NoError(t, err)
 		assert.Equal(t, c.expectedDocker, res.DockerInsecureSkipTLSVerify, "%#v", c)
 		assert.Equal(t, c.expectedDockerDaemon, res.DockerDaemonInsecureSkipTLSVerify, "%#v", c)
 	}
 
 	// Invalid option values
-	c, global = fakeContext(t, "copy", []string{}, []string{"--dest-creds", ""})
-	_, err = contextFromGlobalOptions(c, global, "dest-")
+	c, opts = fakeContext(t, "copy", "dest-", []string{}, []string{"--dest-creds", ""})
+	_, err = contextFromImageOptions(c, opts, "dest-")
 	assert.Error(t, err)
 }

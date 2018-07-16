@@ -16,14 +16,14 @@ import (
 	"github.com/urfave/cli"
 )
 
-// contextsFromGlobalOptions returns source and destionation types.SystemContext depending on c.
-func contextsFromGlobalOptions(c *cli.Context, global *globalOptions) (*types.SystemContext, *types.SystemContext, error) {
-	sourceCtx, err := contextFromGlobalOptions(c, global, "src-")
+// contextsFromCopyOptions returns source and destionation types.SystemContext depending on c.
+func contextsFromCopyOptions(c *cli.Context, opts *copyOptions) (*types.SystemContext, *types.SystemContext, error) {
+	sourceCtx, err := contextFromImageOptions(c, opts.srcImage, "src-")
 	if err != nil {
 		return nil, nil, err
 	}
 
-	destinationCtx, err := contextFromGlobalOptions(c, global, "dest-")
+	destinationCtx, err := contextFromImageOptions(c, opts.destImage, "dest-")
 	if err != nil {
 		return nil, nil, err
 	}
@@ -33,6 +33,8 @@ func contextsFromGlobalOptions(c *cli.Context, global *globalOptions) (*types.Sy
 
 type copyOptions struct {
 	global            *globalOptions
+	srcImage          *imageOptions
+	destImage         *imageOptions
 	additionalTags    cli.StringSlice // For docker-archive: destinations, in addition to the name:tag specified as destination, also add these
 	removeSignatures  bool            // Do not copy signatures from the source image
 	signByFingerprint string          // Sign the image using a GPG key with the specified fingerprint
@@ -40,7 +42,13 @@ type copyOptions struct {
 }
 
 func copyCmd(global *globalOptions) cli.Command {
-	opts := copyOptions{global: global}
+	srcFlags, srcOpts := imageFlags(global, "src-")
+	destFlags, destOpts := imageFlags(global, "dest-")
+	opts := copyOptions{global: global,
+		srcImage:  srcOpts,
+		destImage: destOpts,
+	}
+
 	return cli.Command{
 		Name:  "copy",
 		Usage: "Copy an IMAGE-NAME from one location to another",
@@ -56,7 +64,7 @@ func copyCmd(global *globalOptions) cli.Command {
 		ArgsUsage: "SOURCE-IMAGE DESTINATION-IMAGE",
 		Action:    opts.run,
 		// FIXME: Do we need to namespace the GPG aspect?
-		Flags: []cli.Flag{
+		Flags: append(append([]cli.Flag{
 			cli.StringSliceFlag{
 				Name:  "additional-tag",
 				Usage: "additional tags (supports docker-archive)",
@@ -138,7 +146,7 @@ func copyCmd(global *globalOptions) cli.Command {
 				Value: "",
 				Usage: "use docker daemon host at `HOST` (docker-daemon destinations only)",
 			},
-		},
+		}, srcFlags...), destFlags...),
 	}
 }
 
@@ -163,7 +171,7 @@ func (opts *copyOptions) run(c *cli.Context) error {
 		return fmt.Errorf("Invalid destination name %s: %v", c.Args()[1], err)
 	}
 
-	sourceCtx, destinationCtx, err := contextsFromGlobalOptions(c, opts.global)
+	sourceCtx, destinationCtx, err := contextsFromCopyOptions(c, opts)
 	if err != nil {
 		return err
 	}

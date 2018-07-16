@@ -12,10 +12,15 @@ import (
 
 type deleteOptions struct {
 	global *globalOptions
+	image  *imageOptions
 }
 
 func deleteCmd(global *globalOptions) cli.Command {
-	opts := deleteOptions{global: global}
+	imageFlags, imageOpts := imageFlags(global, "")
+	opts := deleteOptions{
+		global: global,
+		image:  imageOpts,
+	}
 	return cli.Command{
 		Name:  "delete",
 		Usage: "Delete image IMAGE-NAME",
@@ -29,7 +34,7 @@ func deleteCmd(global *globalOptions) cli.Command {
 	`, strings.Join(transports.ListNames(), ", ")),
 		ArgsUsage: "IMAGE-NAME",
 		Action:    opts.run,
-		Flags: []cli.Flag{
+		Flags: append([]cli.Flag{
 			cli.StringFlag{
 				Name:  "authfile",
 				Usage: "path of the authentication file. Default is ${XDG_RUNTIME_DIR}/containers/auth.json",
@@ -48,7 +53,7 @@ func deleteCmd(global *globalOptions) cli.Command {
 				Name:  "tls-verify",
 				Usage: "require HTTPS and verify certificates when talking to container registries (defaults to true)",
 			},
-		},
+		}, imageFlags...),
 	}
 }
 
@@ -62,7 +67,7 @@ func (opts *deleteOptions) run(c *cli.Context) error {
 		return fmt.Errorf("Invalid source name %s: %v", c.Args()[0], err)
 	}
 
-	sys, err := contextFromGlobalOptions(c, opts.global, "")
+	sys, err := contextFromImageOptions(c, opts.image, "")
 	if err != nil {
 		return err
 	}
