@@ -16,14 +16,14 @@ import (
 	"github.com/urfave/cli"
 )
 
-// contextsFromCopyOptions returns source and destionation types.SystemContext depending on c.
-func contextsFromCopyOptions(c *cli.Context, opts *copyOptions) (*types.SystemContext, *types.SystemContext, error) {
+// contextsFromCopyOptions returns source and destionation types.SystemContext depending on opts.
+func contextsFromCopyOptions(opts *copyOptions) (*types.SystemContext, *types.SystemContext, error) {
 	sourceCtx, err := opts.srcImage.newSystemContext()
 	if err != nil {
 		return nil, nil, err
 	}
 
-	destinationCtx, err := contextFromImageDestOptions(c, opts.destImage)
+	destinationCtx, err := opts.destImage.newSystemContext()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -111,7 +111,7 @@ func (opts *copyOptions) run(c *cli.Context) error {
 		return fmt.Errorf("Invalid destination name %s: %v", c.Args()[1], err)
 	}
 
-	sourceCtx, destinationCtx, err := contextsFromCopyOptions(c, opts)
+	sourceCtx, destinationCtx, err := contextsFromCopyOptions(opts)
 	if err != nil {
 		return err
 	}

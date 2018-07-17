@@ -142,9 +142,9 @@ func imageDestFlags(global *globalOptions, shared *sharedImageOptions, flagPrefi
 	}...), &opts
 }
 
-// contextFromImageDestOptions returns a *types.SystemContext corresponding to opts.
+// newSystemContext returns a *types.SystemContext corresponding to opts.
 // It is guaranteed to return a fresh instance, so it is safe to make additional updates to it.
-func contextFromImageDestOptions(c *cli.Context, opts *imageDestOptions) (*types.SystemContext, error) {
+func (opts *imageDestOptions) newSystemContext() (*types.SystemContext, error) {
 	ctx, err := opts.imageOptions.newSystemContext()
 	if err != nil {
 		return nil, err

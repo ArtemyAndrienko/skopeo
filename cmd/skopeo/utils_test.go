@@ -7,12 +7,11 @@ import (
 	"github.com/containers/image/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/urfave/cli"
 )
 
 // fakeGlobalOptions creates globalOptions and sets it according to flags.
 // NOTE: This is QUITE FAKE; none of the urfave/cli normalization and the like happens.
-func fakeGlobalOptions(t *testing.T, flags []string) (*cli.App, *cli.Context, *globalOptions) {
+func fakeGlobalOptions(t *testing.T, flags []string) *globalOptions {
 	app, opts := createApp()
 
 	flagSet := flag.NewFlagSet(app.Name, flag.ContinueOnError)
@@ -21,15 +20,14 @@ func fakeGlobalOptions(t *testing.T, flags []string) (*cli.App, *cli.Context, *g
 	}
 	err := flagSet.Parse(flags)
 	require.NoError(t, err)
-	ctx := cli.NewContext(app, flagSet, nil)
 
-	return app, ctx, opts
+	return opts
 }
 
 // fakeImageOptions creates imageOptions and sets it according to globalFlags/cmdFlags.
 // NOTE: This is QUITE FAKE; none of the urfave/cli normalization and the like happens.
 func fakeImageOptions(t *testing.T, flagPrefix string, globalFlags []string, cmdFlags []string) *imageOptions {
-	_, _, globalOpts := fakeGlobalOptions(t, globalFlags)
+	globalOpts := fakeGlobalOptions(t, globalFlags)
 
 	sharedFlags, sharedOpts := sharedImageFlags()
 	imageFlags, imageOpts := imageFlags(globalOpts, sharedOpts, flagPrefix, "")
@@ -115,39 +113,39 @@ func TestImageOptionsNewSystemContext(t *testing.T) {
 	assert.Error(t, err)
 }
 
-// fakeImageDestContext creates inputs for contextFromImageDestOptions.
+// fakeImageDestOptions creates imageDestOptions and sets it according to globalFlags/cmdFlags.
 // NOTE: This is QUITE FAKE; none of the urfave/cli normalization and the like happens.
-func fakeImageDestContext(t *testing.T, flagPrefix string, globalFlags []string, cmdFlags []string) (*cli.Context, *imageDestOptions) {
-	app, globalCtx, globalOpts := fakeGlobalOptions(t, globalFlags)
+func fakeImageDestOptions(t *testing.T, flagPrefix string, globalFlags []string, cmdFlags []string) *imageDestOptions {
+	globalOpts := fakeGlobalOptions(t, globalFlags)
 
 	sharedFlags, sharedOpts := sharedImageFlags()
 	imageFlags, imageOpts := imageDestFlags(globalOpts, sharedOpts, flagPrefix, "")
-	flagSet := flag.NewFlagSet("fakeImageDestContext", flag.ContinueOnError)
+	flagSet := flag.NewFlagSet("fakeImageDestOptions", flag.ContinueOnError)
 	for _, f := range append(sharedFlags, imageFlags...) {
 		f.Apply(flagSet)
 	}
 	err := flagSet.Parse(cmdFlags)
 	require.NoError(t, err)
-	return cli.NewContext(app, flagSet, globalCtx), imageOpts
+	return imageOpts
 }
 
-func TestContextFromImageDestOptions(t *testing.T) {
+func TestImageDestOptionsNewSystemContext(t *testing.T) {
 	// Default state
-	c, opts := fakeImageDestContext(t, "dest-", []string{}, []string{})
-	res, err := contextFromImageDestOptions(c, opts)
+	opts := fakeImageDestOptions(t, "dest-", []string{}, []string{})
+	res, err := opts.newSystemContext()
 	require.NoError(t, err)
 	assert.Equal(t, &types.SystemContext{}, res)
 
 	// Explicitly set everything to default, except for when the default is “not present”
-	c, opts = fakeImageDestContext(t, "dest-", []string{}, []string{
+	opts = fakeImageDestOptions(t, "dest-", []string{}, []string{
 		"--dest-compress=false",
 	})
-	res, err = contextFromImageDestOptions(c, opts)
+	res, err = opts.newSystemContext()
 	require.NoError(t, err)
 	assert.Equal(t, &types.SystemContext{}, res)
 
 	// Set everything to non-default values.
-	c, opts = fakeImageDestContext(t, "dest-", []string{
+	opts = fakeImageDestOptions(t, "dest-", []string{
 		"--registries.d", "/srv/registries.d",
 		"--override-arch", "overridden-arch",
 		"--override-os", "overridden-os",
@@ -161,7 +159,7 @@ func TestContextFromImageDestOptions(t *testing.T) {
 		"--dest-tls-verify=false",
 		"--dest-creds", "creds-user:creds-password",
 	})
-	res, err = contextFromImageDestOptions(c, opts)
+	res, err = opts.newSystemContext()
 	require.NoError(t, err)
 	assert.Equal(t, &types.SystemContext{
 		RegistriesDirPath:                 "/srv/registries.d",
@@ -180,7 +178,7 @@ func TestContextFromImageDestOptions(t *testing.T) {
 	}, res)
 
 	// Invalid option values in imageOptions
-	c, opts = fakeImageDestContext(t, "dest-", []string{}, []string{"--dest-creds", ""})
-	_, err = contextFromImageDestOptions(c, opts)
+	opts = fakeImageDestOptions(t, "dest-", []string{}, []string{"--dest-creds", ""})
+	_, err = opts.newSystemContext()
 	assert.Error(t, err)
 }
