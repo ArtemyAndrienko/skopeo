@@ -10,22 +10,42 @@ import (
 	"github.com/urfave/cli"
 )
 
+// sharedImageOptions collects CLI flags which are image-related, but do not change across images.
+// This really should be a part of globalOptions, but that would break existing users of (skopeo copy --authfile=).
+type sharedImageOptions struct {
+	authFilePath string // Path to a */containers/auth.json
+}
+
+// imageFlags prepares a collection of CLI flags writing into sharedImageOptions, and the managed sharedImageOptions structure.
+func sharedImageFlags() ([]cli.Flag, *sharedImageOptions) {
+	opts := sharedImageOptions{}
+	return []cli.Flag{
+		cli.StringFlag{
+			Name:        "authfile",
+			Usage:       "path of the authentication file. Default is ${XDG_RUNTIME_DIR}/containers/auth.json",
+			Destination: &opts.authFilePath,
+		},
+	}, &opts
+}
+
 // imageOptions collects CLI flags which are the same across subcommands, but may be different for each image
 // (e.g. may differ between the source and destination of a copy)
 type imageOptions struct {
-	global           *globalOptions // May be shared across several imageOptions instances.
-	flagPrefix       string         // FIXME: Drop this eventually.
-	credsOption      optionalString // username[:password] for accessing a registry
-	dockerCertPath   string         // A directory using Docker-like *.{crt,cert,key} files for connecting to a registry or a daemon
-	tlsVerify        optionalBool   // Require HTTPS and verify certificates (for docker: and docker-daemon:)
-	sharedBlobDir    string         // A directory to use for OCI blobs, shared across repositories
-	dockerDaemonHost string         // docker-daemon: host to connect to
+	global           *globalOptions      // May be shared across several imageOptions instances.
+	shared           *sharedImageOptions // May be shared across several imageOptions instances.
+	flagPrefix       string              // FIXME: Drop this eventually.
+	credsOption      optionalString      // username[:password] for accessing a registry
+	dockerCertPath   string              // A directory using Docker-like *.{crt,cert,key} files for connecting to a registry or a daemon
+	tlsVerify        optionalBool        // Require HTTPS and verify certificates (for docker: and docker-daemon:)
+	sharedBlobDir    string              // A directory to use for OCI blobs, shared across repositories
+	dockerDaemonHost string              // docker-daemon: host to connect to
 }
 
 // imageFlags prepares a collection of CLI flags writing into imageOptions, and the managed imageOptions structure.
-func imageFlags(global *globalOptions, flagPrefix, credsOptionAlias string) ([]cli.Flag, *imageOptions) {
+func imageFlags(global *globalOptions, shared *sharedImageOptions, flagPrefix, credsOptionAlias string) ([]cli.Flag, *imageOptions) {
 	opts := imageOptions{
 		global:     global,
+		shared:     shared,
 		flagPrefix: flagPrefix,
 	}
 
@@ -74,7 +94,7 @@ func contextFromImageOptions(c *cli.Context, opts *imageOptions) (*types.SystemC
 		OSChoice:             opts.global.overrideOS,
 		DockerCertPath:       opts.dockerCertPath,
 		OCISharedBlobDirPath: opts.sharedBlobDir,
-		AuthFilePath:         c.String("authfile"),
+		AuthFilePath:         opts.shared.authFilePath,
 		DockerDaemonHost:     opts.dockerDaemonHost,
 		DockerDaemonCertPath: opts.dockerCertPath,
 	}
@@ -106,8 +126,8 @@ type imageDestOptions struct {
 }
 
 // imageDestFlags prepares a collection of CLI flags writing into imageDestOptions, and the managed imageDestOptions structure.
-func imageDestFlags(global *globalOptions, flagPrefix, credsOptionAlias string) ([]cli.Flag, *imageDestOptions) {
-	genericFlags, genericOptions := imageFlags(global, flagPrefix, credsOptionAlias)
+func imageDestFlags(global *globalOptions, shared *sharedImageOptions, flagPrefix, credsOptionAlias string) ([]cli.Flag, *imageDestOptions) {
+	genericFlags, genericOptions := imageFlags(global, shared, flagPrefix, credsOptionAlias)
 	opts := imageDestOptions{imageOptions: genericOptions}
 
 	return append(genericFlags, []cli.Flag{

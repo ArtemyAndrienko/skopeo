@@ -42,8 +42,9 @@ type copyOptions struct {
 }
 
 func copyCmd(global *globalOptions) cli.Command {
-	srcFlags, srcOpts := imageFlags(global, "src-", "screds")
-	destFlags, destOpts := imageDestFlags(global, "dest-", "dcreds")
+	sharedFlags, sharedOpts := sharedImageFlags()
+	srcFlags, srcOpts := imageFlags(global, sharedOpts, "src-", "screds")
+	destFlags, destOpts := imageDestFlags(global, sharedOpts, "dest-", "dcreds")
 	opts := copyOptions{global: global,
 		srcImage:  srcOpts,
 		destImage: destOpts,
@@ -64,15 +65,11 @@ func copyCmd(global *globalOptions) cli.Command {
 		ArgsUsage: "SOURCE-IMAGE DESTINATION-IMAGE",
 		Action:    opts.run,
 		// FIXME: Do we need to namespace the GPG aspect?
-		Flags: append(append([]cli.Flag{
+		Flags: append(append(append([]cli.Flag{
 			cli.StringSliceFlag{
 				Name:  "additional-tag",
 				Usage: "additional tags (supports docker-archive)",
 				Value: &opts.additionalTags, // Surprisingly StringSliceFlag does not support Destination:, but modifies Value: in place.
-			},
-			cli.StringFlag{
-				Name:  "authfile",
-				Usage: "path of the authentication file. Default is ${XDG_RUNTIME_DIR}/containers/auth.json",
 			},
 			cli.BoolFlag{
 				Name:        "remove-signatures",
@@ -89,7 +86,7 @@ func copyCmd(global *globalOptions) cli.Command {
 				Usage: "`MANIFEST TYPE` (oci, v2s1, or v2s2) to use when saving image to directory using the 'dir:' transport (default is manifest type of source)",
 				Value: newOptionalStringValue(&opts.format),
 			},
-		}, srcFlags...), destFlags...),
+		}, sharedFlags...), srcFlags...), destFlags...),
 	}
 }
 

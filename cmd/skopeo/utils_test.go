@@ -35,7 +35,8 @@ func fakeImageContext(t *testing.T, cmdName string, flagPrefix string, globalFla
 	cmd := app.Command(cmdName)
 	require.NotNil(t, cmd)
 
-	imageFlags, imageOpts := imageFlags(globalOpts, flagPrefix, "")
+	sharedFlags, sharedOpts := sharedImageFlags()
+	imageFlags, imageOpts := imageFlags(globalOpts, sharedOpts, flagPrefix, "")
 	appliedFlags := map[string]struct{}{}
 	// Ugly: cmd.Flags includes imageFlags as well.  For now, we need cmd.Flags to apply here
 	// to be able to test the non-Destination: flags, but we must not apply the same flag name twice.
@@ -46,7 +47,7 @@ func fakeImageContext(t *testing.T, cmdName string, flagPrefix string, globalFla
 		return strings.Split(f.GetName(), ",")[0]
 	}
 	flagSet := flag.NewFlagSet(cmd.Name, flag.ContinueOnError)
-	for _, f := range imageFlags {
+	for _, f := range append(sharedFlags, imageFlags...) {
 		f.Apply(flagSet)
 		appliedFlags[firstName(f)] = struct{}{}
 	}
@@ -145,7 +146,8 @@ func fakeImageDestContext(t *testing.T, cmdName string, flagPrefix string, globa
 	cmd := app.Command(cmdName)
 	require.NotNil(t, cmd)
 
-	imageFlags, imageOpts := imageDestFlags(globalOpts, flagPrefix, "")
+	sharedFlags, sharedOpts := sharedImageFlags()
+	imageFlags, imageOpts := imageDestFlags(globalOpts, sharedOpts, flagPrefix, "")
 	appliedFlags := map[string]struct{}{}
 	// Ugly: cmd.Flags includes imageFlags as well.  For now, we need cmd.Flags to apply here
 	// to be able to test the non-Destination: flags, but we must not apply the same flag name twice.
@@ -156,7 +158,7 @@ func fakeImageDestContext(t *testing.T, cmdName string, flagPrefix string, globa
 		return strings.Split(f.GetName(), ",")[0]
 	}
 	flagSet := flag.NewFlagSet(cmd.Name, flag.ContinueOnError)
-	for _, f := range imageFlags {
+	for _, f := range append(sharedFlags, imageFlags...) {
 		f.Apply(flagSet)
 		appliedFlags[firstName(f)] = struct{}{}
 	}

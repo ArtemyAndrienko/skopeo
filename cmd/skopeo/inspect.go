@@ -36,7 +36,8 @@ type inspectOptions struct {
 }
 
 func inspectCmd(global *globalOptions) cli.Command {
-	imageFlags, imageOpts := imageFlags(global, "", "")
+	sharedFlags, sharedOpts := sharedImageFlags()
+	imageFlags, imageOpts := imageFlags(global, sharedOpts, "", "")
 	opts := inspectOptions{
 		global: global,
 		image:  imageOpts,
@@ -53,17 +54,13 @@ func inspectCmd(global *globalOptions) cli.Command {
 	See skopeo(1) section "IMAGE NAMES" for the expected format
 	`, strings.Join(transports.ListNames(), ", ")),
 		ArgsUsage: "IMAGE-NAME",
-		Flags: append([]cli.Flag{
-			cli.StringFlag{
-				Name:  "authfile",
-				Usage: "path of the authentication file. Default is ${XDG_RUNTIME_DIR}/containers/auth.json",
-			},
+		Flags: append(append([]cli.Flag{
 			cli.BoolFlag{
 				Name:        "raw",
 				Usage:       "output raw manifest",
 				Destination: &opts.raw,
 			},
-		}, imageFlags...),
+		}, sharedFlags...), imageFlags...),
 		Action: opts.run,
 	}
 }

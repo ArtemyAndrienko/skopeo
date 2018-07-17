@@ -21,7 +21,8 @@ type layersOptions struct {
 }
 
 func layersCmd(global *globalOptions) cli.Command {
-	imageFlags, imageOpts := imageFlags(global, "", "")
+	sharedFlags, sharedOpts := sharedImageFlags()
+	imageFlags, imageOpts := imageFlags(global, sharedOpts, "", "")
 	opts := layersOptions{
 		global: global,
 		image:  imageOpts,
@@ -32,7 +33,7 @@ func layersCmd(global *globalOptions) cli.Command {
 		ArgsUsage: "IMAGE-NAME [LAYER...]",
 		Hidden:    true,
 		Action:    opts.run,
-		Flags:     imageFlags,
+		Flags:     append(sharedFlags, imageFlags...),
 	}
 }
 

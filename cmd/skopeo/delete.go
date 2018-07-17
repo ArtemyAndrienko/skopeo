@@ -16,7 +16,8 @@ type deleteOptions struct {
 }
 
 func deleteCmd(global *globalOptions) cli.Command {
-	imageFlags, imageOpts := imageFlags(global, "", "")
+	sharedFlags, sharedOpts := sharedImageFlags()
+	imageFlags, imageOpts := imageFlags(global, sharedOpts, "", "")
 	opts := deleteOptions{
 		global: global,
 		image:  imageOpts,
@@ -34,12 +35,7 @@ func deleteCmd(global *globalOptions) cli.Command {
 	`, strings.Join(transports.ListNames(), ", ")),
 		ArgsUsage: "IMAGE-NAME",
 		Action:    opts.run,
-		Flags: append([]cli.Flag{
-			cli.StringFlag{
-				Name:  "authfile",
-				Usage: "path of the authentication file. Default is ${XDG_RUNTIME_DIR}/containers/auth.json",
-			},
-		}, imageFlags...),
+		Flags:     append(sharedFlags, imageFlags...),
 	}
 }
 
