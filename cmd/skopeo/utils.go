@@ -13,17 +13,32 @@ import (
 // imageOptions collects CLI flags which are the same across subcommands, but may be different for each image
 // (e.g. may differ between the source and destination of a copy)
 type imageOptions struct {
-	global     *globalOptions // May be shared across several imageOptions instances.
-	flagPrefix string         // FIXME: Drop this eventually.
+	global      *globalOptions // May be shared across several imageOptions instances.
+	flagPrefix  string         // FIXME: Drop this eventually.
+	credsOption optionalString // username[:password] for accessing a registry
 }
 
 // imageFlags prepares a collection of CLI flags writing into imageOptions, and the managed imageOptions structure.
-func imageFlags(global *globalOptions, flagPrefix string) ([]cli.Flag, *imageOptions) {
+func imageFlags(global *globalOptions, flagPrefix, credsOptionAlias string) ([]cli.Flag, *imageOptions) {
 	opts := imageOptions{
 		global:     global,
 		flagPrefix: flagPrefix,
 	}
-	return []cli.Flag{}, &opts
+
+	// This is horribly ugly, but we need to support the old option forms of (skopeo copy) for compatibility.
+	// Don't add any more cases like this.
+	credsOptionExtra := ""
+	if credsOptionAlias != "" {
+		credsOptionExtra += "," + credsOptionAlias
+	}
+
+	return []cli.Flag{
+		cli.GenericFlag{
+			Name:  flagPrefix + "creds" + credsOptionExtra,
+			Usage: "Use `USERNAME[:PASSWORD]` for accessing the registry",
+			Value: newOptionalStringValue(&opts.credsOption),
+		},
+	}, &opts
 }
 
 func contextFromImageOptions(c *cli.Context, opts *imageOptions) (*types.SystemContext, error) {
@@ -47,9 +62,9 @@ func contextFromImageOptions(c *cli.Context, opts *imageOptions) (*types.SystemC
 	if c.IsSet(opts.flagPrefix + "tls-verify") {
 		ctx.DockerInsecureSkipTLSVerify = types.NewOptionalBool(!c.BoolT(opts.flagPrefix + "tls-verify"))
 	}
-	if c.IsSet(opts.flagPrefix + "creds") {
+	if opts.credsOption.present {
 		var err error
-		ctx.DockerAuthConfig, err = getDockerAuth(c.String(opts.flagPrefix + "creds"))
+		ctx.DockerAuthConfig, err = getDockerAuth(opts.credsOption.value)
 		if err != nil {
 			return nil, err
 		}

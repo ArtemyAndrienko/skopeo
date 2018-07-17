@@ -21,7 +21,7 @@ type layersOptions struct {
 }
 
 func layersCmd(global *globalOptions) cli.Command {
-	imageFlags, imageOpts := imageFlags(global, "")
+	imageFlags, imageOpts := imageFlags(global, "", "")
 	opts := layersOptions{
 		global: global,
 		image:  imageOpts,

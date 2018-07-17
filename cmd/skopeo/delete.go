@@ -16,7 +16,7 @@ type deleteOptions struct {
 }
 
 func deleteCmd(global *globalOptions) cli.Command {
-	imageFlags, imageOpts := imageFlags(global, "")
+	imageFlags, imageOpts := imageFlags(global, "", "")
 	opts := deleteOptions{
 		global: global,
 		image:  imageOpts,
@@ -38,11 +38,6 @@ func deleteCmd(global *globalOptions) cli.Command {
 			cli.StringFlag{
 				Name:  "authfile",
 				Usage: "path of the authentication file. Default is ${XDG_RUNTIME_DIR}/containers/auth.json",
-			},
-			cli.StringFlag{
-				Name:  "creds",
-				Value: "",
-				Usage: "Use `USERNAME[:PASSWORD]` for accessing the registry",
 			},
 			cli.StringFlag{
 				Name:  "cert-dir",

@@ -27,7 +27,7 @@ func fakeContext(t *testing.T, cmdName string, flagPrefix string, globalFlags []
 	cmd := app.Command(cmdName)
 	require.NotNil(t, cmd)
 
-	imageFlags, imageOpts := imageFlags(globalOpts, flagPrefix)
+	imageFlags, imageOpts := imageFlags(globalOpts, flagPrefix, "")
 	appliedFlags := map[string]struct{}{}
 	// Ugly: cmd.Flags includes imageFlags as well.  For now, we need cmd.Flags to apply here
 	// to be able to test the non-Destination: flags, but we must not apply the same flag name twice.

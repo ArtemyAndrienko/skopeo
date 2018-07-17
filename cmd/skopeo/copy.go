@@ -42,8 +42,8 @@ type copyOptions struct {
 }
 
 func copyCmd(global *globalOptions) cli.Command {
-	srcFlags, srcOpts := imageFlags(global, "src-")
-	destFlags, destOpts := imageFlags(global, "dest-")
+	srcFlags, srcOpts := imageFlags(global, "src-", "screds")
+	destFlags, destOpts := imageFlags(global, "dest-", "dcreds")
 	opts := copyOptions{global: global,
 		srcImage:  srcOpts,
 		destImage: destOpts,
@@ -83,16 +83,6 @@ func copyCmd(global *globalOptions) cli.Command {
 				Name:        "sign-by",
 				Usage:       "Sign the image using a GPG key with the specified `FINGERPRINT`",
 				Destination: &opts.signByFingerprint,
-			},
-			cli.StringFlag{
-				Name:  "src-creds, screds",
-				Value: "",
-				Usage: "Use `USERNAME[:PASSWORD]` for accessing the source registry",
-			},
-			cli.StringFlag{
-				Name:  "dest-creds, dcreds",
-				Value: "",
-				Usage: "Use `USERNAME[:PASSWORD]` for accessing the destination registry",
 			},
 			cli.StringFlag{
 				Name:  "src-cert-dir",

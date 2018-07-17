@@ -36,7 +36,7 @@ type inspectOptions struct {
 }
 
 func inspectCmd(global *globalOptions) cli.Command {
-	imageFlags, imageOpts := imageFlags(global, "")
+	imageFlags, imageOpts := imageFlags(global, "", "")
 	opts := inspectOptions{
 		global: global,
 		image:  imageOpts,
@@ -71,11 +71,6 @@ func inspectCmd(global *globalOptions) cli.Command {
 				Name:        "raw",
 				Usage:       "output raw manifest",
 				Destination: &opts.raw,
-			},
-			cli.StringFlag{
-				Name:  "creds",
-				Value: "",
-				Usage: "Use `USERNAME[:PASSWORD]` for accessing the registry",
 			},
 		}, imageFlags...),
 		Action: opts.run,
