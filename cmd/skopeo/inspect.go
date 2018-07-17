@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"strings"
 	"time"
 
@@ -61,15 +62,18 @@ func inspectCmd(global *globalOptions) cli.Command {
 				Destination: &opts.raw,
 			},
 		}, sharedFlags...), imageFlags...),
-		Action: opts.run,
+		Action: commandAction(opts.run),
 	}
 }
 
-func (opts *inspectOptions) run(c *cli.Context) (retErr error) {
+func (opts *inspectOptions) run(args []string, stdout io.Writer) (retErr error) {
 	ctx, cancel := opts.global.commandTimeoutContext()
 	defer cancel()
 
-	img, err := parseImage(ctx, opts.image, c.Args().First())
+	if len(args) != 1 {
+		return errors.New("Exactly one argument expected")
+	}
+	img, err := parseImage(ctx, opts.image, args[0])
 	if err != nil {
 		return err
 	}
@@ -85,7 +89,7 @@ func (opts *inspectOptions) run(c *cli.Context) (retErr error) {
 		return err
 	}
 	if opts.raw {
-		_, err := c.App.Writer.Write(rawManifest)
+		_, err := stdout.Write(rawManifest)
 		if err != nil {
 			return fmt.Errorf("Error writing manifest to standard output: %v", err)
 		}
@@ -134,6 +138,6 @@ func (opts *inspectOptions) run(c *cli.Context) (retErr error) {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintln(c.App.Writer, string(out))
+	fmt.Fprintln(stdout, string(out))
 	return nil
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -32,14 +33,14 @@ func layersCmd(global *globalOptions) cli.Command {
 		Usage:     "Get layers of IMAGE-NAME",
 		ArgsUsage: "IMAGE-NAME [LAYER...]",
 		Hidden:    true,
-		Action:    opts.run,
+		Action:    commandAction(opts.run),
 		Flags:     append(sharedFlags, imageFlags...),
 	}
 }
 
-func (opts *layersOptions) run(c *cli.Context) (retErr error) {
+func (opts *layersOptions) run(args []string, stdout io.Writer) (retErr error) {
 	fmt.Fprintln(os.Stderr, `DEPRECATED: skopeo layers is deprecated in favor of skopeo copy`)
-	if c.NArg() == 0 {
+	if len(args) == 0 {
 		return errors.New("Usage: layers imageReference [layer...]")
 	}
 
@@ -51,7 +52,7 @@ func (opts *layersOptions) run(c *cli.Context) (retErr error) {
 		return err
 	}
 	cache := blobinfocache.DefaultCache(sys)
-	rawSource, err := parseImageSource(ctx, opts.image, c.Args()[0])
+	rawSource, err := parseImageSource(ctx, opts.image, args[0])
 	if err != nil {
 		return err
 	}
@@ -74,7 +75,7 @@ func (opts *layersOptions) run(c *cli.Context) (retErr error) {
 		isConfig bool
 	}
 	var blobDigests []blobDigest
-	for _, dString := range c.Args().Tail() {
+	for _, dString := range args[1:] {
 		if !strings.HasPrefix(dString, "sha256:") {
 			dString = "sha256:" + dString
 		}

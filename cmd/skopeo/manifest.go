@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 
 	"github.com/containers/image/manifest"
@@ -18,15 +19,15 @@ func manifestDigestCmd() cli.Command {
 		Name:      "manifest-digest",
 		Usage:     "Compute a manifest digest of a file",
 		ArgsUsage: "MANIFEST",
-		Action:    opts.run,
+		Action:    commandAction(opts.run),
 	}
 }
 
-func (opts *manifestDigestOptions) run(context *cli.Context) error {
-	if len(context.Args()) != 1 {
+func (opts *manifestDigestOptions) run(args []string, stdout io.Writer) error {
+	if len(args) != 1 {
 		return errors.New("Usage: skopeo manifest-digest manifest")
 	}
-	manifestPath := context.Args()[0]
+	manifestPath := args[0]
 
 	man, err := ioutil.ReadFile(manifestPath)
 	if err != nil {
@@ -36,6 +37,6 @@ func (opts *manifestDigestOptions) run(context *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("Error computing digest: %v", err)
 	}
-	fmt.Fprintf(context.App.Writer, "%s\n", digest)
+	fmt.Fprintf(stdout, "%s\n", digest)
 	return nil
 }

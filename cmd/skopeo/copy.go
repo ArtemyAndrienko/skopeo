@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
-	"os"
+	"io"
 	"strings"
 
 	"github.com/containers/image/copy"
@@ -47,7 +47,7 @@ func copyCmd(global *globalOptions) cli.Command {
 	See skopeo(1) section "IMAGE NAMES" for the expected format
 	`, strings.Join(transports.ListNames(), ", ")),
 		ArgsUsage: "SOURCE-IMAGE DESTINATION-IMAGE",
-		Action:    opts.run,
+		Action:    commandAction(opts.run),
 		// FIXME: Do we need to namespace the GPG aspect?
 		Flags: append(append(append([]cli.Flag{
 			cli.StringSliceFlag{
@@ -74,10 +74,9 @@ func copyCmd(global *globalOptions) cli.Command {
 	}
 }
 
-func (opts *copyOptions) run(c *cli.Context) error {
-	if len(c.Args()) != 2 {
-		cli.ShowCommandHelp(c, "copy")
-		return errors.New("Exactly two arguments expected")
+func (opts *copyOptions) run(args []string, stdout io.Writer) error {
+	if len(args) != 2 {
+		return errorShouldDisplayUsage{errors.New("Exactly two arguments expected")}
 	}
 
 	policyContext, err := opts.global.getPolicyContext()
@@ -86,13 +85,13 @@ func (opts *copyOptions) run(c *cli.Context) error {
 	}
 	defer policyContext.Destroy()
 
-	srcRef, err := alltransports.ParseImageName(c.Args()[0])
+	srcRef, err := alltransports.ParseImageName(args[0])
 	if err != nil {
-		return fmt.Errorf("Invalid source name %s: %v", c.Args()[0], err)
+		return fmt.Errorf("Invalid source name %s: %v", args[0], err)
 	}
-	destRef, err := alltransports.ParseImageName(c.Args()[1])
+	destRef, err := alltransports.ParseImageName(args[1])
 	if err != nil {
-		return fmt.Errorf("Invalid destination name %s: %v", c.Args()[1], err)
+		return fmt.Errorf("Invalid destination name %s: %v", args[1], err)
 	}
 
 	sourceCtx, err := opts.srcImage.newSystemContext()
@@ -136,7 +135,7 @@ func (opts *copyOptions) run(c *cli.Context) error {
 	_, err = copy.Image(ctx, policyContext, destRef, srcRef, &copy.Options{
 		RemoveSignatures:      opts.removeSignatures,
 		SignBy:                opts.signByFingerprint,
-		ReportWriter:          os.Stdout,
+		ReportWriter:          stdout,
 		SourceCtx:             sourceCtx,
 		DestinationCtx:        destinationCtx,
 		ForceManifestMIMEType: manifestType,

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 
 	"github.com/containers/image/signature"
@@ -20,7 +21,7 @@ func standaloneSignCmd() cli.Command {
 		Name:      "standalone-sign",
 		Usage:     "Create a signature using local files",
 		ArgsUsage: "MANIFEST DOCKER-REFERENCE KEY-FINGERPRINT",
-		Action:    opts.run,
+		Action:    commandAction(opts.run),
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:        "output, o",
@@ -31,13 +32,13 @@ func standaloneSignCmd() cli.Command {
 	}
 }
 
-func (opts *standaloneSignOptions) run(c *cli.Context) error {
-	if len(c.Args()) != 3 || opts.output == "" {
+func (opts *standaloneSignOptions) run(args []string, stdout io.Writer) error {
+	if len(args) != 3 || opts.output == "" {
 		return errors.New("Usage: skopeo standalone-sign manifest docker-reference key-fingerprint -o signature")
 	}
-	manifestPath := c.Args()[0]
-	dockerReference := c.Args()[1]
-	fingerprint := c.Args()[2]
+	manifestPath := args[0]
+	dockerReference := args[1]
+	fingerprint := args[2]
 
 	manifest, err := ioutil.ReadFile(manifestPath)
 	if err != nil {
@@ -69,18 +70,18 @@ func standaloneVerifyCmd() cli.Command {
 		Name:      "standalone-verify",
 		Usage:     "Verify a signature using local files",
 		ArgsUsage: "MANIFEST DOCKER-REFERENCE KEY-FINGERPRINT SIGNATURE",
-		Action:    opts.run,
+		Action:    commandAction(opts.run),
 	}
 }
 
-func (opts *standaloneVerifyOptions) run(c *cli.Context) error {
-	if len(c.Args()) != 4 {
+func (opts *standaloneVerifyOptions) run(args []string, stdout io.Writer) error {
+	if len(args) != 4 {
 		return errors.New("Usage: skopeo standalone-verify manifest docker-reference key-fingerprint signature")
 	}
-	manifestPath := c.Args()[0]
-	expectedDockerReference := c.Args()[1]
-	expectedFingerprint := c.Args()[2]
-	signaturePath := c.Args()[3]
+	manifestPath := args[0]
+	expectedDockerReference := args[1]
+	expectedFingerprint := args[2]
+	signaturePath := args[3]
 
 	unverifiedManifest, err := ioutil.ReadFile(manifestPath)
 	if err != nil {
@@ -101,7 +102,7 @@ func (opts *standaloneVerifyOptions) run(c *cli.Context) error {
 		return fmt.Errorf("Error verifying signature: %v", err)
 	}
 
-	fmt.Fprintf(c.App.Writer, "Signature verified, digest %s\n", sig.DockerManifestDigest)
+	fmt.Fprintf(stdout, "Signature verified, digest %s\n", sig.DockerManifestDigest)
 	return nil
 }
 
@@ -121,15 +122,15 @@ func untrustedSignatureDumpCmd() cli.Command {
 		Usage:     "Dump contents of a signature WITHOUT VERIFYING IT",
 		ArgsUsage: "SIGNATURE",
 		Hidden:    true,
-		Action:    opts.run,
+		Action:    commandAction(opts.run),
 	}
 }
 
-func (opts *untrustedSignatureDumpOptions) run(c *cli.Context) error {
-	if len(c.Args()) != 1 {
+func (opts *untrustedSignatureDumpOptions) run(args []string, stdout io.Writer) error {
+	if len(args) != 1 {
 		return errors.New("Usage: skopeo untrusted-signature-dump-without-verification signature")
 	}
-	untrustedSignaturePath := c.Args()[0]
+	untrustedSignaturePath := args[0]
 
 	untrustedSignature, err := ioutil.ReadFile(untrustedSignaturePath)
 	if err != nil {
@@ -144,6 +145,6 @@ func (opts *untrustedSignatureDumpOptions) run(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintln(c.App.Writer, string(untrustedOut))
+	fmt.Fprintln(stdout, string(untrustedOut))
 	return nil
 }

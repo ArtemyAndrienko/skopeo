@@ -3,12 +3,33 @@ package main
 import (
 	"context"
 	"errors"
+	"io"
 	"strings"
 
 	"github.com/containers/image/transports/alltransports"
 	"github.com/containers/image/types"
 	"github.com/urfave/cli"
 )
+
+// errorShouldDisplayUsage is a subtype of error used by command handlers to indicate that cli.ShowSubcommandHelp should be called.
+type errorShouldDisplayUsage struct {
+	error
+}
+
+// commandAction intermediates between the cli.ActionFunc interface and the real handler,
+// primarily to ensure that cli.Context is not available to the handler, which in turn
+// makes sure that the cli.String() etc. flag access functions are not used,
+// and everything is done using the *Options structures and the Destination: members of cli.Flag.
+// handler may return errorShouldDisplayUsage to cause cli.ShowSubcommandHelp to be called.
+func commandAction(handler func(args []string, stdout io.Writer) error) cli.ActionFunc {
+	return func(c *cli.Context) error {
+		err := handler(([]string)(c.Args()), c.App.Writer)
+		if _, ok := err.(errorShouldDisplayUsage); ok {
+			cli.ShowSubcommandHelp(c)
+		}
+		return err
+	}
+}
 
 // sharedImageOptions collects CLI flags which are image-related, but do not change across images.
 // This really should be a part of globalOptions, but that would break existing users of (skopeo copy --authfile=).

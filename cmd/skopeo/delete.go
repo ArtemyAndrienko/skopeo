@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/containers/image/transports"
@@ -34,19 +35,19 @@ func deleteCmd(global *globalOptions) cli.Command {
 	See skopeo(1) section "IMAGE NAMES" for the expected format
 	`, strings.Join(transports.ListNames(), ", ")),
 		ArgsUsage: "IMAGE-NAME",
-		Action:    opts.run,
+		Action:    commandAction(opts.run),
 		Flags:     append(sharedFlags, imageFlags...),
 	}
 }
 
-func (opts *deleteOptions) run(c *cli.Context) error {
-	if len(c.Args()) != 1 {
+func (opts *deleteOptions) run(args []string, stdout io.Writer) error {
+	if len(args) != 1 {
 		return errors.New("Usage: delete imageReference")
 	}
 
-	ref, err := alltransports.ParseImageName(c.Args()[0])
+	ref, err := alltransports.ParseImageName(args[0])
 	if err != nil {
-		return fmt.Errorf("Invalid source name %s: %v", c.Args()[0], err)
+		return fmt.Errorf("Invalid source name %s: %v", args[0], err)
 	}
 
 	sys, err := opts.image.newSystemContext()
