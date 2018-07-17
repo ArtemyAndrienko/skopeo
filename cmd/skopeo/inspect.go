@@ -115,7 +115,7 @@ func (opts *inspectOptions) run(c *cli.Context) (retErr error) {
 		outputData.Name = dockerRef.Name()
 	}
 	if img.Reference().Transport() == docker.Transport {
-		sys, err := contextFromImageOptions(c, opts.image)
+		sys, err := opts.image.newSystemContext()
 		if err != nil {
 			return err
 		}

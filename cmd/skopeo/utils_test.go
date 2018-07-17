@@ -26,31 +26,31 @@ func fakeGlobalOptions(t *testing.T, flags []string) (*cli.App, *cli.Context, *g
 	return app, ctx, opts
 }
 
-// fakeImageContext creates inputs for contextFromImageOptions.
+// fakeImageOptions creates imageOptions and sets it according to globalFlags/cmdFlags.
 // NOTE: This is QUITE FAKE; none of the urfave/cli normalization and the like happens.
-func fakeImageContext(t *testing.T, flagPrefix string, globalFlags []string, cmdFlags []string) (*cli.Context, *imageOptions) {
-	app, globalCtx, globalOpts := fakeGlobalOptions(t, globalFlags)
+func fakeImageOptions(t *testing.T, flagPrefix string, globalFlags []string, cmdFlags []string) *imageOptions {
+	_, _, globalOpts := fakeGlobalOptions(t, globalFlags)
 
 	sharedFlags, sharedOpts := sharedImageFlags()
 	imageFlags, imageOpts := imageFlags(globalOpts, sharedOpts, flagPrefix, "")
-	flagSet := flag.NewFlagSet("fakeImageContext", flag.ContinueOnError)
+	flagSet := flag.NewFlagSet("fakeImageOptions", flag.ContinueOnError)
 	for _, f := range append(sharedFlags, imageFlags...) {
 		f.Apply(flagSet)
 	}
 	err := flagSet.Parse(cmdFlags)
 	require.NoError(t, err)
-	return cli.NewContext(app, flagSet, globalCtx), imageOpts
+	return imageOpts
 }
 
-func TestContextFromImageOptions(t *testing.T) {
+func TestImageOptionsNewSystemContext(t *testing.T) {
 	// Default state
-	c, opts := fakeImageContext(t, "dest-", []string{}, []string{})
-	res, err := contextFromImageOptions(c, opts)
+	opts := fakeImageOptions(t, "dest-", []string{}, []string{})
+	res, err := opts.newSystemContext()
 	require.NoError(t, err)
 	assert.Equal(t, &types.SystemContext{}, res)
 
 	// Set everything to non-default values.
-	c, opts = fakeImageContext(t, "dest-", []string{
+	opts = fakeImageOptions(t, "dest-", []string{
 		"--registries.d", "/srv/registries.d",
 		"--override-arch", "overridden-arch",
 		"--override-os", "overridden-os",
@@ -62,7 +62,7 @@ func TestContextFromImageOptions(t *testing.T) {
 		"--dest-tls-verify=false",
 		"--dest-creds", "creds-user:creds-password",
 	})
-	res, err = contextFromImageOptions(c, opts)
+	res, err = opts.newSystemContext()
 	require.NoError(t, err)
 	assert.Equal(t, &types.SystemContext{
 		RegistriesDirPath:                 "/srv/registries.d",
@@ -102,16 +102,16 @@ func TestContextFromImageOptions(t *testing.T) {
 		if c.cmd != "" {
 			cmdFlags = append(cmdFlags, "--dest-tls-verify="+c.cmd)
 		}
-		ctx, opts := fakeImageContext(t, "dest-", globalFlags, cmdFlags)
-		res, err = contextFromImageOptions(ctx, opts)
+		opts := fakeImageOptions(t, "dest-", globalFlags, cmdFlags)
+		res, err = opts.newSystemContext()
 		require.NoError(t, err)
 		assert.Equal(t, c.expectedDocker, res.DockerInsecureSkipTLSVerify, "%#v", c)
 		assert.Equal(t, c.expectedDockerDaemon, res.DockerDaemonInsecureSkipTLSVerify, "%#v", c)
 	}
 
 	// Invalid option values
-	c, opts = fakeImageContext(t, "dest-", []string{}, []string{"--dest-creds", ""})
-	_, err = contextFromImageOptions(c, opts)
+	opts = fakeImageOptions(t, "dest-", []string{}, []string{"--dest-creds", ""})
+	_, err = opts.newSystemContext()
 	assert.Error(t, err)
 }
 

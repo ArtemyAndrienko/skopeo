@@ -83,9 +83,9 @@ func imageFlags(global *globalOptions, shared *sharedImageOptions, flagPrefix, c
 	}, &opts
 }
 
-// contextFromImageOptions returns a *types.SystemContext corresponding to opts.
+// newSystemContext returns a *types.SystemContext corresponding to opts.
 // It is guaranteed to return a fresh instance, so it is safe to make additional updates to it.
-func contextFromImageOptions(c *cli.Context, opts *imageOptions) (*types.SystemContext, error) {
+func (opts *imageOptions) newSystemContext() (*types.SystemContext, error) {
 	ctx := &types.SystemContext{
 		RegistriesDirPath:    opts.global.registriesDirPath,
 		ArchitectureChoice:   opts.global.overrideArch,
@@ -145,7 +145,7 @@ func imageDestFlags(global *globalOptions, shared *sharedImageOptions, flagPrefi
 // contextFromImageDestOptions returns a *types.SystemContext corresponding to opts.
 // It is guaranteed to return a fresh instance, so it is safe to make additional updates to it.
 func contextFromImageDestOptions(c *cli.Context, opts *imageDestOptions) (*types.SystemContext, error) {
-	ctx, err := contextFromImageOptions(c, opts.imageOptions)
+	ctx, err := opts.imageOptions.newSystemContext()
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +188,7 @@ func parseImage(ctx context.Context, c *cli.Context, opts *imageOptions) (types.
 	if err != nil {
 		return nil, err
 	}
-	sys, err := contextFromImageOptions(c, opts)
+	sys, err := opts.newSystemContext()
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +202,7 @@ func parseImageSource(ctx context.Context, c *cli.Context, opts *imageOptions, n
 	if err != nil {
 		return nil, err
 	}
-	sys, err := contextFromImageOptions(c, opts)
+	sys, err := opts.newSystemContext()
 	if err != nil {
 		return nil, err
 	}
