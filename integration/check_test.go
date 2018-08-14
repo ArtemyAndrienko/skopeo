@@ -5,8 +5,8 @@ import (
 	"os/exec"
 	"testing"
 
+	"github.com/containers/skopeo/version"
 	"github.com/go-check/check"
-	"github.com/projectatomic/skopeo/version"
 )
 
 const (

@@ -15,7 +15,7 @@ that we follow.
 ## Reporting Issues
 
 Before reporting an issue, check our backlog of 
-[open issues](https://github.com/projectatomic/skopeo/issues)
+[open issues](https://github.com/containers/skopeo/issues)
 to see if someone else has already reported it. If so, feel free to add
 your scenario, or additional information, to the discussion. Or simply 
 "subscribe" to it to be notified when it is updated.
@@ -122,9 +122,9 @@ IRC group on `irc.freenode.net` called `container-projects`
 that has been setup.
 
 For discussions around issues/bugs and features, you can use the github
-[issues](https://github.com/projectatomic/skopeo/issues)
+[issues](https://github.com/containers/skopeo/issues)
 and
-[PRs](https://github.com/projectatomic/skopeo/pulls)
+[PRs](https://github.com/containers/skopeo/pulls)
 tracking system.
 
 <!--

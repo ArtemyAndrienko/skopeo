@@ -6,7 +6,7 @@ set -e
 #
 # Requirements:
 # - The current directory should be a checkout of the skopeo source code
-#   (https://github.com/projectatomic/skopeo). Whatever version is checked out
+#   (https://github.com/containers/skopeo). Whatever version is checked out
 #   will be built.
 # - The script is intended to be run inside the docker container specified
 #   in the Dockerfile at the root of the source. In other words:
@@ -19,7 +19,7 @@ set -e
 
 set -o pipefail
 
-export SKOPEO_PKG='github.com/projectatomic/skopeo'
+export SKOPEO_PKG='github.com/containers/skopeo'
 export SCRIPTDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export MAKEDIR="$SCRIPTDIR/make"
 

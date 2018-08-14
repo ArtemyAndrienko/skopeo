@@ -73,14 +73,14 @@ binary: cmd/skopeo
 ifneq ($(DISABLE_CGO), 1)
 	docker build ${DOCKER_BUILD_ARGS} -f Dockerfile.build -t $(DOCKER_BUILD_IMAGE) .
 endif
-	docker run --rm --security-opt label:disable -v $$(pwd):/src/github.com/projectatomic/skopeo \
+	docker run --rm --security-opt label:disable -v $$(pwd):/src/github.com/containers/skopeo \
 		$(DOCKER_BUILD_IMAGE) make binary-local $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
 
 binary-static: cmd/skopeo
 ifneq ($(DISABLE_CGO), 1)
 	docker build ${DOCKER_BUILD_ARGS} -f Dockerfile.build -t $(DOCKER_BUILD_IMAGE) .
 endif
-	docker run --rm --security-opt label:disable -v $$(pwd):/src/github.com/projectatomic/skopeo \
+	docker run --rm --security-opt label:disable -v $$(pwd):/src/github.com/containers/skopeo \
 		$(DOCKER_BUILD_IMAGE) make binary-local-static $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
 
 # Build w/o using Docker containers
@@ -144,7 +144,7 @@ validate-local:
 	hack/make.sh validate-git-marks validate-gofmt validate-lint validate-vet
 
 test-unit-local:
-	$(GPGME_ENV) $(GO) test -tags "$(BUILDTAGS)" $$($(GO) list -tags "$(BUILDTAGS)" -e ./... | grep -v '^github\.com/projectatomic/skopeo/\(integration\|vendor/.*\)$$')
+	$(GPGME_ENV) $(GO) test -tags "$(BUILDTAGS)" $$($(GO) list -tags "$(BUILDTAGS)" -e ./... | grep -v '^github\.com/containers/skopeo/\(integration\|vendor/.*\)$$')
 
 vendor: vendor.conf
 	vndr -whitelist '^github.com/containers/image/docs/.*'

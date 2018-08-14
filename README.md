@@ -1,7 +1,7 @@
-skopeo [![Build Status](https://travis-ci.org/projectatomic/skopeo.svg?branch=master)](https://travis-ci.org/projectatomic/skopeo)
+skopeo [![Build Status](https://travis-ci.org/containers/skopeo.svg?branch=master)](https://travis-ci.org/containers/skopeo)
 =
 
-<img src="https://cdn.rawgit.com/projectatomic/skopeo/master/docs/skopeo.svg" width="250">
+<img src="https://cdn.rawgit.com/containers/skopeo/master/docs/skopeo.svg" width="250">
 
 ----
 
@@ -178,8 +178,8 @@ macOS$ brew install gpgme
 Make sure to clone this repository in your `GOPATH` - otherwise compilation fails.
 
 ```sh
-$ git clone https://github.com/projectatomic/skopeo $GOPATH/src/github.com/projectatomic/skopeo
-$ cd $GOPATH/src/github.com/projectatomic/skopeo && make binary-local
+$ git clone https://github.com/containers/skopeo $GOPATH/src/github.com/containers/skopeo
+$ cd $GOPATH/src/github.com/containers/skopeo && make binary-local
 ```
 
 ### Building in a container
