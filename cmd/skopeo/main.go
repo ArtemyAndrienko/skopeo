@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"github.com/containers/image/signature"
+	"github.com/containers/skopeo/version"
 	"github.com/containers/storage/pkg/reexec"
-	"github.com/projectatomic/skopeo/version"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 )
