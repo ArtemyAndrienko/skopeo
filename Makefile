@@ -1,4 +1,4 @@
-.PHONY: all binary build-container build-local clean install install-binary install-completions shell test-integration
+.PHONY: all binary build-container docs build-local clean install install-binary install-completions shell test-integration vendor
 
 export GO15VENDOREXPERIMENT=1
 
@@ -96,7 +96,6 @@ build-container:
 docs/%.1: docs/%.1.md
 	$(GO_MD2MAN) -in $< -out $@.tmp && touch $@.tmp && mv $@.tmp $@
 
-.PHONY: docs
 docs: $(MANPAGES_MD:%.md=%)
 
 clean:
