@@ -96,10 +96,10 @@ var inspectCmd = cli.Command{
 			return err
 		}
 		outputData := inspectOutput{
-			Name: "", // Possibly overridden for a docker.Image.
+			Name: "", // Set below if DockerReference() is known
 			Tag:  imgInspect.Tag,
 			// Digest is set below.
-			RepoTags:      []string{}, // Possibly overriden for a docker.Image.
+			RepoTags:      []string{}, // Possibly overriden for docker.Transport.
 			Created:       imgInspect.Created,
 			DockerVersion: imgInspect.DockerVersion,
 			Labels:        imgInspect.Labels,
@@ -111,9 +111,15 @@ var inspectCmd = cli.Command{
 		if err != nil {
 			return fmt.Errorf("Error computing manifest digest: %v", err)
 		}
-		if dockerImg, ok := img.(*docker.Image); ok {
-			outputData.Name = dockerImg.SourceRefFullName()
-			outputData.RepoTags, err = dockerImg.GetRepositoryTags(ctx)
+		if dockerRef := img.Reference().DockerReference(); dockerRef != nil {
+			outputData.Name = dockerRef.Name()
+		}
+		if img.Reference().Transport() == docker.Transport {
+			sys, err := contextFromGlobalOptions(c, "")
+			if err != nil {
+				return err
+			}
+			outputData.RepoTags, err = docker.GetRepositoryTags(ctx, sys, img.Reference())
 			if err != nil {
 				// some registries may decide to block the "list all tags" endpoint
 				// gracefully allow the inspect to continue in this case. Currently
