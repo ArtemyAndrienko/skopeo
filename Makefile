@@ -36,7 +36,7 @@ endif
 GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null)
 DOCKER_IMAGE := skopeo-dev$(if $(GIT_BRANCH),:$(GIT_BRANCH))
 # set env like gobuildtag?
-DOCKER_FLAGS := docker run --rm -i #$(DOCKER_ENVS)
+DOCKER_FLAGS := docker run --rm -i -e TESTFLAGS="$(TESTFLAGS)" #$(DOCKER_ENVS)
 # if this session isn't interactive, then we don't want to allocate a
 # TTY, which would fail, but if it is interactive, we do want to attach
 # so that the user can send e.g. ^C through.
