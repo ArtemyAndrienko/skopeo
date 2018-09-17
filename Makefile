@@ -55,9 +55,7 @@ LIBDM_BUILD_TAG = $(shell hack/libdm_tag.sh)
 LOCAL_BUILD_TAGS = $(BTRFS_BUILD_TAG) $(LIBDM_BUILD_TAG) $(DARWIN_BUILD_TAG)
 BUILDTAGS += $(LOCAL_BUILD_TAGS)
 
-DOCKER_BUILD_IMAGE := skopeobuildimage
 ifeq ($(DISABLE_CGO), 1)
-	override DOCKER_BUILD_IMAGE = golang:1.10
 	override BUILDTAGS = containers_image_ostree_stub exclude_graphdriver_devicemapper exclude_graphdriver_btrfs containers_image_openpgp
 endif
 
@@ -70,18 +68,14 @@ all: binary docs
 # Build a docker image (skopeobuild) that has everything we need to build.
 # Then do the build and the output (skopeo) should appear in current dir
 binary: cmd/skopeo
-ifneq ($(DISABLE_CGO), 1)
-	docker build ${DOCKER_BUILD_ARGS} -f Dockerfile.build -t $(DOCKER_BUILD_IMAGE) .
-endif
+	docker build ${DOCKER_BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
 	docker run --rm --security-opt label:disable -v $$(pwd):/src/github.com/containers/skopeo \
-		$(DOCKER_BUILD_IMAGE) make binary-local $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
+		skopeobuildimage make binary-local $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
 
 binary-static: cmd/skopeo
-ifneq ($(DISABLE_CGO), 1)
-	docker build ${DOCKER_BUILD_ARGS} -f Dockerfile.build -t $(DOCKER_BUILD_IMAGE) .
-endif
+	docker build ${DOCKER_BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
 	docker run --rm --security-opt label:disable -v $$(pwd):/src/github.com/containers/skopeo \
-		$(DOCKER_BUILD_IMAGE) make binary-local-static $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
+		skopeobuildimage make binary-local-static $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
 
 # Build w/o using Docker containers
 binary-local:
