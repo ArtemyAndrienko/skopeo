@@ -3,6 +3,7 @@
 package overlay
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -88,6 +89,7 @@ type overlayOptions struct {
 	mountProgram        string
 	ostreeRepo          string
 	skipMountHome       bool
+	mountOptions        string
 }
 
 // Driver contains information about the home directory and the list of active mounts that are created using this driver.
@@ -222,6 +224,8 @@ func parseOptions(options []string) (*overlayOptions, error) {
 			if err != nil {
 				return nil, err
 			}
+		case ".mountopt", "overlay.mountopt", "overlay2.mountopt":
+			o.mountOptions = val
 		case ".size", "overlay.size", "overlay2.size":
 			logrus.Debugf("overlay: size=%s", val)
 			size, err := units.RAMInBytes(val)
@@ -587,6 +591,32 @@ func (d *Driver) getLowerDirs(id string) ([]string, error) {
 	return lowersArray, nil
 }
 
+func (d *Driver) optsAppendMappings(opts string, uidMaps, gidMaps []idtools.IDMap) string {
+	if uidMaps == nil {
+		uidMaps = d.uidMaps
+	}
+	if gidMaps == nil {
+		gidMaps = d.gidMaps
+	}
+	if uidMaps != nil {
+		var uids, gids bytes.Buffer
+		for _, i := range uidMaps {
+			if uids.Len() > 0 {
+				uids.WriteString(":")
+			}
+			uids.WriteString(fmt.Sprintf("%d:%d:%d", i.ContainerID, i.HostID, i.Size))
+		}
+		for _, i := range gidMaps {
+			if gids.Len() > 0 {
+				gids.WriteString(":")
+			}
+			gids.WriteString(fmt.Sprintf("%d:%d:%d", i.ContainerID, i.HostID, i.Size))
+		}
+		return fmt.Sprintf("%s,uidmapping=%s,gidmapping=%s", opts, uids.String(), gids.String())
+	}
+	return opts
+}
+
 // Remove cleans the directories that are created for this id.
 func (d *Driver) Remove(id string) error {
 	d.locker.Lock(id)
@@ -612,7 +642,11 @@ func (d *Driver) Remove(id string) error {
 }
 
 // Get creates and mounts the required file system for the given id and returns the mount path.
-func (d *Driver) Get(id, mountLabel string) (_ string, retErr error) {
+func (d *Driver) Get(id, mountLabel string, uidMaps, gidMaps []idtools.IDMap) (_ string, retErr error) {
+	return d.get(id, mountLabel, false, uidMaps, gidMaps)
+}
+
+func (d *Driver) get(id, mountLabel string, disableShifting bool, uidMaps, gidMaps []idtools.IDMap) (_ string, retErr error) {
 	d.locker.Lock(id)
 	defer d.locker.Unlock(id)
 	dir := d.dir(id)
@@ -703,8 +737,11 @@ func (d *Driver) Get(id, mountLabel string) (_ string, retErr error) {
 
 	workDir := path.Join(dir, "work")
 	opts := fmt.Sprintf("lowerdir=%s,upperdir=%s,workdir=%s", strings.Join(absLowers, ":"), diffDir, workDir)
+	if d.options.mountOptions != "" {
+		opts = fmt.Sprintf("%s,%s", d.options.mountOptions, opts)
+	}
 	mountData := label.FormatMountLabel(opts, mountLabel)
-	mount := unix.Mount
+	mountFunc := unix.Mount
 	mountTarget := mergedDir
 
 	pageSize := unix.Getpagesize()
@@ -713,28 +750,30 @@ func (d *Driver) Get(id, mountLabel string) (_ string, retErr error) {
 	// the page size. The mount syscall fails if the mount data cannot
 	// fit within a page and relative links make the mount data much
 	// smaller at the expense of requiring a fork exec to chroot.
-	if len(mountData) > pageSize || d.options.mountProgram != "" {
+	if d.options.mountProgram != "" {
+		mountFunc = func(source string, target string, mType string, flags uintptr, label string) error {
+			if !disableShifting {
+				label = d.optsAppendMappings(label, uidMaps, gidMaps)
+			}
+
+			mountProgram := exec.Command(d.options.mountProgram, "-o", label, target)
+			mountProgram.Dir = d.home
+			return mountProgram.Run()
+		}
+	} else if len(mountData) > pageSize {
 		//FIXME: We need to figure out to get this to work with additional stores
 		opts = fmt.Sprintf("lowerdir=%s,upperdir=%s,workdir=%s", strings.Join(relLowers, ":"), path.Join(id, "diff"), path.Join(id, "work"))
 		mountData = label.FormatMountLabel(opts, mountLabel)
 		if len(mountData) > pageSize {
 			return "", fmt.Errorf("cannot mount layer, mount label too large %d", len(mountData))
 		}
-
-		if d.options.mountProgram != "" {
-			mount = func(source string, target string, mType string, flags uintptr, label string) error {
-				mountProgram := exec.Command(d.options.mountProgram, "-o", label, target)
-				mountProgram.Dir = d.home
-				return mountProgram.Run()
-			}
-		} else {
-			mount = func(source string, target string, mType string, flags uintptr, label string) error {
-				return mountFrom(d.home, source, target, mType, flags, label)
-			}
+		mountFunc = func(source string, target string, mType string, flags uintptr, label string) error {
+			return mountFrom(d.home, source, target, mType, flags, label)
 		}
 		mountTarget = path.Join(id, "merged")
 	}
-	if err := mount("overlay", mountTarget, "overlay", 0, mountData); err != nil {
+	flags, data := mount.ParseOptions(mountData)
+	if err := mountFunc("overlay", mountTarget, "overlay", uintptr(flags), data); err != nil {
 		return "", fmt.Errorf("error creating overlay mount to %s: %v", mountTarget, err)
 	}
 
@@ -913,7 +952,7 @@ func (d *Driver) UpdateLayerIDMap(id string, toContainer, toHost *idtools.IDMapp
 	}
 
 	// Mount the new layer and handle ownership changes and possible copy_ups in it.
-	layerFs, err := d.Get(id, mountLabel)
+	layerFs, err := d.get(id, mountLabel, true, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -948,6 +987,14 @@ func (d *Driver) UpdateLayerIDMap(id string, toContainer, toHost *idtools.IDMapp
 		return err
 	}
 	return nil
+}
+
+// SupportsShifting tells whether the driver support shifting of the UIDs/GIDs in an userNS
+func (d *Driver) SupportsShifting() bool {
+	if os.Getenv("_TEST_FORCE_SUPPORT_SHIFTING") == "yes-please" {
+		return true
+	}
+	return d.options.mountProgram != ""
 }
 
 // dumbJoin is more or less a dumber version of filepath.Join, but one which
