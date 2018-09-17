@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -208,13 +209,14 @@ type LayerStore interface {
 	// Mount mounts a layer for use.  If the specified layer is the parent of other
 	// layers, it should not be written to.  An SELinux label to be applied to the
 	// mount can be specified to override the one configured for the layer.
-	Mount(id, mountLabel string) (string, error)
+	// The mappings used by the container can be specified.
+	Mount(id, mountLabel string, uidMaps, gidMaps []idtools.IDMap) (string, error)
 
 	// Unmount unmounts a layer when it is no longer in use.
 	Unmount(id string, force bool) (bool, error)
 
-	// Mounted returns whether or not the layer is mounted.
-	Mounted(id string) (bool, error)
+	// Mounted returns number of times the layer has been mounted.
+	Mounted(id string) (int, error)
 
 	// ParentOwners returns the UIDs and GIDs of parents of the layer's mountpoint
 	// for which the layer's UID and GID maps don't contain corresponding entries.
@@ -368,6 +370,9 @@ func (r *layerStore) Load() error {
 func (r *layerStore) Save() error {
 	if !r.IsReadWrite() {
 		return errors.Wrapf(ErrStoreIsReadOnly, "not allowed to modify the layer store at %q", r.layerspath())
+	}
+	if !r.Locked() {
+		return errors.New("layer store is not locked")
 	}
 	rpath := r.layerspath()
 	if err := os.MkdirAll(filepath.Dir(rpath), 0700); err != nil {
@@ -627,15 +632,15 @@ func (r *layerStore) Create(id string, parent *Layer, names []string, mountLabel
 	return r.CreateWithFlags(id, parent, names, mountLabel, options, moreOptions, writeable, nil)
 }
 
-func (r *layerStore) Mounted(id string) (bool, error) {
+func (r *layerStore) Mounted(id string) (int, error) {
 	layer, ok := r.lookup(id)
 	if !ok {
-		return false, ErrLayerUnknown
+		return 0, ErrLayerUnknown
 	}
-	return layer.MountCount > 0, nil
+	return layer.MountCount, nil
 }
 
-func (r *layerStore) Mount(id, mountLabel string) (string, error) {
+func (r *layerStore) Mount(id, mountLabel string, uidMaps, gidMaps []idtools.IDMap) (string, error) {
 	if !r.IsReadWrite() {
 		return "", errors.Wrapf(ErrStoreIsReadOnly, "not allowed to update mount locations for layers at %q", r.mountspath())
 	}
@@ -650,7 +655,13 @@ func (r *layerStore) Mount(id, mountLabel string) (string, error) {
 	if mountLabel == "" {
 		mountLabel = layer.MountLabel
 	}
-	mountpoint, err := r.driver.Get(id, mountLabel)
+
+	if (uidMaps != nil || gidMaps != nil) && !r.driver.SupportsShifting() {
+		if !reflect.DeepEqual(uidMaps, layer.UIDMap) || !reflect.DeepEqual(gidMaps, layer.GIDMap) {
+			return "", fmt.Errorf("cannot mount layer %v: shifting not enabled", layer.ID)
+		}
+	}
+	mountpoint, err := r.driver.Get(id, mountLabel, uidMaps, gidMaps)
 	if mountpoint != "" && err == nil {
 		if layer.MountPoint != "" {
 			delete(r.bymount, layer.MountPoint)
@@ -937,7 +948,7 @@ func (r *layerStore) newFileGetter(id string) (drivers.FileGetCloser, error) {
 	if getter, ok := r.driver.(drivers.DiffGetterDriver); ok {
 		return getter.DiffGetter(id)
 	}
-	path, err := r.Mount(id, "")
+	path, err := r.Mount(id, "", nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1172,4 +1183,8 @@ func (r *layerStore) IsReadWrite() bool {
 
 func (r *layerStore) TouchedSince(when time.Time) bool {
 	return r.lockfile.TouchedSince(when)
+}
+
+func (r *layerStore) Locked() bool {
+	return r.lockfile.Locked()
 }
