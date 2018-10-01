@@ -24,6 +24,7 @@ SIGSTOREDIR=${DESTDIR}/var/lib/atomic/sigstore
 BASHINSTALLDIR=${PREFIX}/share/bash-completion/completions
 GO_MD2MAN ?= go-md2man
 GO ?= go
+CONTAINER_RUNTIME := $(shell command -v podman 2> /dev/null | echo docker)
 
 ifeq ($(DEBUG), 1)
   override GOGCFLAGS += -N -l
@@ -34,17 +35,17 @@ ifeq ($(shell go env GOOS), linux)
 endif
 
 GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null)
-DOCKER_IMAGE := skopeo-dev$(if $(GIT_BRANCH),:$(GIT_BRANCH))
+IMAGE := skopeo-dev$(if $(GIT_BRANCH),:$(GIT_BRANCH))
 # set env like gobuildtag?
-DOCKER_FLAGS := docker run --rm -i -e TESTFLAGS="$(TESTFLAGS)" #$(DOCKER_ENVS)
+CONTAINER_CMD := ${CONTAINER_RUNTIME} run --rm -i -e TESTFLAGS="$(TESTFLAGS)" #$(CONTAINER_ENVS)
 # if this session isn't interactive, then we don't want to allocate a
 # TTY, which would fail, but if it is interactive, we do want to attach
 # so that the user can send e.g. ^C through.
 INTERACTIVE := $(shell [ -t 0 ] && echo 1 || echo 0)
 ifeq ($(INTERACTIVE), 1)
-	DOCKER_FLAGS += -t
+	CONTAINER_CMD += -t
 endif
-DOCKER_RUN_DOCKER := $(DOCKER_FLAGS) "$(DOCKER_IMAGE)"
+CONTAINER_RUN := $(CONTAINER_CMD) "$(IMAGE)"
 
 GIT_COMMIT := $(shell git rev-parse HEAD 2> /dev/null || true)
 
@@ -65,19 +66,19 @@ endif
 #           use source debugging tools like delve.
 all: binary docs
 
-# Build a docker image (skopeobuild) that has everything we need to build.
+# Build a container image (skopeobuild) that has everything we need to build.
 # Then do the build and the output (skopeo) should appear in current dir
 binary: cmd/skopeo
-	docker build ${DOCKER_BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
-	docker run --rm --security-opt label:disable -v $$(pwd):/src/github.com/containers/skopeo \
+	${CONTAINER_RUNTIME} build ${BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
+	${CONTAINER_RUNTIME} run --rm --security-opt label:disable -v $$(pwd):/src/github.com/containers/skopeo \
 		skopeobuildimage make binary-local $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
 
 binary-static: cmd/skopeo
-	docker build ${DOCKER_BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
-	docker run --rm --security-opt label:disable -v $$(pwd):/src/github.com/containers/skopeo \
+	${CONTAINER_RUNTIME} build ${BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
+	${CONTAINER_RUNTIME} run --rm --security-opt label:disable -v $$(pwd):/src/github.com/containers/skopeo \
 		skopeobuildimage make binary-local-static $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
 
-# Build w/o using Docker containers
+# Build w/o using containers
 binary-local:
 	$(GPGME_ENV) $(GO) build ${GO_DYN_FLAGS} -ldflags "-X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo
 
@@ -85,7 +86,7 @@ binary-local-static:
 	$(GPGME_ENV) $(GO) build -ldflags "-extldflags \"-static\" -X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo
 
 build-container:
-	docker build ${DOCKER_BUILD_ARGS} -t "$(DOCKER_IMAGE)" .
+	${CONTAINER_RUNTIME} build ${BUILD_ARGS} -t "$(IMAGE)" .
 
 docs/%.1: docs/%.1.md
 	$(GO_MD2MAN) -in $< -out $@.tmp && touch $@.tmp && mv $@.tmp $@
@@ -115,20 +116,20 @@ install-completions:
 	install -m 644 completions/bash/skopeo ${BASHINSTALLDIR}/skopeo
 
 shell: build-container
-	$(DOCKER_RUN_DOCKER) bash
+	$(CONTAINER_RUN) bash
 
 check: validate test-unit test-integration
 
 # The tests can run out of entropy and block in containers, so replace /dev/random.
 test-integration: build-container
-	$(DOCKER_RUN_DOCKER) bash -c 'rm -f /dev/random; ln -sf /dev/urandom /dev/random; SKOPEO_CONTAINER_TESTS=1 BUILDTAGS="$(BUILDTAGS)" hack/make.sh test-integration'
+	$(CONTAINER_RUN) bash -c 'rm -f /dev/random; ln -sf /dev/urandom /dev/random; SKOPEO_CONTAINER_TESTS=1 BUILDTAGS="$(BUILDTAGS)" hack/make.sh test-integration'
 
 test-unit: build-container
 	# Just call (make test unit-local) here instead of worrying about environment differences, e.g. GO15VENDOREXPERIMENT.
-	$(DOCKER_RUN_DOCKER) make test-unit-local BUILDTAGS='$(BUILDTAGS)'
+	$(CONTAINER_RUN) make test-unit-local BUILDTAGS='$(BUILDTAGS)'
 
 validate: build-container
-	$(DOCKER_RUN_DOCKER) hack/make.sh validate-git-marks validate-gofmt validate-lint validate-vet
+	$(CONTAINER_RUN) hack/make.sh validate-git-marks validate-gofmt validate-lint validate-vet
 
 # This target is only intended for development, e.g. executing it from an IDE. Use (make test) for CI or pre-release testing.
 test-all-local: validate-local test-unit-local
