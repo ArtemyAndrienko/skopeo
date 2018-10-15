@@ -88,7 +88,7 @@ func copyHandler(c *cli.Context) error {
 		}
 	}
 
-	return copy.Image(context.Background(), policyContext, destRef, srcRef, &copy.Options{
+	_, err = copy.Image(context.Background(), policyContext, destRef, srcRef, &copy.Options{
 		RemoveSignatures:      removeSignatures,
 		SignBy:                signBy,
 		ReportWriter:          os.Stdout,
@@ -96,6 +96,7 @@ func copyHandler(c *cli.Context) error {
 		DestinationCtx:        destinationCtx,
 		ForceManifestMIMEType: manifestType,
 	})
+	return err
 }
 
 var copyCmd = cli.Command{

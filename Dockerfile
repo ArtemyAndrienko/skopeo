@@ -42,6 +42,7 @@ RUN set -x \
 
 ENV GOPATH /usr/share/gocode:/go
 ENV PATH $GOPATH/bin:/usr/share/gocode/bin:$PATH
+RUN go version
 RUN go get golang.org/x/lint/golint
 WORKDIR /go/src/github.com/containers/skopeo
 COPY . /go/src/github.com/containers/skopeo
