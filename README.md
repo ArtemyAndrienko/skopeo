@@ -12,7 +12,7 @@ skopeo [![Build Status](https://travis-ci.org/containers/skopeo.svg?branch=maste
 Skopeo works with API V2 registries such as Docker registries, the Atomic registry, private registries, local directories and local OCI-layout directories.  Skopeo does not require a daemon to be running to perform these operations which consist of:
 
  * Copying an image from and to various storage mechanisms.
-   For example you can copy images from one registry to another, without requiring priviledge.
+   For example you can copy images from one registry to another, without requiring privilege.
  * Inspecting a remote image showing its properties including its layers, without requiring you to pull the image to the host.
  * Deleting an image from an image repository.
  * When required by the repository, skopeo can pass the appropriate credentials and certificates for authentication.
