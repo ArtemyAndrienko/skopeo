@@ -60,6 +60,10 @@ func createApp() *cli.App {
 			Value: "",
 			Usage: "use `OS` instead of the running OS for choosing images",
 		},
+		cli.DurationFlag{
+			Name:  "command-timeout",
+			Usage: "timeout for the command execution",
+		},
 	}
 	app.Before = func(c *cli.Context) error {
 		if c.GlobalBool("debug") {

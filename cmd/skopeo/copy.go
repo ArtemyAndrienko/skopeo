@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -88,7 +87,10 @@ func copyHandler(c *cli.Context) error {
 		}
 	}
 
-	_, err = copy.Image(context.Background(), policyContext, destRef, srcRef, &copy.Options{
+	ctx, cancel := commandTimeoutContextFromGlobalOptions(c)
+	defer cancel()
+
+	_, err = copy.Image(ctx, policyContext, destRef, srcRef, &copy.Options{
 		RemoveSignatures:      removeSignatures,
 		SignBy:                signBy,
 		ReportWriter:          os.Stdout,

@@ -110,6 +110,7 @@ _skopeo_skopeo() {
 	   --registries.d
        --override-arch
        --override-os
+       --command-timeout
      "
      local boolean_options="
 	   --insecure-policy

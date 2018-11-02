@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -67,7 +66,8 @@ var inspectCmd = cli.Command{
 		},
 	},
 	Action: func(c *cli.Context) (retErr error) {
-		ctx := context.Background()
+		ctx, cancel := commandTimeoutContextFromGlobalOptions(c)
+		defer cancel()
 
 		img, err := parseImage(ctx, c)
 		if err != nil {

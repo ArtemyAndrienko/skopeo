@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -25,7 +24,10 @@ func deleteHandler(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	return ref.DeleteImage(context.Background(), sys)
+
+	ctx, cancel := commandTimeoutContextFromGlobalOptions(c)
+	defer cancel()
+	return ref.DeleteImage(ctx, sys)
 }
 
 var deleteCmd = cli.Command{

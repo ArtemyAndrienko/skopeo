@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -26,7 +25,8 @@ var layersCmd = cli.Command{
 			return errors.New("Usage: layers imageReference [layer...]")
 		}
 
-		ctx := context.Background()
+		ctx, cancel := commandTimeoutContextFromGlobalOptions(c)
+		defer cancel()
 
 		sys, err := contextFromGlobalOptions(c, "")
 		if err != nil {
