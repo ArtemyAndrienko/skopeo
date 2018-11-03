@@ -42,15 +42,6 @@ func contextFromGlobalOptions(c *cli.Context, flagPrefix string) (*types.SystemC
 	return ctx, nil
 }
 
-func commandTimeoutContextFromGlobalOptions(c *cli.Context) (context.Context, context.CancelFunc) {
-	ctx := context.Background()
-	var cancel context.CancelFunc = func() {}
-	if c.GlobalDuration("command-timeout") > 0 {
-		ctx, cancel = context.WithTimeout(ctx, c.GlobalDuration("command-timeout"))
-	}
-	return ctx, cancel
-}
-
 func parseCreds(creds string) (string, string, error) {
 	if creds == "" {
 		return "", "", errors.New("credentials can't be empty")

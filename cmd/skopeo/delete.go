@@ -11,10 +11,11 @@ import (
 )
 
 type deleteOptions struct {
+	global *globalOptions
 }
 
-func deleteCmd() cli.Command {
-	opts := deleteOptions{}
+func deleteCmd(global *globalOptions) cli.Command {
+	opts := deleteOptions{global: global}
 	return cli.Command{
 		Name:  "delete",
 		Usage: "Delete image IMAGE-NAME",
@@ -66,7 +67,7 @@ func (opts *deleteOptions) run(c *cli.Context) error {
 		return err
 	}
 
-	ctx, cancel := commandTimeoutContextFromGlobalOptions(c)
+	ctx, cancel := opts.global.commandTimeoutContext()
 	defer cancel()
 	return ref.DeleteImage(ctx, sys)
 }

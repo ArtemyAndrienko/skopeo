@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/containers/image/signature"
 	"github.com/containers/skopeo/version"
@@ -16,9 +18,10 @@ import (
 var gitCommit = ""
 
 type globalOptions struct {
-	debug          bool   // Enable debug output
-	policyPath     string // Path to a signature verification policy file
-	insecurePolicy bool   // Use an "allow everything" signature verification policy
+	debug          bool          // Enable debug output
+	policyPath     string        // Path to a signature verification policy file
+	insecurePolicy bool          // Use an "allow everything" signature verification policy
+	commandTimeout time.Duration // Timeout for the command execution
 }
 
 // createApp returns a cli.App to be run or tested.
@@ -71,16 +74,17 @@ func createApp() *cli.App {
 			Usage: "use `OS` instead of the running OS for choosing images",
 		},
 		cli.DurationFlag{
-			Name:  "command-timeout",
-			Usage: "timeout for the command execution",
+			Name:        "command-timeout",
+			Usage:       "timeout for the command execution",
+			Destination: &opts.commandTimeout,
 		},
 	}
 	app.Before = opts.before
 	app.Commands = []cli.Command{
 		copyCmd(&opts),
-		inspectCmd(),
-		layersCmd(),
-		deleteCmd(),
+		inspectCmd(&opts),
+		layersCmd(&opts),
+		deleteCmd(&opts),
 		manifestDigestCmd(),
 		standaloneSignCmd(),
 		standaloneVerifyCmd(),
@@ -125,4 +129,15 @@ func (opts *globalOptions) getPolicyContext() (*signature.PolicyContext, error) 
 		return nil, err
 	}
 	return signature.NewPolicyContext(policy)
+}
+
+// commandTimeoutContext returns a context.Context and a cancellation callback based on opts.
+// The caller should usually "defer cancel()" immediately after calling this.
+func (opts *globalOptions) commandTimeoutContext() (context.Context, context.CancelFunc) {
+	ctx := context.Background()
+	var cancel context.CancelFunc = func() {}
+	if opts.commandTimeout > 0 {
+		ctx, cancel = context.WithTimeout(ctx, opts.commandTimeout)
+	}
+	return ctx, cancel
 }

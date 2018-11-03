@@ -194,7 +194,7 @@ func (opts *copyOptions) run(c *cli.Context) error {
 		destinationCtx.DockerArchiveAdditionalTags = append(destinationCtx.DockerArchiveAdditionalTags, namedTagged)
 	}
 
-	ctx, cancel := commandTimeoutContextFromGlobalOptions(c)
+	ctx, cancel := opts.global.commandTimeoutContext()
 	defer cancel()
 
 	_, err = copy.Image(ctx, policyContext, destRef, srcRef, &copy.Options{

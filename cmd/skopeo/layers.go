@@ -16,10 +16,11 @@ import (
 )
 
 type layersOptions struct {
+	global *globalOptions
 }
 
-func layersCmd() cli.Command {
-	opts := &layersOptions{}
+func layersCmd(global *globalOptions) cli.Command {
+	opts := &layersOptions{global: global}
 	return cli.Command{
 		Name:      "layers",
 		Usage:     "Get layers of IMAGE-NAME",
@@ -35,7 +36,7 @@ func (opts *layersOptions) run(c *cli.Context) (retErr error) {
 		return errors.New("Usage: layers imageReference [layer...]")
 	}
 
-	ctx, cancel := commandTimeoutContextFromGlobalOptions(c)
+	ctx, cancel := opts.global.commandTimeoutContext()
 	defer cancel()
 
 	sys, err := contextFromGlobalOptions(c, "")

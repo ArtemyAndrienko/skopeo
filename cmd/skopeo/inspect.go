@@ -30,11 +30,12 @@ type inspectOutput struct {
 }
 
 type inspectOptions struct {
-	raw bool // Output the raw manifest instead of parsing information about the image
+	global *globalOptions
+	raw    bool // Output the raw manifest instead of parsing information about the image
 }
 
-func inspectCmd() cli.Command {
-	opts := inspectOptions{}
+func inspectCmd(global *globalOptions) cli.Command {
+	opts := inspectOptions{global: global}
 	return cli.Command{
 		Name:  "inspect",
 		Usage: "Inspect image IMAGE-NAME",
@@ -77,7 +78,7 @@ func inspectCmd() cli.Command {
 }
 
 func (opts *inspectOptions) run(c *cli.Context) (retErr error) {
-	ctx, cancel := commandTimeoutContextFromGlobalOptions(c)
+	ctx, cancel := opts.global.commandTimeoutContext()
 	defer cancel()
 
 	img, err := parseImage(ctx, c)
