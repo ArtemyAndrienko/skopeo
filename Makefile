@@ -24,7 +24,7 @@ SIGSTOREDIR=${DESTDIR}/var/lib/atomic/sigstore
 BASHINSTALLDIR=${PREFIX}/share/bash-completion/completions
 GO_MD2MAN ?= go-md2man
 GO ?= go
-CONTAINER_RUNTIME := $(shell command -v podman 2> /dev/null | echo docker)
+CONTAINER_RUNTIME := $(shell command -v podman 2> /dev/null || echo docker)
 
 ifeq ($(DEBUG), 1)
   override GOGCFLAGS += -N -l
