@@ -70,12 +70,12 @@ all: binary docs
 # Then do the build and the output (skopeo) should appear in current dir
 binary: cmd/skopeo
 	${CONTAINER_RUNTIME} build ${BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
-	${CONTAINER_RUNTIME} run --rm --security-opt label:disable -v $$(pwd):/src/github.com/containers/skopeo \
+	${CONTAINER_RUNTIME} run --rm --security-opt label=disable -v $$(pwd):/src/github.com/containers/skopeo \
 		skopeobuildimage make binary-local $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
 
 binary-static: cmd/skopeo
 	${CONTAINER_RUNTIME} build ${BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
-	${CONTAINER_RUNTIME} run --rm --security-opt label:disable -v $$(pwd):/src/github.com/containers/skopeo \
+	${CONTAINER_RUNTIME} run --rm --security-opt label=disable -v $$(pwd):/src/github.com/containers/skopeo \
 		skopeobuildimage make binary-local-static $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
 
 # Build w/o using containers
