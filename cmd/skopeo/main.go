@@ -102,6 +102,7 @@ func createApp() (*cli.App, *globalOptions) {
 		standaloneSignCmd(),
 		standaloneVerifyCmd(),
 		untrustedSignatureDumpCmd(),
+		tagsCmd(&opts),
 	}
 	return app, &opts
 }
