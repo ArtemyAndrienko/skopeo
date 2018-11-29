@@ -12,13 +12,10 @@ import (
 
 func contextFromGlobalOptions(c *cli.Context, flagPrefix string) (*types.SystemContext, error) {
 	ctx := &types.SystemContext{
-		RegistriesDirPath:  c.GlobalString("registries.d"),
-		ArchitectureChoice: c.GlobalString("override-arch"),
-		OSChoice:           c.GlobalString("override-os"),
-		DockerCertPath:     c.String(flagPrefix + "cert-dir"),
-		// DEPRECATED: keep this here for backward compatibility, but override
-		// them if per subcommand flags are provided (see below).
-		DockerInsecureSkipTLSVerify:       !c.GlobalBoolT("tls-verify"),
+		RegistriesDirPath:                 c.GlobalString("registries.d"),
+		ArchitectureChoice:                c.GlobalString("override-arch"),
+		OSChoice:                          c.GlobalString("override-os"),
+		DockerCertPath:                    c.String(flagPrefix + "cert-dir"),
 		OSTreeTmpDirPath:                  c.String(flagPrefix + "ostree-tmp-dir"),
 		OCISharedBlobDirPath:              c.String(flagPrefix + "shared-blob-dir"),
 		DirForceCompress:                  c.Bool(flagPrefix + "compress"),
@@ -27,8 +24,13 @@ func contextFromGlobalOptions(c *cli.Context, flagPrefix string) (*types.SystemC
 		DockerDaemonCertPath:              c.String(flagPrefix + "cert-dir"),
 		DockerDaemonInsecureSkipTLSVerify: !c.BoolT(flagPrefix + "tls-verify"),
 	}
+	// DEPRECATED: we support --tls-verify for backward compatibility, but override
+	// it if per-subcommand flags are provided (see below).
+	if c.GlobalIsSet("tls-verify") {
+		ctx.DockerInsecureSkipTLSVerify = types.NewOptionalBool(!c.GlobalBoolT("tls-verify"))
+	}
 	if c.IsSet(flagPrefix + "tls-verify") {
-		ctx.DockerInsecureSkipTLSVerify = !c.BoolT(flagPrefix + "tls-verify")
+		ctx.DockerInsecureSkipTLSVerify = types.NewOptionalBool(!c.BoolT(flagPrefix + "tls-verify"))
 	}
 	if c.IsSet(flagPrefix + "creds") {
 		var err error

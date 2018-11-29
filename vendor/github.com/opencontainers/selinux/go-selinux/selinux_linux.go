@@ -409,6 +409,13 @@ func NewContext(label string) Context {
 	return c
 }
 
+// ClearLabels clears all reserved labels
+func ClearLabels() {
+	state.Lock()
+	state.mcsList = make(map[string]bool)
+	state.Unlock()
+}
+
 // ReserveLabel reserves the MLS/MCS level component of the specified label
 func ReserveLabel(label string) {
 	if len(label) != 0 {
@@ -680,7 +687,11 @@ func Chcon(fpath string, label string, recurse bool) error {
 		return err
 	}
 	callback := func(p string, info os.FileInfo, err error) error {
-		return SetFileLabel(p, label)
+		e := SetFileLabel(p, label)
+		if os.IsNotExist(e) {
+			return nil
+		}
+		return e
 	}
 
 	if recurse {
