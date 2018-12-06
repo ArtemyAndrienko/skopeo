@@ -8,6 +8,7 @@ import (
 
 	"github.com/containers/image/directory"
 	"github.com/containers/image/image"
+	"github.com/containers/image/pkg/blobinfocache"
 	"github.com/containers/image/types"
 	"github.com/opencontainers/go-digest"
 	"github.com/pkg/errors"
@@ -32,6 +33,7 @@ var layersCmd = cli.Command{
 		if err != nil {
 			return err
 		}
+		cache := blobinfocache.DefaultCache(sys)
 		rawSource, err := parseImageSource(ctx, c, c.Args()[0])
 		if err != nil {
 			return err
@@ -101,11 +103,11 @@ var layersCmd = cli.Command{
 		}()
 
 		for _, bd := range blobDigests {
-			r, blobSize, err := rawSource.GetBlob(ctx, types.BlobInfo{Digest: bd.digest, Size: -1})
+			r, blobSize, err := rawSource.GetBlob(ctx, types.BlobInfo{Digest: bd.digest, Size: -1}, cache)
 			if err != nil {
 				return err
 			}
-			if _, err := dest.PutBlob(ctx, r, types.BlobInfo{Digest: bd.digest, Size: blobSize}, bd.isConfig); err != nil {
+			if _, err := dest.PutBlob(ctx, r, types.BlobInfo{Digest: bd.digest, Size: blobSize}, cache, bd.isConfig); err != nil {
 				if closeErr := r.Close(); closeErr != nil {
 					return errors.Wrapf(err, " (close error: %v)", closeErr)
 				}
