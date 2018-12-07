@@ -5,7 +5,7 @@ import "bytes"
 // runSkopeo creates an app object and runs it with args, with an implied first "skopeo".
 // Returns output intended for stdout and the returned error, if any.
 func runSkopeo(args ...string) (string, error) {
-	app := createApp()
+	app, _ := createApp()
 	stdout := bytes.Buffer{}
 	app.Writer = &stdout
 	args = append([]string{"skopeo"}, args...)

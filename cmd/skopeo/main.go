@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/containers/image/signature"
 	"github.com/containers/skopeo/version"
@@ -15,8 +17,21 @@ import (
 // and will be populated by the Makefile
 var gitCommit = ""
 
-// createApp returns a cli.App to be run or tested.
-func createApp() *cli.App {
+type globalOptions struct {
+	debug             bool          // Enable debug output
+	tlsVerify         optionalBool  // Require HTTPS and verify certificates (for docker: and docker-daemon:)
+	policyPath        string        // Path to a signature verification policy file
+	insecurePolicy    bool          // Use an "allow everything" signature verification policy
+	registriesDirPath string        // Path to a "registries.d" registry configuratio directory
+	overrideArch      string        // Architecture to use for choosing images, instead of the runtime one
+	overrideOS        string        // OS to use for choosing images, instead of the runtime one
+	commandTimeout    time.Duration // Timeout for the command execution
+}
+
+// createApp returns a cli.App, and the underlying globalOptions object, to be run or tested.
+func createApp() (*cli.App, *globalOptions) {
+	opts := globalOptions{}
+
 	app := cli.NewApp()
 	app.EnableBashCompletion = true
 	app.Name = "skopeo"
@@ -28,89 +43,106 @@ func createApp() *cli.App {
 	app.Usage = "Various operations with container images and container image registries"
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
-			Name:  "debug",
-			Usage: "enable debug output",
+			Name:        "debug",
+			Usage:       "enable debug output",
+			Destination: &opts.debug,
 		},
-		cli.BoolTFlag{
+		cli.GenericFlag{
 			Name:   "tls-verify",
 			Usage:  "require HTTPS and verify certificates when talking to container registries (defaults to true)",
 			Hidden: true,
+			Value:  newOptionalBoolValue(&opts.tlsVerify),
 		},
 		cli.StringFlag{
-			Name:  "policy",
-			Value: "",
-			Usage: "Path to a trust policy file",
+			Name:        "policy",
+			Usage:       "Path to a trust policy file",
+			Destination: &opts.policyPath,
 		},
 		cli.BoolFlag{
-			Name:  "insecure-policy",
-			Usage: "run the tool without any policy check",
+			Name:        "insecure-policy",
+			Usage:       "run the tool without any policy check",
+			Destination: &opts.insecurePolicy,
 		},
 		cli.StringFlag{
-			Name:  "registries.d",
-			Value: "",
-			Usage: "use registry configuration files in `DIR` (e.g. for container signature storage)",
+			Name:        "registries.d",
+			Usage:       "use registry configuration files in `DIR` (e.g. for container signature storage)",
+			Destination: &opts.registriesDirPath,
 		},
 		cli.StringFlag{
-			Name:  "override-arch",
-			Value: "",
-			Usage: "use `ARCH` instead of the architecture of the machine for choosing images",
+			Name:        "override-arch",
+			Usage:       "use `ARCH` instead of the architecture of the machine for choosing images",
+			Destination: &opts.overrideArch,
 		},
 		cli.StringFlag{
-			Name:  "override-os",
-			Value: "",
-			Usage: "use `OS` instead of the running OS for choosing images",
+			Name:        "override-os",
+			Usage:       "use `OS` instead of the running OS for choosing images",
+			Destination: &opts.overrideOS,
 		},
 		cli.DurationFlag{
-			Name:  "command-timeout",
-			Usage: "timeout for the command execution",
+			Name:        "command-timeout",
+			Usage:       "timeout for the command execution",
+			Destination: &opts.commandTimeout,
 		},
 	}
-	app.Before = func(c *cli.Context) error {
-		if c.GlobalBool("debug") {
-			logrus.SetLevel(logrus.DebugLevel)
-		}
-		if c.GlobalIsSet("tls-verify") {
-			logrus.Warn("'--tls-verify' is deprecated, please set this on the specific subcommand")
-		}
-		return nil
-	}
+	app.Before = opts.before
 	app.Commands = []cli.Command{
-		copyCmd,
-		inspectCmd,
-		layersCmd,
-		deleteCmd,
-		manifestDigestCmd,
-		standaloneSignCmd,
-		standaloneVerifyCmd,
-		untrustedSignatureDumpCmd,
+		copyCmd(&opts),
+		inspectCmd(&opts),
+		layersCmd(&opts),
+		deleteCmd(&opts),
+		manifestDigestCmd(),
+		standaloneSignCmd(),
+		standaloneVerifyCmd(),
+		untrustedSignatureDumpCmd(),
 	}
-	return app
+	return app, &opts
+}
+
+// before is run by the cli package for any command, before running the command-specific handler.
+func (opts *globalOptions) before(_ *cli.Context) error {
+	if opts.debug {
+		logrus.SetLevel(logrus.DebugLevel)
+	}
+	if opts.tlsVerify.present {
+		logrus.Warn("'--tls-verify' is deprecated, please set this on the specific subcommand")
+	}
+	return nil
 }
 
 func main() {
 	if reexec.Init() {
 		return
 	}
-	app := createApp()
+	app, _ := createApp()
 	if err := app.Run(os.Args); err != nil {
 		logrus.Fatal(err)
 	}
 }
 
-// getPolicyContext handles the global "policy" flag.
-func getPolicyContext(c *cli.Context) (*signature.PolicyContext, error) {
-	policyPath := c.GlobalString("policy")
-	var policy *signature.Policy // This could be cached across calls, if we had an application context.
+// getPolicyContext returns a *signature.PolicyContext based on opts.
+func (opts *globalOptions) getPolicyContext() (*signature.PolicyContext, error) {
+	var policy *signature.Policy // This could be cached across calls in opts.
 	var err error
-	if c.GlobalBool("insecure-policy") {
+	if opts.insecurePolicy {
 		policy = &signature.Policy{Default: []signature.PolicyRequirement{signature.NewPRInsecureAcceptAnything()}}
-	} else if policyPath == "" {
+	} else if opts.policyPath == "" {
 		policy, err = signature.DefaultPolicy(nil)
 	} else {
-		policy, err = signature.NewPolicyFromFile(policyPath)
+		policy, err = signature.NewPolicyFromFile(opts.policyPath)
 	}
 	if err != nil {
 		return nil, err
 	}
 	return signature.NewPolicyContext(policy)
+}
+
+// commandTimeoutContext returns a context.Context and a cancellation callback based on opts.
+// The caller should usually "defer cancel()" immediately after calling this.
+func (opts *globalOptions) commandTimeoutContext() (context.Context, context.CancelFunc) {
+	ctx := context.Background()
+	var cancel context.CancelFunc = func() {}
+	if opts.commandTimeout > 0 {
+		ctx, cancel = context.WithTimeout(ctx, opts.commandTimeout)
+	}
+	return ctx, cancel
 }
