@@ -51,9 +51,10 @@ GIT_COMMIT := $(shell git rev-parse HEAD 2> /dev/null || true)
 
 MANPAGES_MD = $(wildcard docs/*.md)
 
-BTRFS_BUILD_TAG = $(shell hack/btrfs_tag.sh)
+BTRFS_BUILD_TAG = $(shell hack/btrfs_tag.sh) $(shell hack/btrfs_installed_tag.sh)
 LIBDM_BUILD_TAG = $(shell hack/libdm_tag.sh)
-LOCAL_BUILD_TAGS = $(BTRFS_BUILD_TAG) $(LIBDM_BUILD_TAG) $(DARWIN_BUILD_TAG)
+OSTREE_BUILD_TAG = $(shell hack/ostree_tag.sh)
+LOCAL_BUILD_TAGS = $(BTRFS_BUILD_TAG) $(LIBDM_BUILD_TAG) $(OSTREE_BUILD_TAG) $(DARWIN_BUILD_TAG)
 BUILDTAGS += $(LOCAL_BUILD_TAGS)
 
 ifeq ($(DISABLE_CGO), 1)
