@@ -6,11 +6,14 @@ _complete_() {
     local options_with_args=$1
     local boolean_options="$2 -h --help"
 
-    case "$prev" in
-	$options_with_args)
-	    return
-	    ;;
-    esac
+    local option_with_args
+    for option_with_args in $options_with_args
+    do
+        if [ "$option_with_args" == "$prev" ]
+        then
+            return
+        fi
+    done
 
     case "$cur" in
 	-*)
