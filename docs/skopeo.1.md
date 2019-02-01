@@ -85,6 +85,7 @@ Uses the system's trust policy to validate images, rejects images not trusted by
 
   **--format, -f** _manifest-type_ Manifest type (oci, v2s1, or v2s2) to use when saving image to directory using the 'dir:' transport (default is manifest type of source)
 
+  **--quiet, -q** suppress output information when copying images
   **--remove-signatures** do not copy signatures, if any, from _source-image_. Necessary when copying a signed image to a destination which does not support signatures.
 
   **--sign-by=**_key-id_ add a signature using that key ID for an image name corresponding to _destination-image_
