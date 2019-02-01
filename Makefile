@@ -22,9 +22,9 @@ CONTAINERSSYSCONFIGDIR=${DESTDIR}/etc/containers
 REGISTRIESDDIR=${CONTAINERSSYSCONFIGDIR}/registries.d
 SIGSTOREDIR=${DESTDIR}/var/lib/atomic/sigstore
 BASHINSTALLDIR=${PREFIX}/share/bash-completion/completions
-GO_MD2MAN ?= go-md2man
 GO ?= go
 CONTAINER_RUNTIME := $(shell command -v podman 2> /dev/null || echo docker)
+GOMD2MAN ?= $(shell command -v go-md2man || echo '$(GOBIN)/go-md2man')
 
 ifeq ($(DEBUG), 1)
   override GOGCFLAGS += -N -l
@@ -90,7 +90,7 @@ build-container:
 	${CONTAINER_RUNTIME} build ${BUILD_ARGS} -t "$(IMAGE)" .
 
 docs/%.1: docs/%.1.md
-	$(GO_MD2MAN) -in $< -out $@.tmp && touch $@.tmp && mv $@.tmp $@
+	@sed -e 's/\((skopeo.*\.md)\)//' -e 's/\[\(skopeo.*\)\]/\1/' $<  | $(GOMD2MAN) -in /dev/stdin -out $@
 
 docs: $(MANPAGES_MD:%.md=%)
 
