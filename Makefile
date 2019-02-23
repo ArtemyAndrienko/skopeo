@@ -1,4 +1,4 @@
-.PHONY: all binary build-container docs docs-in-container build-local clean install install-binary install-completions shell test-integration vendor
+.PHONY: all binary build-container docs docs-in-container build-local clean install install-binary install-completions shell test-integration .install.vndr vendor
 
 export GO15VENDOREXPERIMENT=1
 
@@ -146,5 +146,9 @@ validate-local:
 test-unit-local:
 	$(GPGME_ENV) $(GO) test -tags "$(BUILDTAGS)" $$($(GO) list -tags "$(BUILDTAGS)" -e ./... | grep -v '^github\.com/containers/skopeo/\(integration\|vendor/.*\)$$')
 
-vendor: vendor.conf
-	vndr -whitelist '^github.com/containers/image/docs/.*'
+.install.vndr:
+	$(GO) get -u github.com/LK4D4/vndr
+
+vendor: vendor.conf .install.vndr
+	$(GOPATH)/bin/vndr \
+		-whitelist '^github.com/containers/image/docs/.*'
