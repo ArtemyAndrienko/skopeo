@@ -181,7 +181,9 @@ _cli_bash_autocomplete() {
      local counter=1
      counter=1
      while [ $counter -lt $cword ]; do
-	 case "!${words[$counter]}" in
+	 case "${words[$counter]}" in
+             -*)
+                ;;
 	     *)
 		 command=$(echo "${words[$counter]}" | sed 's/-/_/g')
 		 cpos=$counter
