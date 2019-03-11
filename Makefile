@@ -151,4 +151,5 @@ test-unit-local:
 
 vendor: vendor.conf .install.vndr
 	$(GOPATH)/bin/vndr \
-		-whitelist '^github.com/containers/image/docs/.*'
+		-whitelist '^github.com/containers/image/docs/.*' \
+		-whitelist '^github.com/containers/image/registries.conf'
