@@ -30,7 +30,7 @@ ifeq ($(DEBUG), 1)
   override GOGCFLAGS += -N -l
 endif
 
-ifeq ($(shell go env GOOS), linux)
+ifeq ($(shell $(GO) env GOOS), linux)
   GO_DYN_FLAGS="-buildmode=pie"
 endif
 
