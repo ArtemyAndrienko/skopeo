@@ -1,4 +1,4 @@
-.PHONY: all binary build-container docs docs-in-container build-local clean install install-binary install-completions shell test-integration vendor
+.PHONY: all binary build-container docs docs-in-container build-local clean install install-binary install-completions shell test-integration .install.vndr vendor
 
 export GO15VENDOREXPERIMENT=1
 
@@ -30,7 +30,7 @@ ifeq ($(DEBUG), 1)
   override GOGCFLAGS += -N -l
 endif
 
-ifeq ($(shell go env GOOS), linux)
+ifeq ($(shell $(GO) env GOOS), linux)
   GO_DYN_FLAGS="-buildmode=pie"
 endif
 
@@ -50,6 +50,7 @@ CONTAINER_RUN := $(CONTAINER_CMD) "$(IMAGE)"
 GIT_COMMIT := $(shell git rev-parse HEAD 2> /dev/null || true)
 
 MANPAGES_MD = $(wildcard docs/*.md)
+MANPAGES ?= $(MANPAGES_MD:%.md=%)
 
 BTRFS_BUILD_TAG = $(shell hack/btrfs_tag.sh) $(shell hack/btrfs_installed_tag.sh)
 LIBDM_BUILD_TAG = $(shell hack/libdm_tag.sh)
@@ -102,10 +103,10 @@ binary-local-static:
 build-container:
 	${CONTAINER_RUNTIME} build ${BUILD_ARGS} -t "$(IMAGE)" .
 
-docs/%.1: docs/%.1.md
+$(MANPAGES): %: %.md
 	@sed -e 's/\((skopeo.*\.md)\)//' -e 's/\[\(skopeo.*\)\]/\1/' $<  | $(GOMD2MAN) -in /dev/stdin -out $@
 
-docs: $(MANPAGES_MD:%.md=%)
+docs: $(MANPAGES)
 
 docs-in-container:
 	${CONTAINER_RUNTIME} build ${BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
@@ -126,9 +127,9 @@ install-binary: ./skopeo
 	install -d -m 755 ${INSTALLDIR}
 	install -m 755 skopeo ${INSTALLDIR}/skopeo
 
-install-docs: docs/skopeo.1
+install-docs: docs
 	install -d -m 755 ${MANINSTALLDIR}/man1
-	install -m 644 docs/skopeo.1 ${MANINSTALLDIR}/man1/skopeo.1
+	install -m 644 docs/*.1 ${MANINSTALLDIR}/man1/
 
 install-completions:
 	install -m 755 -d ${BASHINSTALLDIR}
@@ -159,5 +160,10 @@ validate-local:
 test-unit-local:
 	$(GPGME_ENV) $(GO) test -tags "$(BUILDTAGS)" $$($(GO) list -tags "$(BUILDTAGS)" -e ./... | grep -v '^github\.com/containers/skopeo/\(integration\|vendor/.*\)$$')
 
-vendor: vendor.conf
-	vndr -whitelist '^github.com/containers/image/docs/.*'
+.install.vndr:
+	$(GO) get -u github.com/LK4D4/vndr
+
+vendor: vendor.conf .install.vndr
+	$(GOPATH)/bin/vndr \
+		-whitelist '^github.com/containers/image/docs/.*' \
+		-whitelist '^github.com/containers/image/registries.conf'
