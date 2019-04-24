@@ -2,5 +2,6 @@
 
 package main
 
-func maybeReexec() {
+func maybeReexec() error {
+	return nil
 }

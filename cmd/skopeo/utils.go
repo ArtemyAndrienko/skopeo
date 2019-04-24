@@ -17,8 +17,7 @@ type errorShouldDisplayUsage struct {
 }
 
 func needsRexec(c *cli.Context) error {
-	maybeReexec()
-	return nil
+	return maybeReexec()
 }
 
 // commandAction intermediates between the cli.ActionFunc interface and the real handler,
