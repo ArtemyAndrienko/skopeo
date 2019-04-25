@@ -112,14 +112,15 @@ func imageFlags(global *globalOptions, shared *sharedImageOptions, flagPrefix, c
 // It is guaranteed to return a fresh instance, so it is safe to make additional updates to it.
 func (opts *imageOptions) newSystemContext() (*types.SystemContext, error) {
 	ctx := &types.SystemContext{
-		RegistriesDirPath:    opts.global.registriesDirPath,
-		ArchitectureChoice:   opts.global.overrideArch,
-		OSChoice:             opts.global.overrideOS,
-		DockerCertPath:       opts.dockerCertPath,
-		OCISharedBlobDirPath: opts.sharedBlobDir,
-		AuthFilePath:         opts.shared.authFilePath,
-		DockerDaemonHost:     opts.dockerDaemonHost,
-		DockerDaemonCertPath: opts.dockerCertPath,
+		RegistriesDirPath:        opts.global.registriesDirPath,
+		ArchitectureChoice:       opts.global.overrideArch,
+		OSChoice:                 opts.global.overrideOS,
+		DockerCertPath:           opts.dockerCertPath,
+		OCISharedBlobDirPath:     opts.sharedBlobDir,
+		AuthFilePath:             opts.shared.authFilePath,
+		DockerDaemonHost:         opts.dockerDaemonHost,
+		DockerDaemonCertPath:     opts.dockerCertPath,
+		SystemRegistriesConfPath: opts.global.registriesConfPath,
 	}
 	if opts.tlsVerify.present {
 		ctx.DockerDaemonInsecureSkipTLSVerify = !opts.tlsVerify.value
