@@ -63,6 +63,7 @@ type imageOptions struct {
 	tlsVerify        optionalBool        // Require HTTPS and verify certificates (for docker: and docker-daemon:)
 	sharedBlobDir    string              // A directory to use for OCI blobs, shared across repositories
 	dockerDaemonHost string              // docker-daemon: host to connect to
+	noCreds          bool                // Access the registry anonymously
 }
 
 // imageFlags prepares a collection of CLI flags writing into imageOptions, and the managed imageOptions structure.
@@ -105,6 +106,11 @@ func imageFlags(global *globalOptions, shared *sharedImageOptions, flagPrefix, c
 			Usage:       "use docker daemon host at `HOST` (docker-daemon: only)",
 			Destination: &opts.dockerDaemonHost,
 		},
+		cli.BoolFlag{
+			Name:        flagPrefix + "no-creds",
+			Usage:       "Access the registry anonymously",
+			Destination: &opts.noCreds,
+		},
 	}, &opts
 }
 
@@ -132,12 +138,18 @@ func (opts *imageOptions) newSystemContext() (*types.SystemContext, error) {
 	if opts.tlsVerify.present {
 		ctx.DockerInsecureSkipTLSVerify = types.NewOptionalBool(!opts.tlsVerify.value)
 	}
+	if opts.credsOption.present && opts.noCreds {
+		return nil, errors.New("creds and no-creds cannot be specified at the same time")
+	}
 	if opts.credsOption.present {
 		var err error
 		ctx.DockerAuthConfig, err = getDockerAuth(opts.credsOption.value)
 		if err != nil {
 			return nil, err
 		}
+	}
+	if opts.noCreds {
+		ctx.DockerAuthConfig = &types.DockerAuthConfig{}
 	}
 	return ctx, nil
 }
