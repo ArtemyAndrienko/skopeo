@@ -73,6 +73,7 @@ _skopeo_inspect() {
      --cert-dir
      "
      local boolean_options="
+     --config
      --raw
      --tls-verify
      --no-creds
