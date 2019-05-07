@@ -55,6 +55,8 @@ _skopeo_copy() {
     local boolean_options="
     --dest-compress
     --remove-signatures
+    --src-no-creds
+    --dest-no-creds
     "
 
     local transports="
@@ -73,6 +75,7 @@ _skopeo_inspect() {
      local boolean_options="
      --raw
      --tls-verify
+     --no-creds
     "
 
     local transports="
@@ -115,6 +118,7 @@ _skopeo_delete() {
      "
      local boolean_options="
      --tls-verify
+     --no-creds
      "
 
     local transports="

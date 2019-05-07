@@ -23,6 +23,8 @@ Return low-level information about _image-name_ in a registry
 
   **--tls-verify** _bool-value_ Require HTTPS and verify certificates when talking to container registries (defaults to true)
 
+  **--no-creds** _bool-value_ Access the registry anonymously.
+
 ## EXAMPLES
 
 To review information for the image fedora from the docker.io registry:
