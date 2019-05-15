@@ -76,7 +76,7 @@ Most commands refer to container images, using a _transport_`:`_details_ format.
 | [skopeo-inspect(1)](skopeo-inspect.1.md)  | Return low-level information about image-name in a registry.                   |
 | [skopeo-manifest-digest(1)](skopeo-manifest-digest.1.md)    | Compute a manifest digest of manifest-file and write it to standard output.|
 | [skopeo-standalone-sign(1)](skopeo-standalone-sign.1.md)    | Sign an image.                                               |
-| [skopeo-standalone-verify(1)](skopeo-standalone-verify.1.md)| Verity an image.                                             |
+| [skopeo-standalone-verify(1)](skopeo-standalone-verify.1.md)| Verify an image.                                             |
 
 ## FILES
   **/etc/containers/policy.json**
