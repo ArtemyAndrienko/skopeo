@@ -16,10 +16,6 @@ type errorShouldDisplayUsage struct {
 	error
 }
 
-func needsRexec(c *cli.Context) error {
-	return maybeReexec()
-}
-
 // commandAction intermediates between the cli.ActionFunc interface and the real handler,
 // primarily to ensure that cli.Context is not available to the handler, which in turn
 // makes sure that the cli.String() etc. flag access functions are not used,
