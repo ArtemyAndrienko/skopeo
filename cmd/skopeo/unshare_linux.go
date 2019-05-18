@@ -38,7 +38,8 @@ func maybeReexec() error {
 func reexecIfNecessaryForImages(imageNames ...string) error {
 	// Check if container-storage are used before doing unshare
 	for _, imageName := range imageNames {
-		if alltransports.TransportFromImageName(imageName).Name() == storage.Transport.Name() {
+		transport := alltransports.TransportFromImageName(imageName)
+		if transport != nil && transport.Name() == storage.Transport.Name() {
 			return maybeReexec()
 		}
 	}
