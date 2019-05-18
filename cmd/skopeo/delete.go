@@ -24,9 +24,8 @@ func deleteCmd(global *globalOptions) cli.Command {
 		image:  imageOpts,
 	}
 	return cli.Command{
-		Before: needsRexec,
-		Name:   "delete",
-		Usage:  "Delete image IMAGE-NAME",
+		Name:  "delete",
+		Usage: "Delete image IMAGE-NAME",
 		Description: fmt.Sprintf(`
 	Delete an "IMAGE_NAME" from a transport
 
@@ -45,10 +44,15 @@ func (opts *deleteOptions) run(args []string, stdout io.Writer) error {
 	if len(args) != 1 {
 		return errors.New("Usage: delete imageReference")
 	}
+	imageName := args[0]
 
-	ref, err := alltransports.ParseImageName(args[0])
+	if err := reexecIfNecessaryForImages(imageName); err != nil {
+		return err
+	}
+
+	ref, err := alltransports.ParseImageName(imageName)
 	if err != nil {
-		return fmt.Errorf("Invalid source name %s: %v", args[0], err)
+		return fmt.Errorf("Invalid source name %s: %v", imageName, err)
 	}
 
 	sys, err := opts.image.newSystemContext()

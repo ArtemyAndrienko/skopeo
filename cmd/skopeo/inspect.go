@@ -68,7 +68,6 @@ func inspectCmd(global *globalOptions) cli.Command {
 				Destination: &opts.config,
 			},
 		}, sharedFlags...), imageFlags...),
-		Before: needsRexec,
 		Action: commandAction(opts.run),
 	}
 }
@@ -80,7 +79,13 @@ func (opts *inspectOptions) run(args []string, stdout io.Writer) (retErr error) 
 	if len(args) != 1 {
 		return errors.New("Exactly one argument expected")
 	}
-	img, err := parseImage(ctx, opts.image, args[0])
+	imageName := args[0]
+
+	if err := reexecIfNecessaryForImages(imageName); err != nil {
+		return err
+	}
+
+	img, err := parseImage(ctx, opts.image, imageName)
 	if err != nil {
 		return err
 	}

@@ -2,6 +2,8 @@ package main
 
 import (
 	"github.com/containers/buildah/pkg/unshare"
+	"github.com/containers/image/storage"
+	"github.com/containers/image/transports/alltransports"
 	"github.com/pkg/errors"
 	"github.com/syndtr/gocapability/capability"
 )
@@ -28,6 +30,16 @@ func maybeReexec() error {
 			// We miss a capability we need, create a user namespaces
 			unshare.MaybeReexecUsingUserNamespace(true)
 			return nil
+		}
+	}
+	return nil
+}
+
+func reexecIfNecessaryForImages(imageNames ...string) error {
+	// Check if container-storage are used before doing unshare
+	for _, imageName := range imageNames {
+		if alltransports.TransportFromImageName(imageName).Name() == storage.Transport.Name() {
+			return maybeReexec()
 		}
 	}
 	return nil
