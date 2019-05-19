@@ -87,3 +87,7 @@ func (s *SkopeoSuite) TestNoNeedAuthToPrivateRegistryV2ImageNotFound(c *check.C)
 	wanted = ".*unauthorized: authentication required.*"
 	c.Assert(string(out), check.Not(check.Matches), "(?s)"+wanted) // (?s) : '.' will also match newlines
 }
+
+func (s *SkopeoSuite) TestInspectFailsWhenReferenceIsInvalid(c *check.C) {
+	assertSkopeoFails(c, `.*Invalid image name.*`, "inspect", "unknown")
+}
