@@ -696,3 +696,7 @@ func (s *SkopeoSuite) TestFailureCopySrcWithMirrorAndPrefixUnavailable(c *check.
 	assertSkopeoFails(c, ".*no such host.*", "--registries-conf="+regConfFixture, "copy",
 		"docker://gcr.invalid/wrong/prefix/busybox", "dir:"+dir)
 }
+
+func (s *CopySuite) TestCopyFailsWhenReferenceIsInvalid(c *check.C) {
+	assertSkopeoFails(c, `.*Invalid image name.*`, "copy", "unknown:transport", "unknown:test")
+}
