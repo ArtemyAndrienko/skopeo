@@ -9,8 +9,10 @@ function setup() {
     standard_setup
 
     # Remove old/stale cred file
-    _cred_file=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/containers/auth.json
-    rm -f $_cred_file
+    _cred_dir=$TESTDIR/credentials
+    export XDG_RUNTIME_DIR=$_cred_dir
+    mkdir -p $_cred_dir/containers
+    rm -f $_cred_dir/containers/auth.json
 
     # Start authenticated registry with random password
     testuser=testuser
@@ -66,8 +68,8 @@ function setup() {
 teardown() {
     podman rm -f reg
 
-    if [[ -n $_cred_file ]]; then
-        rm -f $_cred_file
+    if [[ -n $_cred_dir ]]; then
+        rm -rf $_cred_dir
     fi
 
     standard_teardown

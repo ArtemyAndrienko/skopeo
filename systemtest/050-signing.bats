@@ -95,9 +95,6 @@ END_POLICY_JSON
 /myns/carol:latest        -        # No signature
 /open/forall:latest       -        # No signature, but none needed
 END_PUSH
-    # FIXME: there doesn't seem to be a way to push an  image
-    #        such as '/bob:signed', signed by bob, at the same time
-    #        that we have :signedbyalice
 
     # Done pushing. Now try to fetch. From here on we use the --policy option.
     # The table below lists the paths to fetch, and the expected errors (or
@@ -125,7 +122,6 @@ END_PUSH
 /myns/carol:latest         Running image docker://localhost:5000/myns/carol:latest is rejected by policy.
 /open/forall:latest
 END_TESTS
-    # FIXME: why does the message for alice:unsigned say ':signed' ?
 }
 
 teardown() {

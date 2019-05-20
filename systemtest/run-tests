@@ -3,9 +3,6 @@
 # run-tests - simple wrapper allowing shortcuts on invocation
 #
 
-# FIXME
-export SKOPEO_BINARY=${SKOPEO_BINARY:-/usr/bin/skopeo}
-
 TEST_DIR=$(dirname $0)
 TESTS=$TEST_DIR
 

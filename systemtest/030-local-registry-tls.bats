@@ -1,16 +1,7 @@
 #!/usr/bin/env bats
 #
-# This is probably a never-mind.
-#
-# The idea is to set up a local registry with locally generated certs,
-# using --dest-cert-dir to tell skopeo how to check. But no, it fails with
-#
-#        x509: certificate signed by unknown authority
-#
-# Perhaps I'm missing something? Maybe I need to add something into
-# /etc/pki/somewhere? If this is truly not possible to test without
-# a real signature, then let's just delete this test.
-#
+# Confirm that skopeo will push to and pull from a local
+# registry with locally-created TLS certificates.
 #
 load helpers
 
@@ -21,15 +12,15 @@ function setup() {
 }
 
 @test "local registry, with cert" {
-    skip "doesn't work as expected"
-
-    local remote_image=docker://busybox:latest
-    local localimg=docker://localhost:5000/busybox:unsigned
-
-    # Fails with: x509: certificate signed by unknown authority
-    run_skopeo --debug copy --dest-cert-dir=$TESTDIR/auth \
+    # Push to local registry...
+    run_skopeo copy --dest-cert-dir=$TESTDIR/client-auth \
                docker://busybox:latest \
                docker://localhost:5000/busybox:unsigned
+
+    # ...and pull it back out
+    run_skopeo copy --src-cert-dir=$TESTDIR/client-auth \
+               docker://localhost:5000/busybox:unsigned \
+               dir:$TESTDIR/extracted
 }
 
 teardown() {

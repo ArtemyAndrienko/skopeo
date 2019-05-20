@@ -220,13 +220,28 @@ function expect_line_count() {
 ###############################################################################
 # BEGIN helpers for starting/stopping registries
 
+####################
+#  start_registry  #  Run a local registry container
+####################
+#
+# Usage:  start_registry [OPTIONS] NAME
+#
+#   OPTIONS
+#       --port=NNNN         Port to listen on (default: 5000)
+#       --testuser=XXX      Require authentication; this is the username
+#       --testpassword=XXX  ...and the password (these two go together)
+#       --with-cert         Create a cert for running with TLS (not working)
+#
+#   NAME is the container name to assign.
+#
 start_registry() {
     local port=5000
     local testuser=
     local testpassword=
     local create_cert=
 
-    # option processing: recognize --auth
+    # option processing: recognize options for running the registry
+    # in different modes.
     local opt
     for opt; do
         local value=$(expr "$opt" : '[^=]*=\(.*\)')
@@ -270,7 +285,7 @@ start_registry() {
 
     # Called with --with-cert? Create certificates.
     if [[ -n $create_cert ]]; then
-        CERT=$AUTHDIR/domain.cert
+        CERT=$AUTHDIR/domain.crt
         if [ ! -e $CERT ]; then
             openssl req -newkey rsa:4096 -nodes -sha256 \
                     -keyout $AUTHDIR/domain.key -x509 -days 2 \
@@ -279,23 +294,18 @@ start_registry() {
         fi
 
         reg_args+=(
-            -e REGISTRY_HTTP_TLS_CERTIFICATE=/auth/domain.cert
+            -e REGISTRY_HTTP_TLS_CERTIFICATE=/auth/domain.crt
             -e REGISTRY_HTTP_TLS_KEY=/auth/domain.key
         )
+
+        # Copy .crt file to a directory *without* the .key one, so we can
+        # test the client. (If client sees a matching .key file, it fails)
+        # Thanks to Miloslav Trmac for this hint.
+        mkdir -p $TESTDIR/client-auth
+        cp $CERT $TESTDIR/client-auth/
     fi
 
     podman run -d --name $name "${reg_args[@]}" registry:2
-}
-
-
-stop_registries() {
-    if [[ -z $SKOPEO_DEBUG_REGISTRIES ]]; then
-        podman rm -a -f
-
-        if [[ -n $AUTHDIR ]]; then
-            rm -rf $AUTHDIR
-        fi
-    fi
 }
 
 # END   helpers for starting/stopping registries
