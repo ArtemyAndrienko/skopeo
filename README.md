@@ -172,7 +172,7 @@ Building without a container requires a bit more manual work and setup in your e
 Install the necessary dependencies:
 ```sh
 Fedora$ sudo dnf install gpgme-devel libassuan-devel btrfs-progs-devel device-mapper-devel ostree-devel
-Ubuntu$ sudo apt install libgpgme-dev libassuan-dev btrfs-progs libdevmapper-dev libostree-dev
+Ubuntu$ sudo apt install libgpgme-dev libassuan-dev libbtrfs-dev libdevmapper-dev libostree-dev
 macOS$ brew install gpgme
 ```
 
