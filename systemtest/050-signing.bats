@@ -11,8 +11,17 @@ function setup() {
     # Create dummy gpg keys
     export GNUPGHOME=$TESTDIR/skopeo-gpg
     mkdir --mode=0700 $GNUPGHOME
+
+    # gpg on f30 needs this, otherwise:
+    #   gpg: agent_genkey failed: Inappropriate ioctl for device
+    # ...but gpg on f29 (and, probably, Ubuntu) doesn't grok this
+    GPGOPTS='--pinentry-mode loopback'
+    if gpg --pinentry-mode asdf 2>&1 | grep -qi 'Invalid option'; then
+        GPGOPTS=
+    fi
+
     for k in alice bob;do
-        gpg --batch --pinentry-mode loopback --gen-key --passphrase '' <<END_GPG
+        gpg --batch $GPGOPTS --gen-key --passphrase '' <<END_GPG
 Key-Type: RSA
 Name-Real: Test key - $k
 Name-email: $k@test.redhat.com

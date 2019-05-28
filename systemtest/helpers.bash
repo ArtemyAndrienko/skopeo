@@ -265,6 +265,10 @@ start_registry() {
 
     local -a reg_args=(-v $AUTHDIR:/auth:Z -p $port:5000)
 
+    # cgroup option necessary under podman-in-podman (CI tests),
+    # and doesn't seem to do any harm otherwise.
+    PODMAN="podman --cgroup-manager=cgroupfs"
+
     # Called with --testuser? Create an htpasswd file
     if [[ -n $testuser ]]; then
         if [[ -z $testpassword ]]; then
@@ -272,7 +276,7 @@ start_registry() {
         fi
 
         if ! egrep -q "^$testuser:" $AUTHDIR/htpasswd; then
-            podman run --rm --entrypoint htpasswd registry:2 \
+            $PODMAN run --rm --entrypoint htpasswd registry:2 \
                    -Bbn $testuser $testpassword >> $AUTHDIR/htpasswd
         fi
 
@@ -305,7 +309,7 @@ start_registry() {
         cp $CERT $TESTDIR/client-auth/
     fi
 
-    podman run -d --name $name "${reg_args[@]}" registry:2
+    $PODMAN run -d --name $name "${reg_args[@]}" registry:2
 }
 
 # END   helpers for starting/stopping registries
