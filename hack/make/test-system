@@ -1,0 +1,18 @@
+#!/bin/bash
+set -e
+
+# Before running podman for the first time, make sure
+# to set storage to vfs (not overlay): podman-in-podman
+# doesn't work with overlay. And, disable mountopt,
+# which causes error with vfs.
+sed -i \
+    -e 's/^driver\s*=.*/driver = "vfs"/' \
+    -e 's/^mountopt/#mountopt/' \
+    /etc/containers/storage.conf
+
+# Build skopeo, install into /usr/bin
+make binary-local ${BUILDTAGS:+BUILDTAGS="$BUILDTAGS"}
+make install
+
+# Run tests
+SKOPEO_BINARY=/usr/bin/skopeo bats --tap systemtest
