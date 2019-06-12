@@ -82,6 +82,15 @@ END_POLICY_JSON
 }
 
 @test "signing" {
+    run_skopeo '?' standalone-sign /dev/null busybox alice@test.redhat.com -o /dev/null
+    if [[ "$output" =~ 'signing is not supported' ]]; then
+        skip "skopeo built without support for creating signatures"
+        return 1
+    fi
+    if [ "$status" -ne 0 ]; then
+        die "exit code is $status; expected $expected_rc"
+    fi
+
     # Cache local copy
     run_skopeo copy docker://busybox:latest dir:$TESTDIR/busybox
 
