@@ -171,9 +171,14 @@ Building without a container requires a bit more manual work and setup in your e
 
 Install the necessary dependencies:
 ```sh
-Fedora$ sudo dnf install gpgme-devel libassuan-devel btrfs-progs-devel device-mapper-devel ostree-devel
-Ubuntu$ sudo apt install libgpgme-dev libassuan-dev libbtrfs-dev libdevmapper-dev libostree-dev
-macOS$ brew install gpgme
+# Fedora:
+sudo dnf install gpgme-devel libassuan-devel btrfs-progs-devel device-mapper-devel ostree-devel
+
+# Ubuntu (`libbtrfs-dev` requires Ubuntu 18.10 and above):
+sudo apt install libgpgme-dev libassuan-dev libbtrfs-dev libdevmapper-dev libostree-dev
+
+# macOS:
+brew install gpgme
 ```
 
 Make sure to clone this repository in your `GOPATH` - otherwise compilation fails.
