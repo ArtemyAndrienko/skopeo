@@ -310,6 +310,18 @@ start_registry() {
     fi
 
     $PODMAN run -d --name $name "${reg_args[@]}" registry:2
+
+    # Wait for registry to actually come up
+    timeout=10
+    while [[ $timeout -ge 1 ]]; do
+        if curl localhost:$port/; then
+            return
+        fi
+
+        timeout=$(expr $timeout - 1)
+        sleep 1
+    done
+    die "Timed out waiting for registry container to respond on :$port"
 }
 
 # END   helpers for starting/stopping registries
