@@ -153,8 +153,9 @@ func (opts *imageOptions) newSystemContext() (*types.SystemContext, error) {
 // imageDestOptions is a superset of imageOptions specialized for iamge destinations.
 type imageDestOptions struct {
 	*imageOptions
-	osTreeTmpDir        string // A directory to use for OSTree temporary files
-	dirForceCompression bool   // Compress layers when saving to the dir: transport
+	osTreeTmpDir                string // A directory to use for OSTree temporary files
+	dirForceCompression         bool   // Compress layers when saving to the dir: transport
+	ociAcceptUncompressedLayers bool   // Whether to accept uncompressed layers in the oci: transport
 }
 
 // imageDestFlags prepares a collection of CLI flags writing into imageDestOptions, and the managed imageDestOptions structure.
@@ -173,6 +174,11 @@ func imageDestFlags(global *globalOptions, shared *sharedImageOptions, flagPrefi
 			Usage:       "Compress tarball image layers when saving to directory using the 'dir' transport. (default is same compression type as source)",
 			Destination: &opts.dirForceCompression,
 		},
+		cli.BoolFlag{
+			Name:        flagPrefix + "oci-accept-uncompressed-layers",
+			Usage:       "Allow uncompressed image layers when saving to an OCI image using the 'oci' transport. (default is to compress things that aren't compressed)",
+			Destination: &opts.ociAcceptUncompressedLayers,
+		},
 	}...), &opts
 }
 
@@ -186,6 +192,7 @@ func (opts *imageDestOptions) newSystemContext() (*types.SystemContext, error) {
 
 	ctx.OSTreeTmpDirPath = opts.osTreeTmpDir
 	ctx.DirForceCompress = opts.dirForceCompression
+	ctx.OCIAcceptUncompressedLayers = opts.ociAcceptUncompressedLayers
 	return ctx, err
 }
 
