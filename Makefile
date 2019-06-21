@@ -171,10 +171,9 @@ validate-local:
 test-unit-local:
 	$(GPGME_ENV) $(GO) test -tags "$(BUILDTAGS)" $$($(GO) list -tags "$(BUILDTAGS)" -e ./... | grep -v '^github\.com/containers/skopeo/\(integration\|vendor/.*\)$$')
 
-.install.vndr:
-	$(GO) get -u github.com/LK4D4/vndr
+vendor:
+	export GO111MODULE=on \
+		$(GO) mod tidy && \
+		$(GO) mod vendor && \
+		$(GO) mod verify
 
-vendor: vendor.conf .install.vndr
-	$(GOPATH)/bin/vndr \
-		-whitelist '^github.com/containers/image/docs/.*' \
-		-whitelist '^github.com/containers/image/registries.conf'

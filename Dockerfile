@@ -11,6 +11,7 @@ RUN dnf -y update && dnf install -y make git golang golang-github-cpuguy83-go-md
 	# OpenShift deps
 	which tar wget hostname util-linux bsdtar socat ethtool device-mapper iptables tree findutils nmap-ncat e2fsprogs xfsprogs lsof docker iproute \
         bats jq podman \
+	golint \
 	&& dnf clean all
 
 # Install two versions of the registry. The first is an older version that
@@ -44,7 +45,6 @@ RUN set -x \
 ENV GOPATH /usr/share/gocode:/go
 ENV PATH $GOPATH/bin:/usr/share/gocode/bin:$PATH
 RUN go version
-RUN go get golang.org/x/lint/golint
 WORKDIR /go/src/github.com/containers/skopeo
 COPY . /go/src/github.com/containers/skopeo
 
