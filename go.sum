@@ -10,6 +10,8 @@ github.com/containerd/continuity v0.0.0-20180216233310-d8fb8589b0e8 h1:ZZOFPzvZO
 github.com/containerd/continuity v0.0.0-20180216233310-d8fb8589b0e8/go.mod h1:GL3xCUCBDV3CZiTSEKksMWbLE66hEyuu9qyDOOqM47Y=
 github.com/containers/buildah v1.8.4 h1:06c+UNeEWMa2wA1Z7muZ0ZqUzE91sDuZJbB0BiZaeYQ=
 github.com/containers/buildah v1.8.4/go.mod h1:1CsiLJvyU+h+wOjnqJJOWuJCVcMxZOr5HN/gHGdzJxY=
+github.com/containers/image v1.5.2-0.20190620105408-93b1deece293 h1:EalCgZ875kDCN2HcOch50q48GKerWGc5eV0BllCvln8=
+github.com/containers/image v1.5.2-0.20190620105408-93b1deece293/go.mod h1:8Vtij257IWSanUQKe1tAeNOm2sRVkSqQTVQ1IlwI3+M=
 github.com/containers/image v2.0.0+incompatible h1:FTr6Br7jlIKNCKMjSOMbAxKp2keQ0//jzJaYNTVhauk=
 github.com/containers/image v2.0.0+incompatible/go.mod h1:8Vtij257IWSanUQKe1tAeNOm2sRVkSqQTVQ1IlwI3+M=
 github.com/containers/storage v1.12.10 h1:vw1aiLsZ1LvO09ELMxVBTe35tThRiMftI2cPeH+G5ow=
