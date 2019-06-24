@@ -156,6 +156,11 @@ Obtaining skopeo
 ```sh
 $ sudo dnf install skopeo
 ```
+for openSUSE:
+```sh
+$ sudo zypper install skopeo
+```
+
 
 Otherwise, read on for building and installing it from source:
 
@@ -179,6 +184,9 @@ sudo apt install libgpgme-dev libassuan-dev libbtrfs-dev libdevmapper-dev libost
 
 # macOS:
 brew install gpgme
+
+# openSUSE
+sudo zypper install libgpgme-devel device-mapper-devel libbtrfs-devel glib2-devel
 ```
 
 Make sure to clone this repository in your `GOPATH` - otherwise compilation fails.
