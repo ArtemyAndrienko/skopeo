@@ -57,6 +57,7 @@ _skopeo_copy() {
     --remove-signatures
     --src-no-creds
     --dest-no-creds
+    --dest-oci-accept-uncompressed-layers
     "
 
     local transports="

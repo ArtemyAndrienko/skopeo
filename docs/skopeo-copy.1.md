@@ -34,6 +34,8 @@ If the authorization state is not found there, $HOME/.docker/config.json is chec
 
 **--dest-compress** _bool-value_ Compress tarball image layers when saving to directory using the 'dir' transport. (default is same compression type as source)
 
+**--dest-oci-accept-uncompressed-layers** _bool-value_ Allow uncompressed image layers when saving to an OCI image using the 'oci' transport. (default is to compress things that aren't compressed)
+
 **--dest-creds** _username[:password]_ for accessing the destination registry
 
 **--src-cert-dir** _path_ Use certificates at _path_ (*.crt, *.cert, *.key) to connect to the source registry or daemon
