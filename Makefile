@@ -1,6 +1,5 @@
 .PHONY: all binary build-container docs docs-in-container build-local clean install install-binary install-completions shell test-integration .install.vndr vendor
 
-export GO15VENDOREXPERIMENT=1
 export GO111MODULE=off
 
 ifeq ($(shell uname),Darwin)
@@ -157,7 +156,7 @@ test-system: build-container
 	exit $$rc
 
 test-unit: build-container
-	# Just call (make test unit-local) here instead of worrying about environment differences, e.g. GO15VENDOREXPERIMENT.
+	# Just call (make test unit-local) here instead of worrying about environment differences
 	$(CONTAINER_RUN) make test-unit-local BUILDTAGS='$(BUILDTAGS)'
 
 validate: build-container
@@ -177,4 +176,3 @@ vendor:
 		$(GO) mod tidy && \
 		$(GO) mod vendor && \
 		$(GO) mod verify
-
