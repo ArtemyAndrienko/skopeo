@@ -10,6 +10,5 @@ bundle_test_integration() {
 (
 	make binary-local ${BUILDTAGS:+BUILDTAGS="$BUILDTAGS"}
 	make install
-	export GO15VENDOREXPERIMENT=1
 	bundle_test_integration
 ) 2>&1

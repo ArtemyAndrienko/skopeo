@@ -164,7 +164,7 @@ $ sudo zypper install skopeo
 
 Otherwise, read on for building and installing it from source:
 
-To build the `skopeo` binary you need at least Go 1.5 because it uses the latest `GO15VENDOREXPERIMENT` flag.
+To build the `skopeo` binary you need at least Go 1.9.
 
 There are two ways to build skopeo: in a container, or locally without a container.  Choose the one which better matches your needs and environment.
 
