@@ -9,7 +9,7 @@ require (
 	github.com/VividCortex/ewma v1.1.1 // indirect
 	github.com/containerd/continuity v0.0.0-20180216233310-d8fb8589b0e8 // indirect
 	github.com/containers/buildah v1.8.4
-	github.com/containers/image v1.5.2-0.20190620105408-93b1deece293
+	github.com/containers/image v1.5.2-0.20190717062552-2178abd5f9b1
 	github.com/containers/storage v1.12.10
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/distribution v0.0.0-20170817175659-5f6282db7d65 // indirect
@@ -51,7 +51,7 @@ require (
 	github.com/ulikunitz/xz v0.5.4 // indirect
 	github.com/urfave/cli v1.20.0
 	github.com/vbatts/tar-split v0.10.2 // indirect
-	github.com/vbauerster/mpb v3.3.4+incompatible // indirect
+	github.com/vbauerster/mpb v3.4.0+incompatible // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xeipuuv/gojsonschema v1.1.0 // indirect
