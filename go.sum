@@ -14,6 +14,8 @@ github.com/containers/image v1.5.2-0.20190620105408-93b1deece293 h1:EalCgZ875kDC
 github.com/containers/image v1.5.2-0.20190620105408-93b1deece293/go.mod h1:8Vtij257IWSanUQKe1tAeNOm2sRVkSqQTVQ1IlwI3+M=
 github.com/containers/image v1.5.2-0.20190717062552-2178abd5f9b1 h1:RGlzwWSoGBbc5fgGysRrGAPLn8xQwihzRVPVDW5yQlo=
 github.com/containers/image v1.5.2-0.20190717062552-2178abd5f9b1/go.mod h1:8Vtij257IWSanUQKe1tAeNOm2sRVkSqQTVQ1IlwI3+M=
+github.com/containers/image v1.5.2-0.20190725091050-48acc3dcbb76 h1:+9unAKrV92Jvifb06UK8H4xTKf7h7XQDOsn4EC9eqH4=
+github.com/containers/image v1.5.2-0.20190725091050-48acc3dcbb76/go.mod h1:8Vtij257IWSanUQKe1tAeNOm2sRVkSqQTVQ1IlwI3+M=
 github.com/containers/image v2.0.0+incompatible h1:FTr6Br7jlIKNCKMjSOMbAxKp2keQ0//jzJaYNTVhauk=
 github.com/containers/image v2.0.0+incompatible/go.mod h1:8Vtij257IWSanUQKe1tAeNOm2sRVkSqQTVQ1IlwI3+M=
 github.com/containers/storage v1.12.10 h1:vw1aiLsZ1LvO09ELMxVBTe35tThRiMftI2cPeH+G5ow=
@@ -107,6 +109,8 @@ github.com/vbauerster/mpb v3.4.0+incompatible h1:mfiiYw87ARaeRW6x5gWwYRUawxaW1tL
 github.com/vbauerster/mpb v3.4.0+incompatible/go.mod h1:zAHG26FUhVKETRu+MWqYXcI70POlC6N8up9p1dID7SU=
 github.com/vrothberg/image v0.0.0-20190717060034-cd5ce8239f51 h1:u4Hw4D3PLODtsZJ1FKi7j8bkd+zyJOc28dRSiVTOgyE=
 github.com/vrothberg/image v0.0.0-20190717060034-cd5ce8239f51/go.mod h1:/hIyjuUvIY6X2wGj/fbsA9zwlfAize8B2DLPishEHHg=
+github.com/vrothberg/image v0.0.0-20190718162835-cdafe647d2d8 h1:LpqO8V+oaT3eXrvKSminmqKWo2vhOdLgu1kp2/+fHAI=
+github.com/vrothberg/image v0.0.0-20190718162835-cdafe647d2d8/go.mod h1:/hIyjuUvIY6X2wGj/fbsA9zwlfAize8B2DLPishEHHg=
 github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f h1:J9EGpcZtP0E/raorCMxlFGSTBrsSlaDGf3jU/qvAE2c=
 github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f/go.mod h1:N2zxlSyiKSe5eX1tZViRH5QA0qijqEDrYZiPEAiq3wU=
 github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 h1:EzJWgHovont7NscjpAxXsDA8S8BMYve8Y5+7cuRE7R0=
