@@ -18,7 +18,7 @@ function setup() {
     testuser=testuser
     testpassword=$(random_string 15)
 
-    start_registry --testuser=testuser --testpassword=$testpassword reg
+    start_registry --testuser=$testuser --testpassword=$testpassword reg
 }
 
 @test "auth: credentials on command line" {
