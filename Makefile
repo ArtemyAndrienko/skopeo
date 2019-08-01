@@ -1,7 +1,5 @@
 .PHONY: all binary build-container docs docs-in-container build-local clean install install-binary install-completions shell test-integration .install.vndr vendor
 
-export GO111MODULE=off
-
 ifeq ($(shell uname),Darwin)
 PREFIX ?= ${DESTDIR}/usr/local
 DARWIN_BUILD_TAG=containers_image_ostree_stub
@@ -25,6 +23,12 @@ BASHINSTALLDIR=${PREFIX}/share/bash-completion/completions
 GO ?= go
 CONTAINER_RUNTIME := $(shell command -v podman 2> /dev/null || echo docker)
 GOMD2MAN ?= $(shell command -v go-md2man || echo '$(GOBIN)/go-md2man')
+
+GO_BUILD=$(GO) build
+# Go module support: set `-mod=vendor` to use the vendored sources
+ifeq ($(shell go help mod >/dev/null 2>&1 && echo true), true)
+  GO_BUILD=GO111MODULE=on $(GO) build -mod=vendor
+endif
 
 ifeq ($(DEBUG), 1)
   override GOGCFLAGS += -N -l
@@ -95,10 +99,10 @@ binary-static: cmd/skopeo
 
 # Build w/o using containers
 binary-local:
-	$(GPGME_ENV) $(GO) build ${GO_DYN_FLAGS} -ldflags "-X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo
+	$(GPGME_ENV) $(GO_BUILD) ${GO_DYN_FLAGS} -ldflags "-X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo
 
 binary-local-static:
-	$(GPGME_ENV) $(GO) build -ldflags "-extldflags \"-static\" -X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo
+	$(GPGME_ENV) $(GO_BUILD) -ldflags "-extldflags \"-static\" -X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo
 
 build-container:
 	${CONTAINER_RUNTIME} build ${BUILD_ARGS} -t "$(IMAGE)" .
