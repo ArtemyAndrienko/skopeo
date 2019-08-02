@@ -8,6 +8,9 @@ matrix:
        - docker
   -  os: osx
 
+go:
+        - 1.12.x
+
 notifications:
   email: false
 
