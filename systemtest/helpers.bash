@@ -231,6 +231,7 @@ function expect_line_count() {
 #       --testuser=XXX      Require authentication; this is the username
 #       --testpassword=XXX  ...and the password (these two go together)
 #       --with-cert         Create a cert for running with TLS (not working)
+#       --enable-delete     Set allowing registry deletions (default: false)
 #
 #   NAME is the container name to assign.
 #
@@ -239,6 +240,7 @@ start_registry() {
     local testuser=
     local testpassword=
     local create_cert=
+    local enable_delete=false
 
     # option processing: recognize options for running the registry
     # in different modes.
@@ -250,6 +252,7 @@ start_registry() {
             --testuser=*)       testuser="$value";      shift;;
             --testpassword=*)   testpassword="$value";  shift;;
             --with-cert)        create_cert=1;          shift;;
+            --enable-delete=*)  enable_delete="$value"; shift;;
             -*)                 die "Invalid option '$opt'" ;;
             *)                  break;;
         esac
@@ -264,6 +267,9 @@ start_registry() {
     mkdir -p $AUTHDIR
 
     local -a reg_args=(-v $AUTHDIR:/auth:Z -p $port:5000)
+    if [[ "$enable_delete" == "true" ]]; then
+        reg_args+=( -e REGISTRY_STORAGE_DELETE_ENABLED=true)
+    fi
 
     # cgroup option necessary under podman-in-podman (CI tests),
     # and doesn't seem to do any harm otherwise.
