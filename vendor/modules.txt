@@ -26,7 +26,7 @@ github.com/VividCortex/ewma
 github.com/containerd/continuity/pathdriver
 # github.com/containers/buildah v1.8.4
 github.com/containers/buildah/pkg/unshare
-# github.com/containers/image v3.0.0+incompatible
+# github.com/containers/image v3.0.1+incompatible
 github.com/containers/image/copy
 github.com/containers/image/directory
 github.com/containers/image/docker
@@ -62,7 +62,7 @@ github.com/containers/image/pkg/keyctl
 github.com/containers/image/pkg/blobinfocache/internal/prioritize
 github.com/containers/image/docker/tarfile
 github.com/containers/image/oci/internal
-# github.com/containers/storage v1.12.10
+# github.com/containers/storage v1.13.0
 github.com/containers/storage/pkg/reexec
 github.com/containers/storage/pkg/idtools
 github.com/containers/storage/pkg/homedir
@@ -74,9 +74,11 @@ github.com/containers/storage/drivers
 github.com/containers/storage/drivers/register
 github.com/containers/storage/pkg/config
 github.com/containers/storage/pkg/directory
+github.com/containers/storage/pkg/lockfile
 github.com/containers/storage/pkg/parsers
 github.com/containers/storage/pkg/stringid
 github.com/containers/storage/pkg/stringutils
+github.com/containers/storage/pkg/tarlog
 github.com/containers/storage/pkg/truncindex
 github.com/containers/storage/pkg/fileutils
 github.com/containers/storage/pkg/longpath
@@ -143,7 +145,7 @@ github.com/docker/docker-credential-helpers/credentials
 github.com/docker/go-connections/tlsconfig
 github.com/docker/go-connections/sockets
 github.com/docker/go-connections/nat
-# github.com/docker/go-units v0.0.0-20161020213227-8a7beacffa30
+# github.com/docker/go-units v0.4.0
 github.com/docker/go-units
 # github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7
 github.com/docker/libtrust
@@ -161,12 +163,19 @@ github.com/gorilla/context
 github.com/gorilla/mux
 # github.com/imdario/mergo v0.0.0-20141206190957-6633656539c1
 github.com/imdario/mergo
-# github.com/klauspost/compress v1.4.1
+# github.com/klauspost/compress v1.7.2
 github.com/klauspost/compress/flate
-# github.com/klauspost/cpuid v1.2.0
+github.com/klauspost/compress/zstd
+github.com/klauspost/compress/huff0
+github.com/klauspost/compress/snappy
+github.com/klauspost/compress/zstd/internal/xxhash
+github.com/klauspost/compress/fse
+# github.com/klauspost/cpuid v1.2.1
 github.com/klauspost/cpuid
 # github.com/klauspost/pgzip v1.2.1
 github.com/klauspost/pgzip
+# github.com/konsorten/go-windows-terminal-sequences v1.0.1
+github.com/konsorten/go-windows-terminal-sequences
 # github.com/kr/pretty v0.1.0
 github.com/kr/pretty
 # github.com/kr/text v0.1.0
@@ -175,11 +184,11 @@ github.com/kr/text
 github.com/mattn/go-isatty
 # github.com/mattn/go-shellwords v1.0.5
 github.com/mattn/go-shellwords
-# github.com/mistifyio/go-zfs v0.0.0-20160425201758-22c9b32c84eb
+# github.com/mistifyio/go-zfs v2.1.1+incompatible
 github.com/mistifyio/go-zfs
 # github.com/mtrmac/gpgme v0.0.0-20170102180018-b2432428689c
 github.com/mtrmac/gpgme
-# github.com/opencontainers/go-digest v0.0.0-20180430190053-c9281466c8b2
+# github.com/opencontainers/go-digest v1.0.0-rc1
 github.com/opencontainers/go-digest
 # github.com/opencontainers/image-spec v0.0.0-20180918080442-7b1e489870ac
 github.com/opencontainers/image-spec/specs-go/v1
@@ -187,34 +196,34 @@ github.com/opencontainers/image-spec/specs-go
 github.com/opencontainers/image-spec/schema
 # github.com/opencontainers/image-tools v0.0.0-20170926011501-6d941547fa1d
 github.com/opencontainers/image-tools/image
-# github.com/opencontainers/runc v1.0.0-rc6
+# github.com/opencontainers/runc v1.0.0-rc8
 github.com/opencontainers/runc/libcontainer/user
 github.com/opencontainers/runc/libcontainer/system
 # github.com/opencontainers/runtime-spec v1.0.0
 github.com/opencontainers/runtime-spec/specs-go
-# github.com/opencontainers/selinux v0.0.0-20190118194635-b707dfcb00a1
+# github.com/opencontainers/selinux v1.2.2
 github.com/opencontainers/selinux/go-selinux/label
 github.com/opencontainers/selinux/go-selinux
-# github.com/ostreedev/ostree-go v0.0.0-20181204105935-56f3a639dbc0
+# github.com/ostreedev/ostree-go v0.0.0-20190702140239-759a8c1ac913
 github.com/ostreedev/ostree-go/pkg/glibobject
 github.com/ostreedev/ostree-go/pkg/otbuiltin
-# github.com/pborman/uuid v0.0.0-20160209185913-a97ce2ca70fa
-github.com/pborman/uuid
 # github.com/pkg/errors v0.8.1
 github.com/pkg/errors
-# github.com/pmezard/go-difflib v0.0.0-20181226105442-5d4384ee4fb2
+# github.com/pmezard/go-difflib v1.0.0
 github.com/pmezard/go-difflib/difflib
-# github.com/pquerna/ffjson v0.0.0-20171002144729-d49c2bc1aa13
+# github.com/pquerna/ffjson v0.0.0-20181028064349-e517b90714f7
 github.com/pquerna/ffjson/fflib/v1
+github.com/pquerna/ffjson/inception
+github.com/pquerna/ffjson/shared
 github.com/pquerna/ffjson/fflib/v1/internal
-# github.com/sirupsen/logrus v1.0.0
+# github.com/sirupsen/logrus v1.4.2
 github.com/sirupsen/logrus
-# github.com/stretchr/testify v1.1.3
+# github.com/stretchr/testify v1.3.0
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
 # github.com/syndtr/gocapability v0.0.0-20180916011248-d98352740cb2
 github.com/syndtr/gocapability/capability
-# github.com/tchap/go-patricia v2.2.6+incompatible
+# github.com/tchap/go-patricia v2.3.0+incompatible
 github.com/tchap/go-patricia/patricia
 # github.com/ulikunitz/xz v0.5.4
 github.com/ulikunitz/xz
@@ -223,10 +232,10 @@ github.com/ulikunitz/xz/lzma
 github.com/ulikunitz/xz/internal/hash
 # github.com/urfave/cli v1.20.0
 github.com/urfave/cli
-# github.com/vbatts/tar-split v0.10.2
+# github.com/vbatts/tar-split v0.11.1
+github.com/vbatts/tar-split/archive/tar
 github.com/vbatts/tar-split/tar/asm
 github.com/vbatts/tar-split/tar/storage
-github.com/vbatts/tar-split/archive/tar
 # github.com/vbauerster/mpb v3.4.0+incompatible
 github.com/vbauerster/mpb
 github.com/vbauerster/mpb/decor
@@ -240,7 +249,7 @@ github.com/xeipuuv/gojsonreference
 github.com/xeipuuv/gojsonschema
 # go4.org v0.0.0-20190218023631-ce4c26f7be8e
 go4.org/errorutil
-# golang.org/x/crypto v0.0.0-20190219172222-a4c6cb3142f2
+# golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
 golang.org/x/crypto/ssh/terminal
 golang.org/x/crypto/openpgp
 golang.org/x/crypto/openpgp/armor
@@ -249,7 +258,7 @@ golang.org/x/crypto/openpgp/packet
 golang.org/x/crypto/openpgp/s2k
 golang.org/x/crypto/cast5
 golang.org/x/crypto/openpgp/elgamal
-# golang.org/x/net v0.0.0-20190107210223-45ffb0cd1ba0
+# golang.org/x/net v0.0.0-20190628185345-da137c7871d7
 golang.org/x/net/context
 golang.org/x/net/http2
 golang.org/x/net/proxy
@@ -260,10 +269,10 @@ golang.org/x/net/idna
 golang.org/x/net/internal/socks
 # golang.org/x/sync v0.0.0-20181108010431-42b317875d0f
 golang.org/x/sync/semaphore
-# golang.org/x/sys v0.0.0-20170817234608-43e60d72a8e2
+# golang.org/x/sys v0.0.0-20190626221950-04f50cda93cb
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/text v0.0.0-20181227161524-e6919f6577db
+# golang.org/x/text v0.3.0
 golang.org/x/text/secure/bidirule
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
