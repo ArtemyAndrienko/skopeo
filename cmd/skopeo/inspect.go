@@ -28,6 +28,7 @@ type inspectOutput struct {
 	Architecture  string
 	Os            string
 	Layers        []string
+	Env           []string
 }
 
 type inspectOptions struct {
@@ -142,6 +143,7 @@ func (opts *inspectOptions) run(args []string, stdout io.Writer) (retErr error) 
 		Architecture:  imgInspect.Architecture,
 		Os:            imgInspect.Os,
 		Layers:        imgInspect.Layers,
+		Env:           imgInspect.Env,
 	}
 	outputData.Digest, err = manifest.Digest(rawManifest)
 	if err != nil {
