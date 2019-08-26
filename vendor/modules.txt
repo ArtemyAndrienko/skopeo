@@ -190,7 +190,7 @@ github.com/mistifyio/go-zfs
 github.com/mtrmac/gpgme
 # github.com/opencontainers/go-digest v1.0.0-rc1
 github.com/opencontainers/go-digest
-# github.com/opencontainers/image-spec v0.0.0-20180918080442-7b1e489870ac
+# github.com/opencontainers/image-spec v1.0.0-rc6.0.20190823105129-775207bd45b6
 github.com/opencontainers/image-spec/specs-go/v1
 github.com/opencontainers/image-spec/specs-go
 github.com/opencontainers/image-spec/schema
