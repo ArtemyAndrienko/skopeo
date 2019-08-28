@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/containers/image/docker"
+	"github.com/containers/image/image"
 	"github.com/containers/image/manifest"
 	"github.com/containers/image/transports"
 	"github.com/opencontainers/go-digest"
@@ -86,21 +87,40 @@ func (opts *inspectOptions) run(args []string, stdout io.Writer) (retErr error) 
 		return err
 	}
 
-	img, err := parseImage(ctx, opts.image, imageName)
+	sys, err := opts.image.newSystemContext()
 	if err != nil {
 		return err
 	}
 
+	src, err := parseImageSource(ctx, opts.image, imageName)
+	if err != nil {
+		return fmt.Errorf("Error parsing image name %q: %v", imageName, err)
+	}
+
 	defer func() {
-		if err := img.Close(); err != nil {
+		if err := src.Close(); err != nil {
 			retErr = errors.Wrapf(retErr, fmt.Sprintf("(could not close image: %v) ", err))
 		}
 	}()
 
-	rawManifest, _, err := img.Manifest(ctx)
+	rawManifest, _, err := src.GetManifest(ctx, nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving manifest for image: %v", err)
 	}
+
+	if opts.raw && !opts.config {
+		_, err := stdout.Write(rawManifest)
+		if err != nil {
+			return fmt.Errorf("Error writing manifest to standard output: %v", err)
+		}
+		return nil
+	}
+
+	img, err := image.FromUnparsedImage(ctx, sys, image.UnparsedInstance(src, nil))
+	if err != nil {
+		return fmt.Errorf("Error parsing manifest for image: %v", err)
+	}
+
 	if opts.config && opts.raw {
 		configBlob, err := img.ConfigBlob(ctx)
 		if err != nil {
@@ -109,12 +129,6 @@ func (opts *inspectOptions) run(args []string, stdout io.Writer) (retErr error) 
 		_, err = stdout.Write(configBlob)
 		if err != nil {
 			return fmt.Errorf("Error writing configuration blob to standard output: %v", err)
-		}
-		return nil
-	} else if opts.raw {
-		_, err := stdout.Write(rawManifest)
-		if err != nil {
-			return fmt.Errorf("Error writing manifest to standard output: %v", err)
 		}
 		return nil
 	} else if opts.config {
@@ -128,6 +142,7 @@ func (opts *inspectOptions) run(args []string, stdout io.Writer) (retErr error) 
 		}
 		return nil
 	}
+
 	imgInspect, err := img.Inspect(ctx)
 	if err != nil {
 		return err
