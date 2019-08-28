@@ -142,9 +142,9 @@ func (opts *layersOptions) run(args []string, stdout io.Writer) (retErr error) {
 	if err != nil {
 		return err
 	}
-	if err := dest.PutManifest(ctx, manifest); err != nil {
+	if err := dest.PutManifest(ctx, manifest, nil); err != nil {
 		return err
 	}
 
-	return dest.Commit(ctx)
+	return dest.Commit(ctx, image.UnparsedInstance(rawSource, nil))
 }
