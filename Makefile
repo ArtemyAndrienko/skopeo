@@ -1,5 +1,7 @@
 .PHONY: all binary build-container docs docs-in-container build-local clean install install-binary install-completions shell test-integration .install.vndr vendor
 
+export GOPROXY=https://proxy.golang.org
+
 ifeq ($(shell uname),Darwin)
 PREFIX ?= ${DESTDIR}/usr/local
 DARWIN_BUILD_TAG=containers_image_ostree_stub
