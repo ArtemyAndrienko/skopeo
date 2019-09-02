@@ -158,7 +158,7 @@ _skopeo_skopeo() {
        --version -v
        --help -h
      "
-     commands=$( ${COMP_WORDS[@]:0:$COMP_CWORD} --generate-bash-completion )
+     commands=$( "${COMP_WORDS[@]:0:$COMP_CWORD}" --generate-bash-completion )
 
      case "$prev" in
          $main_options_with_args_glob )
