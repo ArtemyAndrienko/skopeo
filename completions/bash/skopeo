@@ -60,7 +60,8 @@ _skopeo_copy() {
     --dest-oci-accept-uncompressed-layers
     "
 
-    local transports="
+    local transports
+    transports="
     $(_skopeo_supported_transports $(echo $FUNCNAME | sed 's/_skopeo_//'))
     "
 
@@ -80,7 +81,8 @@ _skopeo_inspect() {
      --no-creds
     "
 
-    local transports="
+    local transports
+    transports="
     $(_skopeo_supported_transports $(echo $FUNCNAME | sed 's/_skopeo_//'))
     "
 
@@ -123,7 +125,8 @@ _skopeo_delete() {
      --no-creds
      "
 
-    local transports="
+    local transports
+    transports="
     $(_skopeo_supported_transports $(echo $FUNCNAME | sed 's/_skopeo_//'))
     "
 
