@@ -195,7 +195,7 @@ _cli_bash_autocomplete() {
              -*)
                 ;;
              *)
-                 command=$(echo "${words[$counter]}" | sed 's/-/_/g')
+                 command="${words[$counter]//-/_}"
                  cpos=$counter
                  (( cpos++ ))
                  break
