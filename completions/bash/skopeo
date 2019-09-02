@@ -174,7 +174,7 @@ _skopeo_skopeo() {
 }
 
 _cli_bash_autocomplete() {
-     local cur opts base
+     local cur opts
 
      COMPREPLY=()
      cur="${COMP_WORDS[COMP_CWORD]}"
