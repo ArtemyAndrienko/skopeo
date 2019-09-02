@@ -33,7 +33,7 @@ _complete_() {
 _skopeo_supported_transports() {
     local subcommand=$1
 
-    ${PROG} $subcommand --help | grep "Supported transports" -A 1 | tail -n 1 | sed -e 's/,/:/g' -e 's/$/:/'
+    ${PROG} "$subcommand" --help | grep "Supported transports" -A 1 | tail -n 1 | sed -e 's/,/:/g' -e 's/$/:/'
 }
 
 _skopeo_copy() {
@@ -186,7 +186,7 @@ _cli_bash_autocomplete() {
      local command=${PROG} cpos=0
      local counter=1
      counter=1
-     while [ $counter -lt $cword ]; do
+     while [ $counter -lt "$cword" ]; do
          case "${words[$counter]}" in
              -*)
                 ;;
@@ -201,7 +201,7 @@ _cli_bash_autocomplete() {
      done
 
      local completions_func=_skopeo_${command}
-     declare -F $completions_func >/dev/null && $completions_func
+     declare -F "$completions_func" >/dev/null && $completions_func
 
      return 0
 }
