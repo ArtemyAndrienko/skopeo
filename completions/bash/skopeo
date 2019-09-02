@@ -10,7 +10,7 @@ _complete_() {
     local option_with_args
     for option_with_args in $options_with_args $transports
     do
-        if [ "$option_with_args" == "$prev" -o "$option_with_args" == "$cur" ]
+        if [ "$option_with_args" == "$prev" ] || [ "$option_with_args" == "$cur" ]
         then
             return
         fi
