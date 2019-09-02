@@ -1,6 +1,6 @@
 #! /bin/bash
 
-: ${PROG:=$(basename ${BASH_SOURCE})}
+PROG="skopeo"
 
 _complete_() {
     local options_with_args=$1
