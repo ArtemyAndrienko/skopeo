@@ -203,7 +203,6 @@ _cli_bash_autocomplete() {
      local completions_func=_skopeo_${command}
      declare -F $completions_func >/dev/null && $completions_func
 
-     eval "$previous_extglob_setting"
      return 0
 }
 
