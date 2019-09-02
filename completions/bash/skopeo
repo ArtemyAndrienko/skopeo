@@ -62,7 +62,7 @@ _skopeo_copy() {
 
     local transports
     transports="
-    $(_skopeo_supported_transports $(echo $FUNCNAME | sed 's/_skopeo_//'))
+    $(_skopeo_supported_transports "${FUNCNAME//"_skopeo_"/}")
     "
 
     _complete_ "$options_with_args" "$boolean_options" "$transports"
@@ -83,7 +83,7 @@ _skopeo_inspect() {
 
     local transports
     transports="
-    $(_skopeo_supported_transports $(echo $FUNCNAME | sed 's/_skopeo_//'))
+    $(_skopeo_supported_transports "${FUNCNAME//"_skopeo_"/}")
     "
 
     _complete_ "$options_with_args" "$boolean_options" "$transports"
@@ -127,7 +127,7 @@ _skopeo_delete() {
 
     local transports
     transports="
-    $(_skopeo_supported_transports $(echo $FUNCNAME | sed 's/_skopeo_//'))
+    $(_skopeo_supported_transports "${FUNCNAME//"_skopeo_"/}")
     "
 
     _complete_ "$options_with_args" "$boolean_options" "$transports"
