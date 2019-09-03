@@ -73,3 +73,37 @@ func (ob *optionalStringValue) String() string {
 	}
 	return ob.value
 }
+
+// optionalInt is a int with a separate presence flag.
+type optionalInt struct {
+	present bool
+	value   int
+}
+
+// optionalInt is a cli.Generic == flag.Value implementation equivalent to
+// the one underlying flag.Int, except that it records whether the flag has been set.
+// This is distinct from optionalInt to (pretend to) force callers to use
+// newoptionalIntValue
+type optionalIntValue optionalInt
+
+func newOptionalIntValue(p *optionalInt) cli.Generic {
+	p.present = false
+	return (*optionalIntValue)(p)
+}
+
+func (ob *optionalIntValue) Set(s string) error {
+	v, err := strconv.ParseInt(s, 0, strconv.IntSize)
+	if err != nil {
+		return err
+	}
+	ob.value = int(v)
+	ob.present = true
+	return nil
+}
+
+func (ob *optionalIntValue) String() string {
+	if !ob.present {
+		return "" // If the value is not present, just return an empty string, any other value wouldn't make sense.
+	}
+	return strconv.Itoa(int(ob.value))
+}

@@ -58,6 +58,10 @@ If the authorization state is not found there, $HOME/.docker/config.json is chec
 
 Existing signatures, if any, are preserved as well.
 
+**--dest-compress-format** _format_ Specifies the compression format to use.  Supported values are: `gzip` and `zstd`.
+
+**--dest-compress-level** _format_ Specifies the compression level to use.  The value is specific to the compression algorithm used, e.g. for zstd the accepted values are in the range 1-20 (inclusive), while for gzip it is 1-9 (inclusive).
+
 ## EXAMPLES
 
 To copy the layers of the docker.io busybox image to a local directory:

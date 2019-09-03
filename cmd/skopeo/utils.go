@@ -6,6 +6,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/containers/image/pkg/compression"
 	"github.com/containers/image/transports/alltransports"
 	"github.com/containers/image/types"
 	"github.com/urfave/cli"
@@ -147,15 +148,18 @@ func (opts *imageOptions) newSystemContext() (*types.SystemContext, error) {
 	if opts.noCreds {
 		ctx.DockerAuthConfig = &types.DockerAuthConfig{}
 	}
+
 	return ctx, nil
 }
 
 // imageDestOptions is a superset of imageOptions specialized for iamge destinations.
 type imageDestOptions struct {
 	*imageOptions
-	osTreeTmpDir                string // A directory to use for OSTree temporary files
-	dirForceCompression         bool   // Compress layers when saving to the dir: transport
-	ociAcceptUncompressedLayers bool   // Whether to accept uncompressed layers in the oci: transport
+	osTreeTmpDir                string      // A directory to use for OSTree temporary files
+	dirForceCompression         bool        // Compress layers when saving to the dir: transport
+	ociAcceptUncompressedLayers bool        // Whether to accept uncompressed layers in the oci: transport
+	compressionFormat           string      // Format to use for the compression
+	compressionLevel            optionalInt // Level to use for the compression
 }
 
 // imageDestFlags prepares a collection of CLI flags writing into imageDestOptions, and the managed imageDestOptions structure.
@@ -179,6 +183,16 @@ func imageDestFlags(global *globalOptions, shared *sharedImageOptions, flagPrefi
 			Usage:       "Allow uncompressed image layers when saving to an OCI image using the 'oci' transport. (default is to compress things that aren't compressed)",
 			Destination: &opts.ociAcceptUncompressedLayers,
 		},
+		cli.StringFlag{
+			Name:        flagPrefix + "compress-format",
+			Usage:       "`FORMAT` to use for the compression",
+			Destination: &opts.compressionFormat,
+		},
+		cli.GenericFlag{
+			Name:  flagPrefix + "compress-level",
+			Usage: "`LEVEL` to use for the compression",
+			Value: newOptionalIntValue(&opts.compressionLevel),
+		},
 	}...), &opts
 }
 
@@ -193,6 +207,16 @@ func (opts *imageDestOptions) newSystemContext() (*types.SystemContext, error) {
 	ctx.OSTreeTmpDirPath = opts.osTreeTmpDir
 	ctx.DirForceCompress = opts.dirForceCompression
 	ctx.OCIAcceptUncompressedLayers = opts.ociAcceptUncompressedLayers
+	if opts.compressionFormat != "" {
+		cf, err := compression.AlgorithmByName(opts.compressionFormat)
+		if err != nil {
+			return nil, err
+		}
+		ctx.CompressionFormat = &cf
+	}
+	if opts.compressionLevel.present {
+		ctx.CompressionLevel = &opts.compressionLevel.value
+	}
 	return ctx, err
 }
 
