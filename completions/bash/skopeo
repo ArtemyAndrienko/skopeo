@@ -1,7 +1,4 @@
 #! /bin/bash
-# shellcheck shell=bash disable=SC2207
-
-PROG="skopeo"
 
 _complete_() {
     local options_with_args=$1
@@ -19,13 +16,13 @@ _complete_() {
 
     case "$cur" in
         -*)
-            COMPREPLY=( $( compgen -W "$boolean_options $options_with_args" -- "$cur" ) )
+            while IFS='' read -r line; do COMPREPLY+=("$line"); done < <(compgen -W "$boolean_options $options_with_args" -- "$cur")
             ;;
         *)
             if [ -n "$transports" ]
             then
                 compopt -o nospace
-                COMPREPLY=( $( compgen -W "$transports" -- "$cur" ) )
+                while IFS='' read -r line; do COMPREPLY+=("$line"); done < <(compgen -W "$transports" -- "$cur")
             fi
             ;;
     esac
@@ -34,7 +31,7 @@ _complete_() {
 _skopeo_supported_transports() {
     local subcommand=$1
 
-    ${PROG} "$subcommand" --help | grep "Supported transports" -A 1 | tail -n 1 | sed -e 's/,/:/g' -e 's/$/:/'
+    skopeo "$subcommand" --help | grep "Supported transports" -A 1 | tail -n 1 | sed -e 's/,/:/g' -e 's/$/:/'
 }
 
 _skopeo_copy() {
@@ -168,11 +165,12 @@ _skopeo_skopeo() {
 
      case "$cur" in
          -*)
-             COMPREPLY=( $( compgen -W "$boolean_options $options_with_args" -- "$cur" ) )
+             while IFS='' read -r line; do COMPREPLY+=("$line"); done < <(compgen -W "$boolean_options $options_with_args" -- "$cur")
              ;;
          *)
              commands=$( "${COMP_WORDS[@]:0:$COMP_CWORD}" --generate-bash-completion )
-             COMPREPLY=( $( compgen -W "${commands[*]} help" -- "$cur" ) )
+
+             while IFS='' read -r line; do COMPREPLY+=("$line"); done < <(compgen -W "${commands[*]} help" -- "$cur")
              ;;
      esac
 }
@@ -187,7 +185,7 @@ _cli_bash_autocomplete() {
 
      _get_comp_words_by_ref -n : cur prev words cword
 
-     local command=${PROG} cpos=0
+     local command="skopeo" cpos=0
      local counter=1
      while [ $counter -lt "$cword" ]; do
          case "${words[$counter]}" in
@@ -207,4 +205,4 @@ _cli_bash_autocomplete() {
      return 0
 }
 
- complete -F _cli_bash_autocomplete $PROG
+ complete -F _cli_bash_autocomplete skopeo
