@@ -159,10 +159,9 @@ _skopeo_skopeo() {
        --version -v
        --help -h
      "
-     commands=$( "${COMP_WORDS[@]:0:$COMP_CWORD}" --generate-bash-completion )
 
      case "$prev" in
-         $main_options_with_args_glob )
+         --policy|--registries.d|--override-arch|--override-os|--command-timeout)
              return
              ;;
      esac
@@ -172,6 +171,7 @@ _skopeo_skopeo() {
              COMPREPLY=( $( compgen -W "$boolean_options $options_with_args" -- "$cur" ) )
              ;;
          *)
+             commands=$( "${COMP_WORDS[@]:0:$COMP_CWORD}" --generate-bash-completion )
              COMPREPLY=( $( compgen -W "${commands[*]} help" -- "$cur" ) )
              ;;
      esac
@@ -189,12 +189,9 @@ _cli_bash_autocomplete() {
 
      local command=${PROG} cpos=0
      local counter=1
-     counter=1
      while [ $counter -lt "$cword" ]; do
          case "${words[$counter]}" in
-             -*)
-                ;;
-             *)
+             skopeo|copy|inspect|delete|manifest-digest|standalone-sign|standalone-verify|help|h)
                  command="${words[$counter]//-/_}"
                  cpos=$counter
                  (( cpos++ ))
