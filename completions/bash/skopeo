@@ -143,6 +143,8 @@ _skopeo_layers() {
 }
 
 _skopeo_skopeo() {
+     # XXX: Changes here need to be refleceted in the manually expanded
+     # string in the `case` statement below as well.
      local options_with_args="
        --policy
        --registries.d
@@ -158,6 +160,7 @@ _skopeo_skopeo() {
      "
 
      case "$prev" in
+         # XXX: Changes here need to be refleceted in $options_with_args as well.
          --policy|--registries.d|--override-arch|--override-os|--command-timeout)
              return
              ;;
