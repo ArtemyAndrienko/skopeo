@@ -1,7 +1,5 @@
 #! /bin/bash
 
-: ${PROG:=$(basename ${BASH_SOURCE})}
-
 _complete_() {
     local options_with_args=$1
     local boolean_options="$2 -h --help"
@@ -10,7 +8,7 @@ _complete_() {
     local option_with_args
     for option_with_args in $options_with_args $transports
     do
-        if [ "$option_with_args" == "$prev" -o "$option_with_args" == "$cur" ]
+        if [ "$option_with_args" == "$prev" ] || [ "$option_with_args" == "$cur" ]
         then
             return
         fi
@@ -18,13 +16,13 @@ _complete_() {
 
     case "$cur" in
         -*)
-            COMPREPLY=( $( compgen -W "$boolean_options $options_with_args" -- "$cur" ) )
+            while IFS='' read -r line; do COMPREPLY+=("$line"); done < <(compgen -W "$boolean_options $options_with_args" -- "$cur")
             ;;
         *)
             if [ -n "$transports" ]
             then
                 compopt -o nospace
-                COMPREPLY=( $( compgen -W "$transports" -- "$cur" ) )
+                while IFS='' read -r line; do COMPREPLY+=("$line"); done < <(compgen -W "$transports" -- "$cur")
             fi
             ;;
     esac
@@ -33,7 +31,7 @@ _complete_() {
 _skopeo_supported_transports() {
     local subcommand=$1
 
-    ${PROG} $subcommand --help | grep "Supported transports" -A 1 | tail -n 1 | sed -e 's/,/:/g' -e 's/$/:/'
+    skopeo "$subcommand" --help | grep "Supported transports" -A 1 | tail -n 1 | sed -e 's/,/:/g' -e 's/$/:/'
 }
 
 _skopeo_copy() {
@@ -60,8 +58,9 @@ _skopeo_copy() {
     --dest-oci-accept-uncompressed-layers
     "
 
-    local transports="
-    $(_skopeo_supported_transports $(echo $FUNCNAME | sed 's/_skopeo_//'))
+    local transports
+    transports="
+    $(_skopeo_supported_transports "${FUNCNAME//"_skopeo_"/}")
     "
 
     _complete_ "$options_with_args" "$boolean_options" "$transports"
@@ -80,8 +79,9 @@ _skopeo_inspect() {
      --no-creds
     "
 
-    local transports="
-    $(_skopeo_supported_transports $(echo $FUNCNAME | sed 's/_skopeo_//'))
+    local transports
+    transports="
+    $(_skopeo_supported_transports "${FUNCNAME//"_skopeo_"/}")
     "
 
     _complete_ "$options_with_args" "$boolean_options" "$transports"
@@ -123,8 +123,9 @@ _skopeo_delete() {
      --no-creds
      "
 
-    local transports="
-    $(_skopeo_supported_transports $(echo $FUNCNAME | sed 's/_skopeo_//'))
+    local transports
+    transports="
+    $(_skopeo_supported_transports "${FUNCNAME//"_skopeo_"/}")
     "
 
     _complete_ "$options_with_args" "$boolean_options" "$transports"
@@ -142,6 +143,8 @@ _skopeo_layers() {
 }
 
 _skopeo_skopeo() {
+     # XXX: Changes here need to be refleceted in the manually expanded
+     # string in the `case` statement below as well.
      local options_with_args="
        --policy
        --registries.d
@@ -155,26 +158,28 @@ _skopeo_skopeo() {
        --version -v
        --help -h
      "
-     commands=$( ${COMP_WORDS[@]:0:$COMP_CWORD} --generate-bash-completion )
 
      case "$prev" in
-         $main_options_with_args_glob )
+         # XXX: Changes here need to be refleceted in $options_with_args as well.
+         --policy|--registries.d|--override-arch|--override-os|--command-timeout)
              return
              ;;
      esac
 
      case "$cur" in
          -*)
-             COMPREPLY=( $( compgen -W "$boolean_options $options_with_args" -- "$cur" ) )
+             while IFS='' read -r line; do COMPREPLY+=("$line"); done < <(compgen -W "$boolean_options $options_with_args" -- "$cur")
              ;;
          *)
-             COMPREPLY=( $( compgen -W "${commands[*]} help" -- "$cur" ) )
+             commands=$( "${COMP_WORDS[@]:0:$COMP_CWORD}" --generate-bash-completion )
+
+             while IFS='' read -r line; do COMPREPLY+=("$line"); done < <(compgen -W "${commands[*]} help" -- "$cur")
              ;;
      esac
 }
 
 _cli_bash_autocomplete() {
-     local cur opts base
+     local cur
 
      COMPREPLY=()
      cur="${COMP_WORDS[COMP_CWORD]}"
@@ -183,15 +188,12 @@ _cli_bash_autocomplete() {
 
      _get_comp_words_by_ref -n : cur prev words cword
 
-     local command=${PROG} cpos=0
+     local command="skopeo" cpos=0
      local counter=1
-     counter=1
-     while [ $counter -lt $cword ]; do
+     while [ $counter -lt "$cword" ]; do
          case "${words[$counter]}" in
-             -*)
-                ;;
-             *)
-                 command=$(echo "${words[$counter]}" | sed 's/-/_/g')
+             skopeo|copy|inspect|delete|manifest-digest|standalone-sign|standalone-verify|help|h)
+                 command="${words[$counter]//-/_}"
                  cpos=$counter
                  (( cpos++ ))
                  break
@@ -201,10 +203,9 @@ _cli_bash_autocomplete() {
      done
 
      local completions_func=_skopeo_${command}
-     declare -F $completions_func >/dev/null && $completions_func
+     declare -F "$completions_func" >/dev/null && $completions_func
 
-     eval "$previous_extglob_setting"
      return 0
 }
 
- complete -F _cli_bash_autocomplete $PROG
+ complete -F _cli_bash_autocomplete skopeo
