@@ -64,4 +64,19 @@ Os                 linux
 END_EXPECT
 }
 
+@test "inspect: env" {
+    remote_image=docker://docker.io/fedora:latest
+    run_skopeo inspect $remote_image
+    inspect_remote=$output
+
+    # Simple check on 'inspect' output with environment variables.
+    #    1) Get remote image values of environment variables (the value of 'Env')
+    #    2) Confirm substring in check_array and the value of 'Env' match.
+    check_array=(DISTTAG=f[0-9]+container FGC=f[0-9]+ FBR=f[0-9]+)
+    remote=$(echo "$inspect_remote" | jq '.Env[]')
+    for substr in ${check_array[@]}; do
+        expect_output --from="$remote" --substring "$substr"
+    done
+}
+
 # vim: filetype=sh
