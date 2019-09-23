@@ -341,8 +341,8 @@ func (s *storageImageSource) GetSignatures(ctx context.Context, instanceDigest *
 
 // newImageDestination sets us up to write a new image, caching blobs in a temporary directory until
 // it's time to Commit() the image
-func newImageDestination(imageRef storageReference) (*storageImageDestination, error) {
-	directory, err := ioutil.TempDir(tmpdir.TemporaryDirectoryForBigFiles(), "storage")
+func newImageDestination(sys *types.SystemContext, imageRef storageReference) (*storageImageDestination, error) {
+	directory, err := ioutil.TempDir(tmpdir.TemporaryDirectoryForBigFiles(sys), "storage")
 	if err != nil {
 		return nil, errors.Wrapf(err, "error creating a temporary directory")
 	}
@@ -930,7 +930,7 @@ func (s *storageImageDestination) AcceptsForeignLayerURLs() bool {
 	return false
 }
 
-// MustMatchRuntimeOS returns true iff the destination can store only images targeted for the current runtime OS. False otherwise.
+// MustMatchRuntimeOS returns true iff the destination can store only images targeted for the current runtime architecture and OS. False otherwise.
 func (s *storageImageDestination) MustMatchRuntimeOS() bool {
 	return true
 }

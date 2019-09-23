@@ -36,6 +36,10 @@ If the authorization state is not found there, $HOME/.docker/config.json is chec
 
 **--sign-by=**_key-id_ add a signature using that key ID for an image name corresponding to _destination-image_
 
+**--encryption-key** _Key_ a reference prefixed with the encryption protocol to use. The supported protocols are JWE, PGP and PKCS7. For instance, jwe:/path/to/key.pem or pgp:admin@example.com or pkcs7:/path/to/x509-file. This feature is still *experimental*.
+
+**--decryption-key** _Key_ a reference required to perform decryption of container images. This should point to files which represent keys and/or certificates that can be used for decryption. Decryption will be tried with all keys. This feature is still *experimental*.
+
 **--src-creds** _username[:password]_ for accessing the source registry
 
 **--dest-compress** _bool-value_ Compress tarball image layers when saving to directory using the 'dir' transport. (default is same compression type as source)
@@ -84,6 +88,30 @@ To copy and sign an image:
 # skopeo copy --sign-by dev@example.com container-storage:example/busybox:streaming docker://example/busybox:gold
 ```
 
+To encrypt an image:
+```sh
+skopeo copy docker://docker.io/library/nginx:latest oci:local_nginx:latest
+
+openssl genrsa -out private.key 1024
+openssl rsa -in private.key -pubout > public.key
+
+skopeo  copy --encryption-key jwe:./public.key oci:local_nginx:latest oci:try-encrypt:encrypted
+```
+
+To decrypt an image:
+```sh
+skopeo copy --decryption-key ./private.key oci:try-encrypt:encryted oci:try-decrypt:decrypted
+```
+
+To copy encrypted image without decryption:
+```sh
+skopeo copy oci:try-encrypt:encryted oci:try-encrypt-copy:encrypted
+```
+
+To decrypt an image that requires more than one key:
+```sh
+skopeo copy --decryption-key ./private1.key --decryption-key ./private2.key --decryption-key ./private3.key oci:try-encrypt:encrypted oci:try-decrypt:decrypted
+```
 ## SEE ALSO
 skopeo(1), podman-login(1), docker-login(1)
 

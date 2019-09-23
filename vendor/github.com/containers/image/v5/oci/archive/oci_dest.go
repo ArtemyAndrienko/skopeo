@@ -19,7 +19,7 @@ type ociArchiveImageDestination struct {
 
 // newImageDestination returns an ImageDestination for writing to an existing directory.
 func newImageDestination(ctx context.Context, sys *types.SystemContext, ref ociArchiveReference) (types.ImageDestination, error) {
-	tempDirRef, err := createOCIRef(ref.image)
+	tempDirRef, err := createOCIRef(sys, ref.image)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error creating oci reference")
 	}
@@ -66,7 +66,7 @@ func (d *ociArchiveImageDestination) AcceptsForeignLayerURLs() bool {
 	return d.unpackedDest.AcceptsForeignLayerURLs()
 }
 
-// MustMatchRuntimeOS returns true iff the destination can store only images targeted for the current runtime OS. False otherwise
+// MustMatchRuntimeOS returns true iff the destination can store only images targeted for the current runtime architecture and OS. False otherwise
 func (d *ociArchiveImageDestination) MustMatchRuntimeOS() bool {
 	return d.unpackedDest.MustMatchRuntimeOS()
 }
