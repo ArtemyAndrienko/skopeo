@@ -72,7 +72,7 @@ END_EXPECT
     # Simple check on 'inspect' output with environment variables.
     #    1) Get remote image values of environment variables (the value of 'Env')
     #    2) Confirm substring in check_array and the value of 'Env' match.
-    check_array=(DISTTAG=f[0-9]+container FGC=f[0-9]+ FBR=f[0-9]+)
+    check_array=(PATH=.* )
     remote=$(echo "$inspect_remote" | jq '.Env[]')
     for substr in ${check_array[@]}; do
         expect_output --from="$remote" --substring "$substr"
