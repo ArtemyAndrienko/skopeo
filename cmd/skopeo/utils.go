@@ -6,9 +6,9 @@ import (
 	"io"
 	"strings"
 
-	"github.com/containers/image/pkg/compression"
-	"github.com/containers/image/transports/alltransports"
-	"github.com/containers/image/types"
+	"github.com/containers/image/v4/pkg/compression"
+	"github.com/containers/image/v4/transports/alltransports"
+	"github.com/containers/image/v4/types"
 	"github.com/urfave/cli"
 )
 

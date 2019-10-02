@@ -6,11 +6,11 @@ import (
 	"io"
 	"strings"
 
-	"github.com/containers/image/copy"
-	"github.com/containers/image/docker/reference"
-	"github.com/containers/image/manifest"
-	"github.com/containers/image/transports"
-	"github.com/containers/image/transports/alltransports"
+	"github.com/containers/image/v4/copy"
+	"github.com/containers/image/v4/docker/reference"
+	"github.com/containers/image/v4/manifest"
+	"github.com/containers/image/v4/transports"
+	"github.com/containers/image/v4/transports/alltransports"
 	imgspecv1 "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/urfave/cli"
 )
