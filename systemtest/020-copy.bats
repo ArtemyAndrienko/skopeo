@@ -76,6 +76,15 @@ function setup() {
     grep '"org.opencontainers.image.ref.name":"withtag"' $dir2/index.json
 }
 
+# Registry -> storage -> oci-archive
+@test "copy: registry -> storage -> oci-archive" {
+    local alpine=docker.io/library/alpine:latest
+    local tmp=$TESTDIR/oci
+
+    run_skopeo copy docker://$alpine containers-storage:$alpine
+    run_skopeo copy containers-storage:$alpine oci-archive:$tmp
+}
+
 # This one seems unlikely to get fixed
 @test "copy: bug 651" {
     skip "Enable this once skopeo issue #651 has been fixed"
