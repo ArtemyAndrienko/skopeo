@@ -14,6 +14,15 @@ function setup() {
     mkdir -p $_cred_dir/containers
     rm -f $_cred_dir/containers/auth.json
 
+    # TODO: This is here to work around
+    # https://github.com/containers/libpod/issues/4227 in the
+    # "auth: credentials via podman login" test.
+    # It should be removed once a packaged version of podman which includes
+    # that fix is available in our CI environment, since we _want_ to be
+    # checking that podman and skopeo agree on the default for where registry
+    # credentials should be stored.
+    export REGISTRY_AUTH_FILE=$_cred_dir/containers/auth.json
+
     # Start authenticated registry with random password
     testuser=testuser
     testpassword=$(random_string 15)
