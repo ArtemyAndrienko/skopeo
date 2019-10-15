@@ -45,7 +45,7 @@ function setup() {
 }
 
 # Compression zstd
-@test "copy: oci, round trip" {
+@test "copy: oci, round trip, zstd" {
     local remote_image=docker://busybox:latest
 
     local dir=$TESTDIR/dir
