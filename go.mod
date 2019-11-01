@@ -15,11 +15,10 @@ require (
 	github.com/opencontainers/runtime-spec v1.0.0 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/russross/blackfriday v2.0.0+incompatible // indirect
-	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.4.0
 	github.com/syndtr/gocapability v0.0.0-20180916011248-d98352740cb2
-	github.com/urfave/cli v1.20.0
+	github.com/urfave/cli v1.22.1
 	github.com/xeipuuv/gojsonschema v1.1.0 // indirect
 	go4.org v0.0.0-20190218023631-ce4c26f7be8e // indirect
 	k8s.io/client-go v0.0.0-20181219152756-3dd551c0f083 // indirect
