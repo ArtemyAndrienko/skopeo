@@ -107,6 +107,8 @@ github.com/containers/storage/drivers/quota
 github.com/containers/storage/pkg/fsutils
 github.com/containers/storage/pkg/ostree
 github.com/containers/storage/drivers/copy
+# github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d
+github.com/cpuguy83/go-md2man/v2/md2man
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
 # github.com/docker/distribution v0.0.0-20170817175659-5f6282db7d65
@@ -218,6 +220,10 @@ github.com/pquerna/ffjson/fflib/v1
 github.com/pquerna/ffjson/inception
 github.com/pquerna/ffjson/shared
 github.com/pquerna/ffjson/fflib/v1/internal
+# github.com/russross/blackfriday/v2 v2.0.1
+github.com/russross/blackfriday/v2
+# github.com/shurcooL/sanitized_anchor_name v1.0.0
+github.com/shurcooL/sanitized_anchor_name
 # github.com/sirupsen/logrus v1.4.2
 github.com/sirupsen/logrus
 # github.com/stretchr/testify v1.4.0
@@ -232,7 +238,7 @@ github.com/ulikunitz/xz
 github.com/ulikunitz/xz/internal/xlog
 github.com/ulikunitz/xz/lzma
 github.com/ulikunitz/xz/internal/hash
-# github.com/urfave/cli v1.20.0
+# github.com/urfave/cli v1.22.1
 github.com/urfave/cli
 # github.com/vbatts/tar-split v0.11.1
 github.com/vbatts/tar-split/archive/tar
