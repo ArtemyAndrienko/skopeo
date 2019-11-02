@@ -3,10 +3,10 @@ module github.com/containers/skopeo
 go 1.12
 
 require (
-	github.com/containers/buildah v1.8.4
+	github.com/containers/buildah v1.11.4
 	github.com/containers/image/v5 v5.0.0
-	github.com/containers/storage v1.13.4
-	github.com/docker/docker v0.0.0-20180522102801-da99009bbb11
+	github.com/containers/storage v1.13.5
+	github.com/docker/docker v1.4.2-0.20190927142053-ada3c14355ce
 	github.com/dsnet/compress v0.0.1 // indirect
 	github.com/go-check/check v0.0.0-20180628173108-788fd7840127
 	github.com/opencontainers/go-digest v1.0.0-rc1
@@ -19,7 +19,6 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/syndtr/gocapability v0.0.0-20180916011248-d98352740cb2
 	github.com/urfave/cli v1.22.1
-	github.com/xeipuuv/gojsonschema v1.1.0 // indirect
 	go4.org v0.0.0-20190218023631-ce4c26f7be8e // indirect
-	k8s.io/client-go v0.0.0-20181219152756-3dd551c0f083 // indirect
+	google.golang.org/genproto v0.0.0-20180831171423-11092d34479b // indirect
 )
