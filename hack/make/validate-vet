@@ -1,6 +1,6 @@
 #!/bin/bash
 
-errors=$(go vet $(go list -e ./... | grep -v "$SKOPEO_PKG"/vendor))
+errors=$(go vet $mod_vendor $(go list $mod_vendor -e ./... | grep -v "$SKOPEO_PKG"/vendor))
 
 if [ -z "$errors" ]; then
 	echo 'Congratulations!  All Go source files have been vetted.'

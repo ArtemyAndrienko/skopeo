@@ -59,6 +59,14 @@ DEFAULT_BUNDLES=(
 
 TESTFLAGS+=" -test.timeout=10m"
 
+# Go module support: set `-mod=vendor` to use the vendored sources
+# See also the top-level Makefile.
+mod_vendor=
+if go help mod >/dev/null 2>&1; then
+  export GO111MODULE=on
+  mod_vendor='-mod=vendor'
+fi
+
 # If $TESTFLAGS is set in the environment, it is passed as extra arguments to 'go test'.
 # You can use this to select certain tests to run, eg.
 #
@@ -72,10 +80,10 @@ TESTFLAGS+=" -test.timeout=10m"
 go_test_dir() {
 	dir=$1
 	(
-		echo '+ go test' $TESTFLAGS ${BUILDTAGS:+-tags "$BUILDTAGS"} "${SKOPEO_PKG}${dir#.}"
+		echo '+ go test' $mod_vendor $TESTFLAGS ${BUILDTAGS:+-tags "$BUILDTAGS"} "${SKOPEO_PKG}${dir#.}"
 		cd "$dir"
 		export DEST="$ABS_DEST" # we're in a subshell, so this is safe -- our integration-cli tests need DEST, and "cd" screws it up
-		go test $TESTFLAGS ${BUILDTAGS:+-tags "$BUILDTAGS"}
+		go test $mod_vendor $TESTFLAGS ${BUILDTAGS:+-tags "$BUILDTAGS"}
 	)
 }
 
