@@ -153,7 +153,7 @@ test-integration: build-container
 # complicated set of options needed to run podman-in-podman
 test-system: build-container
 	DTEMP=$(shell mktemp -d --tmpdir=/var/tmp podman-tmp.XXXXXX); \
-	$(CONTAINER_CMD) --privileged --net=host \
+	$(CONTAINER_CMD) --privileged \
 	    -v $$DTEMP:/var/lib/containers:Z -v /run/systemd/journal/socket:/run/systemd/journal/socket \
             "$(IMAGE)" \
             bash -c 'BUILDTAGS="$(BUILDTAGS)" hack/make.sh test-system'; \
