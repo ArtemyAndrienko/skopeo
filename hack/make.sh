@@ -57,7 +57,7 @@ DEFAULT_BUNDLES=(
 	test-integration
 )
 
-TESTFLAGS+=" -test.timeout=10m"
+TESTFLAGS+=" -test.timeout=15m"
 
 # Go module support: set `-mod=vendor` to use the vendored sources
 # See also the top-level Makefile.
