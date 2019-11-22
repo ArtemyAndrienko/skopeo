@@ -27,7 +27,7 @@ func init() {
 const (
 	v2DockerRegistryURL   = "localhost:5555" // Update also policy.json
 	v2s1DockerRegistryURL = "localhost:5556"
-	knownWindowsOnlyImage = "docker://mcr.microsoft.com/windows/servercore:ltsc2019"
+	knownWindowsOnlyImage = "docker://mcr.microsoft.com/windows/nanoserver:1909"
 )
 
 type CopySuite struct {

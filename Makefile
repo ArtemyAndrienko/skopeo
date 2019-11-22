@@ -26,10 +26,11 @@ GO ?= go
 CONTAINER_RUNTIME := $(shell command -v podman 2> /dev/null || echo docker)
 GOMD2MAN ?= $(shell command -v go-md2man || echo '$(GOBIN)/go-md2man')
 
-GO_BUILD=$(GO) build
-# Go module support: set `-mod=vendor` to use the vendored sources
+# Go module support: set `-mod=vendor` to use the vendored sources.
+# See also hack/make.sh.
 ifeq ($(shell go help mod >/dev/null 2>&1 && echo true), true)
-  GO_BUILD=GO111MODULE=on $(GO) build -mod=vendor
+  GO:=GO111MODULE=on $(GO)
+  MOD_VENDOR=-mod=vendor
 endif
 
 ifeq ($(DEBUG), 1)
@@ -100,10 +101,10 @@ binary-static: cmd/skopeo
 
 # Build w/o using containers
 binary-local:
-	$(GPGME_ENV) $(GO_BUILD) ${GO_DYN_FLAGS} -ldflags "-X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo
+	$(GPGME_ENV) $(GO) build $(MOD_VENDOR) ${GO_DYN_FLAGS} -ldflags "-X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo
 
 binary-local-static:
-	$(GPGME_ENV) $(GO_BUILD) -ldflags "-extldflags \"-static\" -X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo
+	$(GPGME_ENV) $(GO) build $(MOD_VENDOR) -ldflags "-extldflags \"-static\" -X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo
 
 build-container:
 	${CONTAINER_RUNTIME} build ${BUILD_ARGS} -t "$(IMAGE)" .
@@ -152,8 +153,8 @@ test-integration: build-container
 # complicated set of options needed to run podman-in-podman
 test-system: build-container
 	DTEMP=$(shell mktemp -d --tmpdir=/var/tmp podman-tmp.XXXXXX); \
-	$(CONTAINER_CMD) --privileged --net=host \
-	    -v $$DTEMP:/var/lib/containers:Z \
+	$(CONTAINER_CMD) --privileged \
+	    -v $$DTEMP:/var/lib/containers:Z -v /run/systemd/journal/socket:/run/systemd/journal/socket \
             "$(IMAGE)" \
             bash -c 'BUILDTAGS="$(BUILDTAGS)" hack/make.sh test-system'; \
 	rc=$$?; \
@@ -174,7 +175,7 @@ validate-local:
 	hack/make.sh validate-git-marks validate-gofmt validate-lint validate-vet
 
 test-unit-local:
-	$(GPGME_ENV) $(GO) test -tags "$(BUILDTAGS)" $$($(GO) list -tags "$(BUILDTAGS)" -e ./... | grep -v '^github\.com/containers/skopeo/\(integration\|vendor/.*\)$$')
+	$(GPGME_ENV) $(GO) test $(MOD_VENDOR) -tags "$(BUILDTAGS)" $$($(GO) list $(MOD_VENDOR) -tags "$(BUILDTAGS)" -e ./... | grep -v '^github\.com/containers/skopeo/\(integration\|vendor/.*\)$$')
 
 vendor:
 	export GO111MODULE=on \
