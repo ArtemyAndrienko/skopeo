@@ -1,6 +1,9 @@
 package main
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -532,6 +535,108 @@ func (s *CopySuite) TestCopySimple(c *check.C) {
 	assertSkopeoSucceeds(c, "", "copy", "docker://busybox:latest", "oci:"+ociDest)
 	_, err = os.Stat(ociDest)
 	c.Assert(err, check.IsNil)
+}
+
+func (s *CopySuite) TestCopyEncryption(c *check.C) {
+
+	originalImageDir, err := ioutil.TempDir("", "copy-1")
+	c.Assert(err, check.IsNil)
+	defer os.RemoveAll(originalImageDir)
+	encryptedImgDir, err := ioutil.TempDir("", "copy-2")
+	c.Assert(err, check.IsNil)
+	defer os.RemoveAll(encryptedImgDir)
+	decryptedImgDir, err := ioutil.TempDir("", "copy-3")
+	c.Assert(err, check.IsNil)
+	defer os.RemoveAll(decryptedImgDir)
+	keysDir, err := ioutil.TempDir("", "copy-4")
+	c.Assert(err, check.IsNil)
+	defer os.RemoveAll(keysDir)
+	undecryptedImgDir, err := ioutil.TempDir("", "copy-5")
+	defer os.RemoveAll(undecryptedImgDir)
+
+	// Create RSA key pair
+	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
+	c.Assert(err, check.IsNil)
+	publicKey := &privateKey.PublicKey
+	privateKeyBytes := x509.MarshalPKCS1PrivateKey(privateKey)
+	publicKeyBytes, err := x509.MarshalPKIXPublicKey(publicKey)
+	c.Assert(err, check.IsNil)
+	err = ioutil.WriteFile(keysDir+"/private.key", privateKeyBytes, 0644)
+	c.Assert(err, check.IsNil)
+	err = ioutil.WriteFile(keysDir+"/public.key", publicKeyBytes, 0644)
+	c.Assert(err, check.IsNil)
+
+	// We can either perform encryption or decryption on the image.
+	// This is why use should not be able to specify both encryption and decryption
+	// during copy at the same time.
+	assertSkopeoFails(c, ".*--encryption-key and --decryption-key cannot be specified together.*",
+		"copy", "--encryption-key", "jwe:"+keysDir+"/public.key", "--decryption-key", keysDir+"/private.key",
+		"oci:"+encryptedImgDir+":encrypted", "oci:"+decryptedImgDir+":decrypted")
+	assertSkopeoFails(c, ".*--encryption-key and --decryption-key cannot be specified together.*",
+		"copy", "--decryption-key", keysDir+"/private.key", "--encryption-key", "jwe:"+keysDir+"/public.key",
+		"oci:"+encryptedImgDir+":encrypted", "oci:"+decryptedImgDir+":decrypted")
+
+	// Copy a standard busybox image locally
+	assertSkopeoSucceeds(c, "", "copy", "docker://busybox", "oci:"+originalImageDir+":latest")
+
+	// Encrypt the image
+	assertSkopeoSucceeds(c, "", "copy", "--encryption-key",
+		"jwe:"+keysDir+"/public.key", "oci:"+originalImageDir+":latest", "oci:"+encryptedImgDir+":encrypted")
+
+	// An attempt to decrypt an encrypted image without a valid private key should fail
+	invalidPrivateKey, err := rsa.GenerateKey(rand.Reader, 4096)
+	c.Assert(err, check.IsNil)
+	invalidPrivateKeyBytes := x509.MarshalPKCS1PrivateKey(invalidPrivateKey)
+	err = ioutil.WriteFile(keysDir+"/invalid_private.key", invalidPrivateKeyBytes, 0644)
+	c.Assert(err, check.IsNil)
+	assertSkopeoFails(c, ".*no suitable key unwrapper found or none of the private keys could be used for decryption.*",
+		"copy", "--decryption-key", keysDir+"/invalid_private.key",
+		"oci:"+encryptedImgDir+":encrypted", "oci:"+decryptedImgDir+":decrypted")
+
+	// Copy encrypted image without decrypting it
+	assertSkopeoSucceeds(c, "", "copy", "oci:"+encryptedImgDir+":encrypted", "oci:"+undecryptedImgDir+":encrypted")
+	// Original busybox image has gzipped layers. But encrypted busybox layers should
+	// not be of gzip type
+	matchLayerBlobBinaryType(c, undecryptedImgDir+"/blobs/sha256", "application/x-gzip", false)
+
+	// Decrypt the image
+	assertSkopeoSucceeds(c, "", "copy", "--decryption-key", keysDir+"/private.key",
+		"oci:"+undecryptedImgDir+":encrypted", "oci:"+decryptedImgDir+":decrypted")
+
+	// After successful decryption we should find the gzipped layer from the
+	// busybox image
+	matchLayerBlobBinaryType(c, decryptedImgDir+"/blobs/sha256", "application/x-gzip", true)
+}
+
+func matchLayerBlobBinaryType(c *check.C, ociImageDirPath string, contentType string, shouldMatch bool) {
+	files, err := ioutil.ReadDir(ociImageDirPath)
+	c.Assert(err, check.IsNil)
+	blobFound := false
+	for _, f := range files {
+		fileContent, err := os.Open(ociImageDirPath + "/" + f.Name())
+		c.Assert(err, check.IsNil)
+		layerContentType, err := getFileContentType(fileContent)
+		c.Assert(err, check.IsNil)
+
+		if layerContentType == contentType {
+			blobFound = true
+			break
+		}
+	}
+
+	c.Assert(blobFound, check.Equals, shouldMatch)
+
+}
+
+func getFileContentType(out *os.File) (string, error) {
+	buffer := make([]byte, 512)
+	_, err := out.Read(buffer)
+	if err != nil {
+		return "", err
+	}
+	contentType := http.DetectContentType(buffer)
+
+	return contentType, nil
 }
 
 // Check whether dir: images in dir1 and dir2 are equal, ignoring schema1 signatures.

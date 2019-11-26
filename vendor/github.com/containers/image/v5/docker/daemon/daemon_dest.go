@@ -54,7 +54,7 @@ func newImageDestination(ctx context.Context, sys *types.SystemContext, ref daem
 	return &daemonImageDestination{
 		ref:                ref,
 		mustMatchRuntimeOS: mustMatchRuntimeOS,
-		Destination:        tarfile.NewDestination(writer, namedTaggedRef),
+		Destination:        tarfile.NewDestinationWithContext(sys, writer, namedTaggedRef),
 		goroutineCancel:    goroutineCancel,
 		statusChannel:      statusChannel,
 		writer:             writer,
@@ -90,7 +90,7 @@ func (d *daemonImageDestination) DesiredLayerCompression() types.LayerCompressio
 	return types.PreserveOriginal
 }
 
-// MustMatchRuntimeOS returns true iff the destination can store only images targeted for the current runtime OS. False otherwise.
+// MustMatchRuntimeOS returns true iff the destination can store only images targeted for the current runtime architecture and OS. False otherwise.
 func (d *daemonImageDestination) MustMatchRuntimeOS() bool {
 	return d.mustMatchRuntimeOS
 }
