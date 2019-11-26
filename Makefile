@@ -1,4 +1,4 @@
-.PHONY: all binary build-container docs docs-in-container build-local clean install install-binary install-completions shell test-integration .install.vndr vendor
+.PHONY: all binary build-container docs docs-in-container build-local clean install install-binary install-completions shell test-integration .install.vndr vendor vendor-in-container
 
 export GOPROXY=https://proxy.golang.org
 
@@ -182,3 +182,6 @@ vendor:
 		$(GO) mod tidy && \
 		$(GO) mod vendor && \
 		$(GO) mod verify
+
+vendor-in-container:
+	podman run --privileged --rm --env HOME=/root -v `pwd`:/src -w /src docker.io/library/golang:1.13 make vendor
