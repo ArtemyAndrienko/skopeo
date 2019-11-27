@@ -100,12 +100,12 @@ skopeo  copy --encryption-key jwe:./public.key oci:local_nginx:latest oci:try-en
 
 To decrypt an image:
 ```sh
-skopeo copy --decryption-key ./private.key oci:try-encrypt:encryted oci:try-decrypt:decrypted
+skopeo copy --decryption-key ./private.key oci:try-encrypt:encrypted oci:try-decrypt:decrypted
 ```
 
 To copy encrypted image without decryption:
 ```sh
-skopeo copy oci:try-encrypt:encryted oci:try-encrypt-copy:encrypted
+skopeo copy oci:try-encrypt:encrypted oci:try-encrypt-copy:encrypted
 ```
 
 To decrypt an image that requires more than one key:
