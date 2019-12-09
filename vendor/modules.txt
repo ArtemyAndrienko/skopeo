@@ -34,7 +34,7 @@ github.com/containerd/cgroups/stats/v1
 github.com/containerd/containerd/errdefs
 github.com/containerd/containerd/log
 github.com/containerd/containerd/platforms
-# github.com/containers/buildah v1.11.5
+# github.com/containers/buildah v1.11.6
 github.com/containers/buildah/pkg/unshare
 # github.com/containers/image/v5 v5.0.1-0.20191126085826-502848a1358b
 github.com/containers/image/v5/copy
