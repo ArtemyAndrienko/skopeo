@@ -186,7 +186,7 @@ func (opts *copyOptions) run(args []string, stdout io.Writer) error {
 		encryptionKeys := opts.encryptionKeys.Value()
 		ecc, err := enchelpers.CreateCryptoConfig(encryptionKeys, []string{})
 		if err != nil {
-			return err
+			return fmt.Errorf("Invalid encryption keys: %v", err)
 		}
 		cc := encconfig.CombineCryptoConfigs([]encconfig.CryptoConfig{ecc})
 		encConfig = cc.EncryptConfig
@@ -197,7 +197,7 @@ func (opts *copyOptions) run(args []string, stdout io.Writer) error {
 		decryptionKeys := opts.decryptionKeys.Value()
 		dcc, err := enchelpers.CreateCryptoConfig([]string{}, decryptionKeys)
 		if err != nil {
-			return err
+			return fmt.Errorf("Invalid decryption keys: %v", err)
 		}
 		cc := encconfig.CombineCryptoConfigs([]encconfig.CryptoConfig{dcc})
 		decConfig = cc.DecryptConfig
