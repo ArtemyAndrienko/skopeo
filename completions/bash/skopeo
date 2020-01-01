@@ -150,6 +150,7 @@ _skopeo_skopeo() {
        --registries.d
        --override-arch
        --override-os
+       --override-variant
        --command-timeout
      "
      local boolean_options="
@@ -161,7 +162,7 @@ _skopeo_skopeo() {
 
      case "$prev" in
          # XXX: Changes here need to be refleceted in $options_with_args as well.
-         --policy|--registries.d|--override-arch|--override-os|--command-timeout)
+         --policy|--registries.d|--override-arch|--override-os|--override-variant|--command-timeout)
              return
              ;;
      esac
