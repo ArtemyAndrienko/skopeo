@@ -3,7 +3,8 @@ module github.com/containers/skopeo
 go 1.12
 
 require (
-	github.com/containers/buildah v1.11.6
+	github.com/containers/buildah v1.12.0 // indirect
+	github.com/containers/common v0.0.7
 	github.com/containers/image/v5 v5.0.1-0.20191126085826-502848a1358b
 	github.com/containers/ocicrypt v0.0.0-20190930154801-b87a4a69c741
 	github.com/containers/storage v1.15.3
