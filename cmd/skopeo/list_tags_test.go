@@ -33,10 +33,10 @@ func TestDockerRepositoryReferenceParser(t *testing.T) {
 
 func TestDockerRepositoryReferenceParserDrift(t *testing.T) {
 	for _, test := range [][]string{
-		{"docker://myhost.com:1000/nginx", "myhost.com:1000/nginx"},    //no tag
-		{"docker://myhost.com/nginx", "myhost.com/nginx"},              //no port or tag
-		{"docker://somehost.com", "docker.io/library/somehost.com"},    // Valid default expansion
-		{"docker://nginx", "docker.io/library/nginx"},                  // Valid default expansion
+		{"docker://myhost.com:1000/nginx", "myhost.com:1000/nginx"}, //no tag
+		{"docker://myhost.com/nginx", "myhost.com/nginx"},           //no port or tag
+		{"docker://somehost.com", "docker.io/library/somehost.com"}, // Valid default expansion
+		{"docker://nginx", "docker.io/library/nginx"},               // Valid default expansion
 	} {
 
 		ref, err := parseDockerRepositoryReference(test[0])
