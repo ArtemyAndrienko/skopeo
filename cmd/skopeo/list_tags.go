@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/containers/image/v5/docker"
-	"github.com/containers/image/v5/transports"
 	"github.com/containers/image/v5/transports/alltransports"
 	"github.com/containers/image/v5/types"
 	"github.com/docker/distribution/reference"
@@ -56,18 +55,13 @@ func tagsCmd(global *globalOptions) cli.Command {
 // Customized version of the alltransports.ParseImageName and docker.ParseReference that does not place a default tag in the reference
 // Would really love to not have this, but needed to enforce tag-less and digest-less names
 func parseDockerRepositoryReference(refString string) (types.ImageReference, error) {
+	if !strings.HasPrefix(refString, docker.Transport.Name()+"://") {
+		return nil, errors.Errorf("docker: image reference %s does not start with %s://", refString, docker.Transport.Name())
+	}
+
 	parts := strings.SplitN(refString, ":", 2)
 	if len(parts) != 2 {
 		return nil, errors.Errorf(`Invalid image name "%s", expected colon-separated transport:reference`, refString)
-	}
-
-	transport := transports.Get(parts[0])
-	if transport == nil || transport.Name() != docker.Transport.Name() {
-		return nil, errors.New("Invalid transport, can only parse docker transport references")
-	}
-
-	if !strings.HasPrefix(parts[1], "//") {
-		return nil, errors.Errorf("docker: image reference %s does not start with //", parts[1])
 	}
 
 	ref, err := reference.ParseNormalizedNamed(strings.TrimPrefix(parts[1], "//"))
@@ -83,12 +77,8 @@ func parseDockerRepositoryReference(refString string) (types.ImageReference, err
 	return docker.NewReference(reference.TagNameOnly(ref))
 }
 
-func listDockerTags(ctx context.Context, sys *types.SystemContext, referenceInput string) (string, []string, error) {
-	imgRef, err := parseDockerRepositoryReference(referenceInput)
-	if err != nil {
-		return ``, nil, fmt.Errorf("Cannot parse repository reference: %v", err)
-	}
-
+// List the tags from a repository contained in the imgRef reference. Any tag value in the reference is ignored
+func listDockerTags(ctx context.Context, sys *types.SystemContext, imgRef types.ImageReference) (string, []string, error) {
 	repositoryName := imgRef.DockerReference().Name()
 
 	tags, err := docker.GetRepositoryTags(ctx, sys, imgRef)
@@ -101,8 +91,6 @@ func listDockerTags(ctx context.Context, sys *types.SystemContext, referenceInpu
 func (opts *tagsOptions) run(args []string, stdout io.Writer) (retErr error) {
 	ctx, cancel := opts.global.commandTimeoutContext()
 	defer cancel()
-	var repositoryName string
-	var tagListing []string
 
 	if len(args) != 1 {
 		return errorShouldDisplayUsage{errors.New("Exactly one non-option argument expected")}
@@ -115,16 +103,22 @@ func (opts *tagsOptions) run(args []string, stdout io.Writer) (retErr error) {
 
 	transport := alltransports.TransportFromImageName(args[0])
 	if transport == nil {
-		return errors.New("Invalid transport")
+		return fmt.Errorf("Invalid %q: does not specify a transport", args[0])
 	}
 
-	if transport.Name() == docker.Transport.Name() {
-		repositoryName, tagListing, err = listDockerTags(ctx, sys, args[0])
-		if err != nil {
-			return err
-		}
-	} else {
+	if transport.Name() != docker.Transport.Name() {
 		return fmt.Errorf("Unsupported transport '%v' for tag listing. Only '%v' currently supported", transport.Name(), docker.Transport.Name())
+	}
+
+	// Do transport-specific parsing and validation to get an image reference
+	imgRef, err := parseDockerRepositoryReference(args[0])
+	if err != nil {
+		return err
+	}
+
+	repositoryName, tagListing, err := listDockerTags(ctx, sys, imgRef)
+	if err != nil {
+		return err
 	}
 
 	outputData := tagListOutput{
