@@ -83,11 +83,11 @@ To list the tags in a local host docker/distribution registry on port 5000, in t
 ```sh
 $ skopeo list-tags docker://localhost:5000/fedora
 {
-    "Repository": "localhost:5000/myapp",
+    "Repository": "localhost:5000/fedora",
     "Tags": [
         "latest",
-        "v1.1.1",
-        "v1.2.0"
+        "30",
+        "31"
     ]
 }
 
