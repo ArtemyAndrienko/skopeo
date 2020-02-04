@@ -5,9 +5,9 @@ go 1.12
 require (
 	github.com/containers/buildah v1.13.1 // indirect
 	github.com/containers/common v0.0.7
-	github.com/containers/image/v5 v5.1.0
+	github.com/containers/image/v5 v5.2.0
 	github.com/containers/ocicrypt v0.0.0-20190930154801-b87a4a69c741
-	github.com/containers/storage v1.15.5
+	github.com/containers/storage v1.15.8
 	github.com/docker/docker v1.4.2-0.20191101170500-ac7306503d23
 	github.com/dsnet/compress v0.0.1 // indirect
 	github.com/go-check/check v0.0.0-20180628173108-788fd7840127
@@ -16,7 +16,7 @@ require (
 	github.com/opencontainers/image-tools v0.0.0-20170926011501-6d941547fa1d
 	github.com/opencontainers/runtime-spec v1.0.0 // indirect
 	github.com/openshift/api v3.9.1-0.20190810003144-27fb16909b15+incompatible // indirect
-	github.com/pkg/errors v0.9.0
+	github.com/pkg/errors v0.9.1
 	github.com/russross/blackfriday v2.0.0+incompatible // indirect
 	github.com/sirupsen/logrus v1.4.2
 	github.com/stretchr/testify v1.4.0
