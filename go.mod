@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/containers/buildah v1.8.4
-	github.com/containers/image/v5 v5.0.0
+	github.com/containers/image/v5 v5.0.1-0.20200205124631-82291c45f2b0
 	github.com/containers/storage v1.13.4
 	github.com/docker/docker v0.0.0-20180522102801-da99009bbb11
 	github.com/dsnet/compress v0.0.1 // indirect

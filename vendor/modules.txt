@@ -26,7 +26,7 @@ github.com/VividCortex/ewma
 github.com/containerd/continuity/pathdriver
 # github.com/containers/buildah v1.8.4
 github.com/containers/buildah/pkg/unshare
-# github.com/containers/image/v5 v5.0.0
+# github.com/containers/image/v5 v5.0.1-0.20200205124631-82291c45f2b0
 github.com/containers/image/v5/copy
 github.com/containers/image/v5/directory
 github.com/containers/image/v5/docker
@@ -42,6 +42,7 @@ github.com/containers/image/v5/transports/alltransports
 github.com/containers/image/v5/types
 github.com/containers/image/v5/directory/explicitfilepath
 github.com/containers/image/v5/docker/policyconfiguration
+github.com/containers/image/v5/internal/iolimits
 github.com/containers/image/v5/pkg/blobinfocache/none
 github.com/containers/image/v5/pkg/docker/config
 github.com/containers/image/v5/pkg/sysregistriesv2
