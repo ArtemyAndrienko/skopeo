@@ -91,6 +91,8 @@ github.com/mistifyio/go-zfs v2.1.1+incompatible h1:gAMO1HM9xBRONLHHYnu5iFsOJUiJd
 github.com/mistifyio/go-zfs v2.1.1+incompatible/go.mod h1:8AuVvqP/mXw1px98n46wfvcGfQ4ci2FwoAjKYxuo3Z4=
 github.com/mtrmac/gpgme v0.0.0-20170102180018-b2432428689c h1:xa+eQWKuJ9MbB9FBL/eoNvDFvveAkz2LQoz8PzX7Q/4=
 github.com/mtrmac/gpgme v0.0.0-20170102180018-b2432428689c/go.mod h1:GhAqVMEWnTcW2dxoD/SO3n2enrgWl3y6Dnx4m59GvcA=
+github.com/mtrmac/gpgme v0.1.2 h1:dNOmvYmsrakgW7LcgiprD0yfRuQQe8/C8F6Z+zogO3s=
+github.com/mtrmac/gpgme v0.1.2/go.mod h1:GYYHnGSuS7HK3zVS2n3y73y0okK/BeKzwnn5jgiVFNI=
 github.com/mtrmac/image/v4 v4.0.0-20191002203927-a64d9d2717f4 h1:AE5cilZfrGtAgMg5Ed4c2Y2KczlOsMVZAK055sSq+gc=
 github.com/mtrmac/image/v4 v4.0.0-20191002203927-a64d9d2717f4/go.mod h1:0ASJH1YgJiX/eqFZObqepgsvIA4XjCgpyfwn9pDGafA=
 github.com/mtrmac/image/v4 v4.0.0-20191003181245-f4c983e93262 h1:HMUEnWU3OPT09JRFQLn8VTp3GfdfiEhDMAEhkdX8QnA=
