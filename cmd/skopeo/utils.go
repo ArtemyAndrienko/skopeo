@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"io"
+	"os"
 	"strings"
 
 	"github.com/containers/image/v5/pkg/compression"
@@ -44,7 +45,8 @@ func sharedImageFlags() ([]cli.Flag, *sharedImageOptions) {
 	return []cli.Flag{
 		cli.StringFlag{
 			Name:        "authfile",
-			Usage:       "path of the authentication file. Default is ${XDG_RUNTIME_DIR}/containers/auth.json",
+			Usage:       "path of the authentication file. Example: ${XDG_RUNTIME_DIR}/containers/auth.json",
+			Value:       os.Getenv("REGISTRY_AUTH_FILE"),
 			Destination: &opts.authFilePath,
 		},
 	}, &opts
@@ -94,7 +96,7 @@ func dockerImageFlags(global *globalOptions, shared *sharedImageOptions, flagPre
 		flags = append(flags,
 			cli.GenericFlag{
 				Name:  flagPrefix + "authfile",
-				Usage: "path of the authentication file. Default is ${XDG_RUNTIME_DIR}/containers/auth.json",
+				Usage: "path of the authentication file. Example: ${XDG_RUNTIME_DIR}/containers/auth.json",
 				Value: newOptionalStringValue(&opts.authFilePath),
 			},
 		)

@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"os"
 	"testing"
 
 	"github.com/containers/image/v5/types"
@@ -137,13 +138,25 @@ func TestImageDestOptionsNewSystemContext(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, &types.SystemContext{}, res)
 
+	oldXRD, hasXRD := os.LookupEnv("REGISTRY_AUTH_FILE")
+	defer func() {
+		if hasXRD {
+			os.Setenv("REGISTRY_AUTH_FILE", oldXRD)
+		} else {
+			os.Unsetenv("REGISTRY_AUTH_FILE")
+		}
+	}()
+	authFile := "/tmp/auth.json"
+	// Make sure when REGISTRY_AUTH_FILE is set the auth file is used
+	os.Setenv("REGISTRY_AUTH_FILE", authFile)
+
 	// Explicitly set everything to default, except for when the default is “not present”
 	opts = fakeImageDestOptions(t, "dest-", []string{}, []string{
 		"--dest-compress=false",
 	})
 	res, err = opts.newSystemContext()
 	require.NoError(t, err)
-	assert.Equal(t, &types.SystemContext{}, res)
+	assert.Equal(t, &types.SystemContext{AuthFilePath: authFile}, res)
 
 	// Set everything to non-default values.
 	opts = fakeImageDestOptions(t, "dest-", []string{

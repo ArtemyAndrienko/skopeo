@@ -28,6 +28,9 @@ the images in the list, and the list itself.
 Path of the authentication file. Default is ${XDG_RUNTIME\_DIR}/containers/auth.json, which is set using `podman login`.
 If the authorization state is not found there, $HOME/.docker/config.json is checked, which is set using `docker login`.
 
+Note: You can also override the default path of the authentication file by setting the REGISTRY\_AUTH\_FILE
+environment variable. `export REGISTRY_AUTH_FILE=path`
+
 **--src-authfile** _path_
 
 Path of the authentication file for the source registry. Uses path given by `--authfile`, if not provided.
