@@ -36,7 +36,7 @@ github.com/containerd/cgroups/stats/v1
 github.com/containerd/containerd/errdefs
 github.com/containerd/containerd/log
 github.com/containerd/containerd/platforms
-# github.com/containers/common v0.2.1
+# github.com/containers/common v0.4.2
 github.com/containers/common/pkg/unshare
 # github.com/containers/image/v5 v5.2.1
 github.com/containers/image/v5/copy
@@ -237,7 +237,7 @@ github.com/opencontainers/runc/libcontainer/system
 github.com/opencontainers/runc/libcontainer/user
 # github.com/opencontainers/runtime-spec v1.0.0
 github.com/opencontainers/runtime-spec/specs-go
-# github.com/opencontainers/selinux v1.3.1
+# github.com/opencontainers/selinux v1.3.2
 github.com/opencontainers/selinux/go-selinux
 github.com/opencontainers/selinux/go-selinux/label
 # github.com/ostreedev/ostree-go v0.0.0-20190702140239-759a8c1ac913
