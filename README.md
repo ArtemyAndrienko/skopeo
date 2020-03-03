@@ -149,9 +149,13 @@ you'll get an error. You can fix this by either logging in (via `docker login`) 
 
 Obtaining skopeo
 -
-`skopeo` may already be packaged in your distribution, for example on Fedora 23 and later you can install it using
+`skopeo` may already be packaged in your distribution, for example on RHEL/CentOS ≥ 8 or Fedora you can install it using
 ```sh
 $ sudo dnf install skopeo
+```
+on RHEL/CentOS ≤ 7.x:
+```sh
+$ sudo yum install skopeo
 ```
 for openSUSE:
 ```sh
