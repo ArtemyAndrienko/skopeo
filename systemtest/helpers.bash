@@ -290,7 +290,7 @@ start_registry() {
 
     # cgroup option necessary under podman-in-podman (CI tests),
     # and doesn't seem to do any harm otherwise.
-    PODMAN="podman --cgroup-manager=cgroupfs"
+    PODMAN="podman --runtime runc --cgroup-manager=cgroupfs"
 
     # Called with --testuser? Create an htpasswd file
     if [[ -n $testuser ]]; then
