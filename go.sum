@@ -80,6 +80,8 @@ github.com/containers/common v0.4.4 h1:oXQUPDQOIQ+XmQ2cWyLCs2TctDfISykAr1gEa3CNw
 github.com/containers/common v0.4.4/go.mod h1:vMkHkvczHslJbUj8xasSQmdNrLUgZYuUxVNGJDfjRIQ=
 github.com/containers/common v0.5.0 h1:ZAef7h3oO46PcbTyfooZf8XLHrYad+GkhSu3EhH6P24=
 github.com/containers/common v0.5.0/go.mod h1:m62kenckrWi5rZx32kaLje2Og0hpf6NsaTBn6+b+Oys=
+github.com/containers/common v0.6.1 h1:z9VeVXYeOnNV99uNLp7zoE5KO1n0hqz1mdm5a6AiIrA=
+github.com/containers/common v0.6.1/go.mod h1:m62kenckrWi5rZx32kaLje2Og0hpf6NsaTBn6+b+Oys=
 github.com/containers/image/v5 v5.0.0/go.mod h1:MgiLzCfIeo8lrHi+4Lb8HP+rh513sm0Mlk6RrhjFOLY=
 github.com/containers/image/v5 v5.0.1-0.20191126085826-502848a1358b h1:xUXa/0+KWQY1PAGuvfqXh1U18qTRYvHzhiys/BpZG4c=
 github.com/containers/image/v5 v5.0.1-0.20191126085826-502848a1358b/go.mod h1:NNGElTgKPvARdKeiJIE/IF+ddvHmNwaLPBupsoZI8eI=
