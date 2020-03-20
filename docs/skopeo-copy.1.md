@@ -28,6 +28,17 @@ the images in the list, and the list itself.
 Path of the authentication file. Default is ${XDG_RUNTIME\_DIR}/containers/auth.json, which is set using `podman login`.
 If the authorization state is not found there, $HOME/.docker/config.json is checked, which is set using `docker login`.
 
+Note: You can also override the default path of the authentication file by setting the REGISTRY\_AUTH\_FILE
+environment variable. `export REGISTRY_AUTH_FILE=path`
+
+**--src-authfile** _path_
+
+Path of the authentication file for the source registry. Uses path given by `--authfile`, if not provided.
+
+**--dest-authfile** _path_
+
+Path of the authentication file for the destination registry. Uses path given by `--authfile`, if not provided.
+
 **--format, -f** _manifest-type_ Manifest type (oci, v2s1, or v2s2) to use when saving image to directory using the 'dir:' transport (default is manifest type of source)
 
 **--quiet, -q** suppress output information when copying images
@@ -90,12 +101,12 @@ To copy and sign an image:
 
 To encrypt an image:
 ```sh
-skopeo copy docker://docker.io/library/nginx:latest oci:local_nginx:latest
+skopeo copy docker://docker.io/library/nginx:1.17.8 oci:local_nginx:1.17.8
 
 openssl genrsa -out private.key 1024
 openssl rsa -in private.key -pubout > public.key
 
-skopeo  copy --encryption-key jwe:./public.key oci:local_nginx:latest oci:try-encrypt:encrypted
+skopeo  copy --encryption-key jwe:./public.key oci:local_nginx:1.17.8 oci:try-encrypt:encrypted
 ```
 
 To decrypt an image:
@@ -112,6 +123,14 @@ To decrypt an image that requires more than one key:
 ```sh
 skopeo copy --decryption-key ./private1.key --decryption-key ./private2.key --decryption-key ./private3.key oci:try-encrypt:encrypted oci:try-decrypt:decrypted
 ```
+
+Container images can also be partially encrypted by specifying the index of the layer. Layers are 0-indexed indices, with support for negative indexing. i.e. 0 is the first layer, -1 is the last layer.
+
+Let's say out of 3 layers that the image `docker.io/library/nginx:1.17.8` is made up of, we only want to encrypt the 2nd layer,
+```sh
+skopeo  copy --encryption-key jwe:./public.key --encrypt-layer 1 oci:local_nginx:1.17.8 oci:try-encrypt:encrypted
+```
+
 ## SEE ALSO
 skopeo(1), podman-login(1), docker-login(1)
 
