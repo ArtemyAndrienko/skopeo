@@ -30,18 +30,11 @@ type SkopeoSuite struct {
 func (s *SkopeoSuite) SetUpSuite(c *check.C) {
 	_, err := exec.LookPath(skopeoBinary)
 	c.Assert(err, check.IsNil)
-}
-
-func (s *SkopeoSuite) TearDownSuite(c *check.C) {
-
-}
-
-func (s *SkopeoSuite) SetUpTest(c *check.C) {
 	s.regV2 = setupRegistryV2At(c, privateRegistryURL0, false, false)
 	s.regV2WithAuth = setupRegistryV2At(c, privateRegistryURL1, true, false)
 }
 
-func (s *SkopeoSuite) TearDownTest(c *check.C) {
+func (s *SkopeoSuite) TearDownSuite(c *check.C) {
 	if s.regV2 != nil {
 		s.regV2.Close()
 	}
@@ -90,4 +83,31 @@ func (s *SkopeoSuite) TestNoNeedAuthToPrivateRegistryV2ImageNotFound(c *check.C)
 
 func (s *SkopeoSuite) TestInspectFailsWhenReferenceIsInvalid(c *check.C) {
 	assertSkopeoFails(c, `.*Invalid image name.*`, "inspect", "unknown")
+}
+
+func (s *SkopeoSuite) TestLoginLogout(c *check.C) {
+	wanted := "^Login Succeeded!\n$"
+	assertSkopeoSucceeds(c, wanted, "login", "--tls-verify=false", "--username="+s.regV2WithAuth.username, "--password="+s.regV2WithAuth.password, s.regV2WithAuth.url)
+	// test --get-login returns username
+	wanted = fmt.Sprintf("^%s\n$", s.regV2WithAuth.username)
+	assertSkopeoSucceeds(c, wanted, "login", "--tls-verify=false", "--get-login", s.regV2WithAuth.url)
+	// test logout
+	wanted = fmt.Sprintf("^Removed login credentials for %s\n$", s.regV2WithAuth.url)
+	assertSkopeoSucceeds(c, wanted, "logout", s.regV2WithAuth.url)
+}
+
+func (s *SkopeoSuite) TestCopyWithLocalAuth(c *check.C) {
+	wanted := "^Login Succeeded!\n$"
+	assertSkopeoSucceeds(c, wanted, "login", "--tls-verify=false", "--username="+s.regV2WithAuth.username, "--password="+s.regV2WithAuth.password, s.regV2WithAuth.url)
+	// copy to private registry using local authentication
+	imageName := fmt.Sprintf("docker://%s/busybox:mine", s.regV2WithAuth.url)
+	assertSkopeoSucceeds(c, "", "copy", "--dest-tls-verify=false", "docker://docker.io/library/busybox:latest", imageName)
+	// inspec from private registry
+	assertSkopeoSucceeds(c, "", "inspect", "--tls-verify=false", imageName)
+	// logout from the registry
+	wanted = fmt.Sprintf("^Removed login credentials for %s\n$", s.regV2WithAuth.url)
+	assertSkopeoSucceeds(c, wanted, "logout", s.regV2WithAuth.url)
+	// inspect from private registry should fail after logout
+	wanted = ".*unauthorized: authentication required.*"
+	assertSkopeoFails(c, wanted, "inspect", "--tls-verify=false", imageName)
 }
