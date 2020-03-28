@@ -46,13 +46,13 @@ Most commands refer to container images, using a _transport_`:`_details_ format.
 
 ## OPTIONS
 
+  **--command-timeout** _duration_ Timeout for the command execution.
+
   **--debug** enable debug output
 
-  **--policy** _path-to-policy_ Path to a policy.json file to use for verifying signatures and deciding whether an image is trusted, overriding the default trust policy file.
+  **--help**|**-h** Show help
 
   **--insecure-policy** Adopt an insecure, permissive policy that allows anything. This obviates the need for a policy file.
-
-  **--registries.d** _dir_ use registry configuration files in _dir_ (e.g. for container signature storage), overriding the default path.
 
   **--override-arch** _arch_ Use _arch_ instead of the architecture of the machine for choosing images.
 
@@ -60,9 +60,11 @@ Most commands refer to container images, using a _transport_`:`_details_ format.
 
   **--override-variant** _VARIANT_ Use _VARIANT_ instead of the running architecture variant for choosing images.
 
-  **--command-timeout** _duration_ Timeout for the command execution.
+  **--policy** _path-to-policy_ Path to a policy.json file to use for verifying signatures and deciding whether an image is trusted, overriding the default trust policy file.
 
-  **--help**|**-h** Show help
+  **--registries.d** _dir_ use registry configuration files in _dir_ (e.g. for container signature storage), overriding the default path.
+
+  **--tmpdir:**_dir_ _dir_ used to store temporary files. Defaults to /var/tmp.
 
   **--version**|**-v** print the version number
 
@@ -73,11 +75,11 @@ Most commands refer to container images, using a _transport_`:`_details_ format.
 | [skopeo-copy(1)](skopeo-copy.1.md)        | Copy an image (manifest, filesystem layers, signatures) from one location to another. |
 | [skopeo-delete(1)](skopeo-delete.1.md)    | Mark image-name for deletion.                                                  |
 | [skopeo-inspect(1)](skopeo-inspect.1.md)  | Return low-level information about image-name in a registry.                   |
+| [skopeo-list-tags(1)](skopeo-list-tags.1.md)  | List the tags for the given transport/repository.                           |
 | [skopeo-manifest-digest(1)](skopeo-manifest-digest.1.md)    | Compute a manifest digest of manifest-file and write it to standard output.|
 | [skopeo-standalone-sign(1)](skopeo-standalone-sign.1.md)    | Sign an image.                                               |
 | [skopeo-standalone-verify(1)](skopeo-standalone-verify.1.md)| Verify an image.                                             |
 | [skopeo-sync(1)](skopeo-sync.1.md)| Copy images from one or more repositories to a user specified destination.             |
-| [skopeo-list-tags(1)](skopeo-list-tags.1.md)  | List the tags for the given transport/repository.                           |
 
 ## FILES
   **/etc/containers/policy.json**

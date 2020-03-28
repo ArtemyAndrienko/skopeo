@@ -158,6 +158,7 @@ func (opts *imageOptions) newSystemContext() (*types.SystemContext, error) {
 		DockerDaemonHost:         opts.dockerDaemonHost,
 		DockerDaemonCertPath:     opts.dockerCertPath,
 		SystemRegistriesConfPath: opts.global.registriesConfPath,
+		BigFilesTemporaryDir:     opts.global.tmpDir,
 	}
 	if opts.dockerImageOptions.authFilePath.present {
 		ctx.AuthFilePath = opts.dockerImageOptions.authFilePath.value
