@@ -28,6 +28,7 @@ type globalOptions struct {
 	overrideVariant    string        // Architecture variant to use for choosing images, instead of the runtime one
 	commandTimeout     time.Duration // Timeout for the command execution
 	registriesConfPath string        // Path to the "registries.conf" file
+	tmpDir             string        // Path to use for big temporary files
 }
 
 // createApp returns a cli.App, and the underlying globalOptions object, to be run or tested.
@@ -44,31 +45,20 @@ func createApp() (*cli.App, *globalOptions) {
 	}
 	app.Usage = "Various operations with container images and container image registries"
 	app.Flags = []cli.Flag{
+		cli.DurationFlag{
+			Name:        "command-timeout",
+			Usage:       "timeout for the command execution",
+			Destination: &opts.commandTimeout,
+		},
 		cli.BoolFlag{
 			Name:        "debug",
 			Usage:       "enable debug output",
 			Destination: &opts.debug,
 		},
-		cli.GenericFlag{
-			Name:   "tls-verify",
-			Usage:  "require HTTPS and verify certificates when talking to container registries (defaults to true)",
-			Hidden: true,
-			Value:  newOptionalBoolValue(&opts.tlsVerify),
-		},
-		cli.StringFlag{
-			Name:        "policy",
-			Usage:       "Path to a trust policy file",
-			Destination: &opts.policyPath,
-		},
 		cli.BoolFlag{
 			Name:        "insecure-policy",
 			Usage:       "run the tool without any policy check",
 			Destination: &opts.insecurePolicy,
-		},
-		cli.StringFlag{
-			Name:        "registries.d",
-			Usage:       "use registry configuration files in `DIR` (e.g. for container signature storage)",
-			Destination: &opts.registriesDirPath,
 		},
 		cli.StringFlag{
 			Name:        "override-arch",
@@ -85,10 +75,10 @@ func createApp() (*cli.App, *globalOptions) {
 			Usage:       "use `VARIANT` instead of the running architecture variant for choosing images",
 			Destination: &opts.overrideVariant,
 		},
-		cli.DurationFlag{
-			Name:        "command-timeout",
-			Usage:       "timeout for the command execution",
-			Destination: &opts.commandTimeout,
+		cli.StringFlag{
+			Name:        "policy",
+			Usage:       "Path to a trust policy file",
+			Destination: &opts.policyPath,
 		},
 		cli.StringFlag{
 			Name:        "registries-conf",
@@ -96,19 +86,35 @@ func createApp() (*cli.App, *globalOptions) {
 			Destination: &opts.registriesConfPath,
 			Hidden:      true,
 		},
+		cli.StringFlag{
+			Name:        "registries.d",
+			Usage:       "use registry configuration files in `DIR` (e.g. for container signature storage)",
+			Destination: &opts.registriesDirPath,
+		},
+		cli.GenericFlag{
+			Name:   "tls-verify",
+			Usage:  "require HTTPS and verify certificates when talking to container registries (defaults to true)",
+			Hidden: true,
+			Value:  newOptionalBoolValue(&opts.tlsVerify),
+		},
+		cli.StringFlag{
+			Name:        "tmpdir",
+			Usage:       "directory used to store temporary files",
+			Destination: &opts.tmpDir,
+		},
 	}
 	app.Before = opts.before
 	app.Commands = []cli.Command{
 		copyCmd(&opts),
+		deleteCmd(&opts),
 		inspectCmd(&opts),
 		layersCmd(&opts),
-		deleteCmd(&opts),
+		tagsCmd(&opts),
 		manifestDigestCmd(),
-		syncCmd(&opts),
 		standaloneSignCmd(),
 		standaloneVerifyCmd(),
+		syncCmd(&opts),
 		untrustedSignatureDumpCmd(),
-		tagsCmd(&opts),
 	}
 	return app, &opts
 }

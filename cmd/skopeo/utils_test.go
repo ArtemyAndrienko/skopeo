@@ -54,6 +54,7 @@ func TestImageOptionsNewSystemContext(t *testing.T) {
 		"--override-arch", "overridden-arch",
 		"--override-os", "overridden-os",
 		"--override-variant", "overridden-variant",
+		"--tmpdir", "/srv",
 	}, []string{
 		"--authfile", "/srv/authfile",
 		"--dest-authfile", "/srv/dest-authfile",
@@ -78,6 +79,7 @@ func TestImageOptionsNewSystemContext(t *testing.T) {
 		DockerDaemonCertPath:              "/srv/cert-dir",
 		DockerDaemonHost:                  "daemon-host.example.com",
 		DockerDaemonInsecureSkipTLSVerify: true,
+		BigFilesTemporaryDir:              "/srv",
 	}, res)
 
 	// Global/per-command tlsVerify behavior
@@ -166,6 +168,7 @@ func TestImageDestOptionsNewSystemContext(t *testing.T) {
 		"--override-arch", "overridden-arch",
 		"--override-os", "overridden-os",
 		"--override-variant", "overridden-variant",
+		"--tmpdir", "/srv",
 	}, []string{
 		"--authfile", "/srv/authfile",
 		"--dest-cert-dir", "/srv/cert-dir",
@@ -191,6 +194,7 @@ func TestImageDestOptionsNewSystemContext(t *testing.T) {
 		DockerDaemonHost:                  "daemon-host.example.com",
 		DockerDaemonInsecureSkipTLSVerify: true,
 		DirForceCompress:                  true,
+		BigFilesTemporaryDir:              "/srv",
 	}, res)
 
 	// Invalid option values in imageOptions
