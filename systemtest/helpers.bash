@@ -291,9 +291,21 @@ start_registry() {
         reg_args+=( -e REGISTRY_STORAGE_DELETE_ENABLED=true)
     fi
 
+    # TODO: This is TEMPORARY (as of 2020-03-30); remove once crun is fixed.
+    # Skopeo PR #836 claims there's a "regression" in crun with cgroupsv1,
+    # but offers no details about what it is (crun issue nor PR) nor when/if
+    # it's fixed. It's simply a workaround, forcing podman to use runc,
+    # which might work great for skopeo CI but breaks Fedora gating tests.
+    # Instead of always forcing runc, do so only when under cgroups v1:
+    local runtime=
+    cgroup_type=$(stat -f -c %T /sys/fs/cgroup)
+    if [[ $cgroup_type == "tmpfs" ]]; then
+        runtime="--runtime runc"
+    fi
+
     # cgroup option necessary under podman-in-podman (CI tests),
     # and doesn't seem to do any harm otherwise.
-    PODMAN="podman --runtime runc --cgroup-manager=cgroupfs"
+    PODMAN="podman $runtime --cgroup-manager=cgroupfs"
 
     # Called with --testuser? Create an htpasswd file
     if [[ -n $testuser ]]; then
