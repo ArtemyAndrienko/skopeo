@@ -105,8 +105,18 @@ skopeo sync --src docker --dest docker registry.example.com/busybox my-registry.
 ```
 Destination registry content:
 ```
-REPO                           TAGS
-registry.example.com/busybox   1-glibc, 1-musl, 1-ubuntu, ..., latest
+REPO                         TAGS
+registry.local.lan/busybox   1-glibc, 1-musl, 1-ubuntu, ..., latest
+```
+
+### Synchronizing to a container registry keeping the repository
+```
+skopeo sync --src docker --dest docker registry.example.com/repo/busybox my-registry.local.lan/repo
+```
+Destination registry content:
+```
+REPO                              TAGS
+registry.local.lan/repo/busybox   1-glibc, 1-musl, 1-ubuntu, ..., latest
 ```
 
 ### YAML file content (used _source_ for `**--src yaml**`)
