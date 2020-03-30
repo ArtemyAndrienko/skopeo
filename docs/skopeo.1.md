@@ -64,7 +64,7 @@ Most commands refer to container images, using a _transport_`:`_details_ format.
 
   **--registries.d** _dir_ use registry configuration files in _dir_ (e.g. for container signature storage), overriding the default path.
 
-  **--tmpdir:**_dir_ _dir_ used to store temporary files. Defaults to /var/tmp.
+  **--tmpdir** _dir_ used to store temporary files. Defaults to /var/tmp.
 
   **--version**|**-v** print the version number
 
