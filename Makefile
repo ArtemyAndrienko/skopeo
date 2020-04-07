@@ -185,8 +185,8 @@ test-unit-local:
 
 vendor:
 	export GO111MODULE=on \
-		$(GO) mod tidy && \
 		$(GO) mod vendor && \
+		$(GO) mod tidy && \
 		$(GO) mod verify
 
 vendor-in-container:
