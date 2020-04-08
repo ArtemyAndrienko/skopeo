@@ -87,7 +87,16 @@ END_EXPECT
     #    1) Get current platform arch
     #    2) Inspect container image is different from current platform arch
     #    3) Compare output w/ expected result
-    arch=$(podman info --format '{{.host.arch}}')
+
+    # Here we see a revolting workaround for a podman incompatibility
+    # change: in April 2020, podman info completely changed format
+    # of the keys. What worked until then now throws an error. We
+    # need to work with both old and new podman.
+    arch=$(podman info --format '{{.host.arch}}' || true)
+    if [[ -z "$arch" ]]; then
+        arch=$(podman info --format '{{.Host.Arch}}')
+    fi
+
     case $arch in
         "amd64")
             diff_arch_list="s390x ppc64le"
