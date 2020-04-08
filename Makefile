@@ -184,8 +184,8 @@ test-unit-local:
 	$(GPGME_ENV) $(GO) test $(MOD_VENDOR) -tags "$(BUILDTAGS)" $$($(GO) list $(MOD_VENDOR) -tags "$(BUILDTAGS)" -e ./... | grep -v '^github\.com/containers/skopeo/\(integration\|vendor/.*\)$$')
 
 vendor:
-	$(GO) mod vendor
 	$(GO) mod tidy
+	$(GO) mod vendor
 	$(GO) mod verify
 
 vendor-in-container:
