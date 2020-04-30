@@ -1055,7 +1055,7 @@ func (s *CopySuite) TestCopyAtomicExtension(c *check.C) {
 
 	// Get another image (different so that they don't share signatures, and sign it using docker://)
 	assertSkopeoSucceeds(c, "", "--tls-verify=false", "--registries.d", registriesDir,
-		"copy", "--sign-by", "personal@example.com", "docker://estesp/busybox:ppc64le", "atomic:localhost:5000/myns/extension:extension")
+		"copy", "--sign-by", "personal@example.com", "docker://estesp/busybox:ppc64le", "docker://localhost:5000/myns/extension:extension")
 	c.Logf("%s", combinedOutputOfCommand(c, "oc", "get", "istag", "extension:extension", "-o", "json"))
 	// Pulling the image using atomic: succeeds.
 	assertSkopeoSucceeds(c, "", "--debug", "--tls-verify=false", "--policy", policy,
