@@ -96,7 +96,7 @@ $ ls /var/lib/images/busybox/*
 To copy and sign an image:
 
 ```sh
-# skopeo copy --sign-by dev@example.com container-storage:example/busybox:streaming docker://example/busybox:gold
+# skopeo copy --sign-by dev@example.com containers-storage:example/busybox:streaming docker://example/busybox:gold
 ```
 
 To encrypt an image:
