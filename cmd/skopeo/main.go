@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/containers/image/v5/signature"
+	"github.com/containers/image/v5/types"
 	"github.com/containers/skopeo/version"
 	"github.com/containers/storage/pkg/reexec"
 	"github.com/sirupsen/logrus"
@@ -71,6 +72,8 @@ func createApp() (*cobra.Command, *globalOptions) {
 		deleteCmd(&opts),
 		inspectCmd(&opts),
 		layersCmd(&opts),
+		loginCmd(&opts),
+		logoutCmd(&opts),
 		manifestDigestCmd(),
 		syncCmd(&opts),
 		standaloneSignCmd(),
@@ -128,4 +131,22 @@ func (opts *globalOptions) commandTimeoutContext() (context.Context, context.Can
 		ctx, cancel = context.WithTimeout(ctx, opts.commandTimeout)
 	}
 	return ctx, cancel
+}
+
+// newSystemContext returns a *types.SystemContext corresponding to opts.
+// It is guaranteed to return a fresh instance, so it is safe to make additional updates to it.
+func (opts *globalOptions) newSystemContext() *types.SystemContext {
+	ctx := &types.SystemContext{
+		RegistriesDirPath:        opts.registriesDirPath,
+		ArchitectureChoice:       opts.overrideArch,
+		OSChoice:                 opts.overrideOS,
+		VariantChoice:            opts.overrideVariant,
+		SystemRegistriesConfPath: opts.registriesConfPath,
+		BigFilesTemporaryDir:     opts.tmpDir,
+	}
+	// DEPRECATED: We support this for backward compatibility, but override it if a per-image flag is provided.
+	if opts.tlsVerify.present {
+		ctx.DockerInsecureSkipTLSVerify = types.NewOptionalBool(!opts.tlsVerify.value)
+	}
+	return ctx
 }

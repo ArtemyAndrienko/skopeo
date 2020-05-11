@@ -111,28 +111,19 @@ func imageFlags(global *globalOptions, shared *sharedImageOptions, flagPrefix, c
 // newSystemContext returns a *types.SystemContext corresponding to opts.
 // It is guaranteed to return a fresh instance, so it is safe to make additional updates to it.
 func (opts *imageOptions) newSystemContext() (*types.SystemContext, error) {
-	ctx := &types.SystemContext{
-		RegistriesDirPath:        opts.global.registriesDirPath,
-		ArchitectureChoice:       opts.global.overrideArch,
-		OSChoice:                 opts.global.overrideOS,
-		VariantChoice:            opts.global.overrideVariant,
-		DockerCertPath:           opts.dockerCertPath,
-		OCISharedBlobDirPath:     opts.sharedBlobDir,
-		AuthFilePath:             opts.shared.authFilePath,
-		DockerDaemonHost:         opts.dockerDaemonHost,
-		DockerDaemonCertPath:     opts.dockerCertPath,
-		SystemRegistriesConfPath: opts.global.registriesConfPath,
-		BigFilesTemporaryDir:     opts.global.tmpDir,
-	}
+	// *types.SystemContext instance from globalOptions
+	//  imageOptions option overrides the instance if both are present.
+	ctx := opts.global.newSystemContext()
+	ctx.DockerCertPath = opts.dockerCertPath
+	ctx.OCISharedBlobDirPath = opts.sharedBlobDir
+	ctx.AuthFilePath = opts.shared.authFilePath
+	ctx.DockerDaemonHost = opts.dockerDaemonHost
+	ctx.DockerDaemonCertPath = opts.dockerCertPath
 	if opts.dockerImageOptions.authFilePath.present {
 		ctx.AuthFilePath = opts.dockerImageOptions.authFilePath.value
 	}
 	if opts.tlsVerify.present {
 		ctx.DockerDaemonInsecureSkipTLSVerify = !opts.tlsVerify.value
-	}
-	// DEPRECATED: We support this for backward compatibility, but override it if a per-image flag is provided.
-	if opts.global.tlsVerify.present {
-		ctx.DockerInsecureSkipTLSVerify = types.NewOptionalBool(!opts.global.tlsVerify.value)
 	}
 	if opts.tlsVerify.present {
 		ctx.DockerInsecureSkipTLSVerify = types.NewOptionalBool(!opts.tlsVerify.value)
@@ -167,7 +158,6 @@ type imageDestOptions struct {
 func imageDestFlags(global *globalOptions, shared *sharedImageOptions, flagPrefix, credsOptionAlias string) (pflag.FlagSet, *imageDestOptions) {
 	genericFlags, genericOptions := imageFlags(global, shared, flagPrefix, credsOptionAlias)
 	opts := imageDestOptions{imageOptions: genericOptions}
-
 	fs := pflag.FlagSet{}
 	fs.AddFlagSet(&genericFlags)
 	fs.BoolVar(&opts.dirForceCompression, flagPrefix+"compress", false, "Compress tarball image layers when saving to directory using the 'dir' transport. (default is same compression type as source)")

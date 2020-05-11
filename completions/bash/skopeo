@@ -158,6 +158,33 @@ _skopeo_list_repository_tags() {
     _complete_ "$options_with_args" "$boolean_options"
 }
 
+_skopeo_login() {
+    local options_with_args="
+    --authfile
+    --cert-dir
+    --password -p
+    --username -u
+    "
+
+    local boolean_options="
+    --get-login
+    --tls-verify
+    --password-stdin
+    "
+    _complete_ "$options_with_args" "$boolean_options"
+}
+
+_skopeo_logout() {
+    local options_with_args="
+    --authfile
+    "
+
+    local boolean_options="
+    --all -a
+    "
+    _complete_ "$options_with_args" "$boolean_options"
+}
+
 _skopeo_skopeo() {
      # XXX: Changes here need to be refleceted in the manually expanded
      # string in the `case` statement below as well.
@@ -182,6 +209,8 @@ _skopeo_skopeo() {
        delete
        inspect
        list-tags
+       login
+       logout
        manifest-digest
        standalone-sign
        standalone-verify
