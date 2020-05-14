@@ -34,7 +34,7 @@ name can be stored at _destination_.
 ## OPTIONS
 **--authfile** _path_
 
-Path of the authentication file. Default is ${XDG\_RUNTIME\_DIR}/containers/auth.json, which is set using `podman login`.
+Path of the authentication file. Default is ${XDG\_RUNTIME\_DIR}/containers/auth.json, which is set using `skopeo login`.
 If the authorization state is not found there, $HOME/.docker/config.json is checked, which is set using `docker login`.
 
 **--src-authfile** _path_
@@ -152,7 +152,7 @@ In the above example, TLS verification is enabled for `reigstry.example.com`, wh
 disabled for `quay.io`.
 
 ## SEE ALSO
-skopeo(1), podman-login(1), docker-login(1)
+skopeo(1), skopeo-login(1), docker-login(1), containers-auth.json(5), containers-poliyc.json(5), containers-transports(5)
 
 ## AUTHORS
 

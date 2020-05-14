@@ -25,7 +25,7 @@ the images in the list, and the list itself.
 
 **--authfile** _path_
 
-Path of the authentication file. Default is ${XDG_RUNTIME\_DIR}/containers/auth.json, which is set using `podman login`.
+Path of the authentication file. Default is ${XDG_RUNTIME\_DIR}/containers/auth.json, which is set using `skopeo login`.
 If the authorization state is not found there, $HOME/.docker/config.json is checked, which is set using `docker login`.
 
 Note: You can also override the default path of the authentication file by setting the REGISTRY\_AUTH\_FILE
@@ -132,7 +132,7 @@ skopeo  copy --encryption-key jwe:./public.key --encrypt-layer 1 oci:local_nginx
 ```
 
 ## SEE ALSO
-skopeo(1), podman-login(1), docker-login(1)
+skopeo(1), skopeo-login(1), docker-login(1), containers-auth.json(5), containers-policy.json(5), containers-transports(5)
 
 ## AUTHORS
 

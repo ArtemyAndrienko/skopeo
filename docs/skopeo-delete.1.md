@@ -21,7 +21,7 @@ $ docker exec -it registry /usr/bin/registry garbage-collect /etc/docker-distrib
 
 **--authfile** _path_
 
-  Path of the authentication file. Default is ${XDG_RUNTIME\_DIR}/containers/auth.json, which is set using `podman login`.
+  Path of the authentication file. Default is ${XDG_RUNTIME\_DIR}/containers/auth.json, which is set using `skopeo login`.
   If the authorization state is not found there, $HOME/.docker/config.json is checked, which is set using `docker login`.
 
 **--creds** _username[:password]_ for accessing the registry
@@ -44,7 +44,7 @@ See above for additional details on using the command **delete**.
 
 
 ## SEE ALSO
-skopeo(1), podman-login(1), docker-login(1)
+skopeo(1), skopeo-login(1), docker-login(1), containers-auth.json(5)
 
 ## AUTHORS
 

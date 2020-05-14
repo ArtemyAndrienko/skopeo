@@ -28,7 +28,7 @@ Signature verified, digest sha256:20bf21ed457b390829cdbeec8795a7bea1626991fda603
 ```
 
 ## SEE ALSO
-skopeo(1)
+skopeo(1), containers-signature(5)
 
 ## AUTHORS
 

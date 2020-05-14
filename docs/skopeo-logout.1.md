@@ -47,7 +47,7 @@ Remove login credentials for all registries
 ```
 
 ## SEE ALSO
-skopeo(1), skopeo-login(1)
+skopeo(1), skopeo-login(1), containers-auth.json(5)
 
 ## HISTORY
 May 2020, Originally compiled by Qi Wang <qiwan@redhat.com>

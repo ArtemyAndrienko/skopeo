@@ -33,7 +33,7 @@ Most commands refer to container images, using a _transport_`:`_details_ format.
   An existing local directory _path_ storing the manifest, layer tarballs and signatures as individual files. This is a non-standardized format, primarily useful for debugging or noninvasive container inspection.
 
   **docker://**_docker-reference_
-  An image in a registry implementing the "Docker Registry HTTP API V2". By default, uses the authorization state in either `$XDG_RUNTIME_DIR/containers/auth.json`, which is set using `(podman login)`. If the authorization state is not found there, `$HOME/.docker/config.json` is checked, which is set using `(docker login)`.
+  An image in a registry implementing the "Docker Registry HTTP API V2". By default, uses the authorization state in either `$XDG_RUNTIME_DIR/containers/auth.json`, which is set using `(skopeo login)`. If the authorization state is not found there, `$HOME/.docker/config.json` is checked, which is set using `(docker login)`.
 
   **docker-archive:**_path_[**:**_docker-reference_]
   An image is stored in the `docker save` formatted file.  _docker-reference_ is only used when creating such a file, and it must not contain a digest.
@@ -84,14 +84,14 @@ Most commands refer to container images, using a _transport_`:`_details_ format.
 ## FILES
   **/etc/containers/policy.json**
   Default trust policy file, if **--policy** is not specified.
-  The policy format is documented in https://github.com/containers/image/blob/master/docs/containers-policy.json.5.md .
+  The policy format is documented in [containers-policy.json(5)](https://github.com/containers/image/blob/master/docs/containers-policy.json.5.md) .
 
   **/etc/containers/registries.d**
   Default directory containing registry configuration, if **--registries.d** is not specified.
-  The contents of this directory are documented in https://github.com/containers/image/blob/master/docs/containers-policy.json.5.md .
+  The contents of this directory are documented in [containers-policy.json(5)](https://github.com/containers/image/blob/master/docs/containers-policy.json.5.md).
 
 ## SEE ALSO
-podman-login(1), docker-login(1)
+skopeo-login(1), docker-login(1), containers-auth.json(5), containers-storage.conf(5), containers-policy.json(5), containers-transports(5)
 
 ## AUTHORS
 
