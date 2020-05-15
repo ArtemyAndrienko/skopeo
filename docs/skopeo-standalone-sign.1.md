@@ -26,7 +26,7 @@ $
 ```
 
 ## SEE ALSO
-skopeo(1), skopeo-copy(1)
+skopeo(1), skopeo-copy(1), containers-signature(5)
 
 ## AUTHORS
 

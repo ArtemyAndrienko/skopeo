@@ -12,7 +12,7 @@ Return a list of tags from _repository-name_ in a registry.
 
   **--authfile** _path_
 
-  Path of the authentication file. Default is ${XDG\_RUNTIME\_DIR}/containers/auth.json, which is set using `podman login`.
+  Path of the authentication file. Default is ${XDG\_RUNTIME\_DIR}/containers/auth.json, which is set using `skopeo login`.
   If the authorization state is not found there, $HOME/.docker/config.json is checked, which is set using `docker login`.
 
   **--creds** _username[:password]_ for accessing the registry
@@ -30,7 +30,7 @@ Repository names are transport-specific references as each transport may have it
 This commands refers to repositories using a _transport_`:`_details_ format. The following formats are supported:
 
   **docker://**_docker-repository-reference_
-  A repository in a registry implementing the "Docker Registry HTTP API V2". By default, uses the authorization state in either `$XDG_RUNTIME_DIR/containers/auth.json`, which is set using `(podman login)`. If the authorization state is not found there, `$HOME/.docker/config.json` is checked, which is set using `(docker login)`.
+  A repository in a registry implementing the "Docker Registry HTTP API V2". By default, uses the authorization state in either `$XDG_RUNTIME_DIR/containers/auth.json`, which is set using `(skopeo login)`. If the authorization state is not found there, `$HOME/.docker/config.json` is checked, which is set using `(docker login)`.
   A _docker-repository-reference_ is of the form: **registryhost:port/repositoryname** which is similar to an _image-reference_ but with no tag or digest allowed as the last component (e.g no `:latest` or `@sha256:xyz`)
       
       Examples of valid docker-repository-references:
@@ -94,7 +94,7 @@ $ skopeo list-tags docker://localhost:5000/fedora
 ```
 
 # SEE ALSO
-skopeo(1), podman-login(1), docker-login(1)
+skopeo(1), skopeo-login(1), docker-login(1), containers-auth.json(5)
 
 ## AUTHORS
 
