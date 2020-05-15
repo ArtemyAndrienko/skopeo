@@ -152,9 +152,8 @@ In the above example, TLS verification is enabled for `reigstry.example.com`, wh
 disabled for `quay.io`.
 
 ## SEE ALSO
-skopeo(1), skopeo-login(1), docker-login(1), containers-auth.json(5), containers-poliyc.json(5), containers-transports(5)
+skopeo(1), skopeo-login(1), docker-login(1), containers-auth.json(5), containers-policy.json(5), containers-transports(5)
 
 ## AUTHORS
 
 Flavio Castelli <fcastelli@suse.com>, Marco Vedovati <mvedovati@suse.com>
-
