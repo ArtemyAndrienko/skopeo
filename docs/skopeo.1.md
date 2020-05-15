@@ -27,7 +27,7 @@ its functionality.  It also does not require root, unless you are copying images
 Most commands refer to container images, using a _transport_`:`_details_ format. The following formats are supported:
 
   **containers-storage:**_docker-reference_
-  An image located in a local containers/storage image store.  Location and image store specified in /etc/containers/storage.conf
+  An image located in a local containers/storage image store.  Both the location and image store are specified in /etc/containers/storage.conf. (Backend for Podman, CRI-O, Buildah and friends)
 
   **dir:**_path_
   An existing local directory _path_ storing the manifest, layer tarballs and signatures as individual files. This is a non-standardized format, primarily useful for debugging or noninvasive container inspection.
@@ -76,6 +76,8 @@ Most commands refer to container images, using a _transport_`:`_details_ format.
 | [skopeo-delete(1)](skopeo-delete.1.md)    | Mark image-name for deletion.                                                  |
 | [skopeo-inspect(1)](skopeo-inspect.1.md)  | Return low-level information about image-name in a registry.                   |
 | [skopeo-list-tags(1)](skopeo-list-tags.1.md)  | List the tags for the given transport/repository.                           |
+| [skopeo-login(1)](skopeo-login.1.md)  | Login to a container registry. |
+| [skopeo-logout(1)](skopeo-logout.1.md)  | Logout of a container registry. |
 | [skopeo-manifest-digest(1)](skopeo-manifest-digest.1.md)    | Compute a manifest digest of manifest-file and write it to standard output.|
 | [skopeo-standalone-sign(1)](skopeo-standalone-sign.1.md)    | Sign an image.                                               |
 | [skopeo-standalone-verify(1)](skopeo-standalone-verify.1.md)| Verify an image.                                             |
