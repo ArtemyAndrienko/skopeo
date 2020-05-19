@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/containers/image/v5/copy"
@@ -50,7 +51,7 @@ type tlsVerifyConfig struct {
 // registrySyncConfig contains information about a single registry, read from
 // the source YAML file
 type registrySyncConfig struct {
-	Images      map[string][]string    // Images map images name to slices with the images' tags
+	Images      map[string]interface{} // Images map images name to slices or regular expression with the images' tags
 	Credentials types.DockerAuthConfig // Username and password used to authenticate with the registry
 	TLSVerify   tlsVerifyConfig        `yaml:"tls-verify"` // TLS verification mode (enabled by default)
 	CertDir     string                 `yaml:"cert-dir"`   // Path to the TLS certificates of the registry
@@ -278,21 +279,82 @@ func imagesToCopyFromRegistry(registryName string, cfg registrySyncConfig, sourc
 		serverCtx.DockerAuthConfig = &cfg.Credentials
 
 		var sourceReferences []types.ImageReference
-		for _, tag := range tags {
-			source := fmt.Sprintf("%s:%s", repoName, tag)
 
-			imageRef, err := docker.ParseReference(source)
+		switch tags.(type) {
+		case []string, []interface{}, nil:
+			tagList := make([]string, 0)
+			if tagIns, ok := tags.([]interface{}); ok {
+				for _, tagValue := range tagIns {
+					switch tagValue.(type) {
+					case string, int, float64:
+						tagList = append(tagList, fmt.Sprintf("%v", tagValue))
+					default:
+						logrus.WithFields(logrus.Fields{
+							"repo":     imageName,
+							"registry": registryName,
+						}).Error("Error processing repo, skipping")
+						logrus.Errorf("Elements can only be strings if they are of type array, wrong value (%v|%T)", tagValue, tagValue)
+						continue
+					}
+				}
+			} else {
+				// nil is equl full tags
+				if tags != nil {
+					tagList = tags.([]string)
+				}
+			}
+
+			for _, tag := range tagList {
+				source := fmt.Sprintf("%s:%s", repoName, tag)
+
+				imageRef, err := docker.ParseReference(source)
+				if err != nil {
+					logrus.WithFields(logrus.Fields{
+						"tag": source,
+					}).Error("Error processing tag, skipping")
+					logrus.Errorf("Error getting image reference: %s", err)
+					continue
+				}
+				sourceReferences = append(sourceReferences, imageRef)
+			}
+
+			if len(tagList) == 0 {
+				logrus.WithFields(logrus.Fields{
+					"repo":     imageName,
+					"registry": registryName,
+				}).Info("Querying registry for image tags")
+
+				imageRef, err := docker.ParseReference(repoName)
+				if err != nil {
+					logrus.WithFields(logrus.Fields{
+						"repo":     imageName,
+						"registry": registryName,
+					}).Error("Error processing repo, skipping")
+					logrus.Error(err)
+					continue
+				}
+
+				sourceReferences, err = imagesToCopyFromRepo(imageRef, repoName, serverCtx)
+				if err != nil {
+					logrus.WithFields(logrus.Fields{
+						"repo":     imageName,
+						"registry": registryName,
+					}).Error("Error processing repo, skipping")
+					logrus.Error(err)
+					continue
+				}
+			}
+
+		case string:
+			tagReg, err := regexp.Compile(tags.(string))
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
-					"tag": source,
-				}).Error("Error processing tag, skipping")
-				logrus.Errorf("Error getting image reference: %s", err)
-				continue
+					"repo":     imageName,
+					"registry": registryName,
+				}).Error("Error processing repo, skipping")
+				logrus.Error(err)
 			}
-			sourceReferences = append(sourceReferences, imageRef)
-		}
 
-		if len(tags) == 0 {
 			logrus.WithFields(logrus.Fields{
 				"repo":     imageName,
 				"registry": registryName,
@@ -308,7 +370,7 @@ func imagesToCopyFromRegistry(registryName string, cfg registrySyncConfig, sourc
 				continue
 			}
 
-			sourceReferences, err = imagesToCopyFromRepo(imageRef, repoName, serverCtx)
+			allSourceReferences, err := imagesToCopyFromRepo(imageRef, repoName, serverCtx)
 			if err != nil {
 				logrus.WithFields(logrus.Fields{
 					"repo":     imageName,
@@ -317,6 +379,25 @@ func imagesToCopyFromRegistry(registryName string, cfg registrySyncConfig, sourc
 				logrus.Error(err)
 				continue
 			}
+
+			logrus.WithFields(logrus.Fields{
+				"repo":     imageName,
+				"registry": registryName,
+			}).Infof("Start filtering using the regular expression: %v", tags.(string))
+			for _, sReference := range allSourceReferences {
+				// get the tag names to match, [1] default is "latest" by .DockerReference().String()
+				if tagReg.Match([]byte(strings.Split(sReference.DockerReference().String(), ":")[1])) {
+					sourceReferences = append(sourceReferences, sReference)
+				}
+			}
+
+		default:
+			logrus.WithFields(logrus.Fields{
+				"repo":     imageName,
+				"registry": registryName,
+			}).Error("Error processing repo, skipping")
+			logrus.Errorf("Tags's type only support []string or regular expression string, wrong type:(%v %T)", tags, tags)
+			continue
 		}
 
 		if len(sourceReferences) == 0 {
