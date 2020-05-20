@@ -86,6 +86,21 @@ Images are located at:
 /media/usb/busybox:latest
 ```
 
+### Synchronizing to a container registry from local
+The Image's locate info:
+```
+/media/usb/busybox:1-glibc/
+```
+Sync run
+```
+$ skopeo sync --src dir --dest docker /media/usb/busybox\:1-glibc my-registry.local.lan/test/
+```
+Destination registry content:
+```
+REPO                                 TAGS
+my-registry.local.lan/test/busybox   1-glibc
+```
+
 ### Synchronizing to a local directory, scoped
 ```
 $ skopeo sync --src docker --dest dir --scoped registry.example.com/busybox /media/usb
@@ -128,6 +143,7 @@ registry.example.com:
         redis:
             - "1.0"
             - "2.0"
+        nginx: ^1\.13\.[12]-alpine-perl$ # String types are used for regular expressions, it will match `1.13.1-alpine-perl` and `1.13.2-alpine-perl`
     credentials:
         username: john
         password: this is a secret
@@ -139,10 +155,14 @@ quay.io:
         coreos/etcd:
             - latest
 ```
-
+If the yaml filename is `sync.yml`, sync run:
+```
+skopeo sync --src yaml --dest docker sync.yml my-registry.local.lan/repo/
+```
 This will copy the following images:
 - Repository `registry.example.com/busybox`: all images, as no tags are specified.
 - Repository `registry.example.com/redis`: images tagged "1.0" and "2.0".
+- Repository `registry.example.com/nginx`: images tagged "1.13.1-alpine-perl" and "1.13.2-alpine-perl".
 - Repository `quay.io/coreos/etcd`: images tagged "latest".
 
 For the registry `registry.example.com`, the "john"/"this is a secret" credentials are used, with server TLS certificates located at `/home/john/certs`.

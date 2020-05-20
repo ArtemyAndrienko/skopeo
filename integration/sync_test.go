@@ -255,6 +255,40 @@ docker.io:
 	c.Assert(nManifests, check.Equals, len(tags))
 }
 
+func (s *SyncSuite) TestYamlRegex2Dir(c *check.C) {
+	tmpDir, err := ioutil.TempDir("", "skopeo-sync-test")
+	c.Assert(err, check.IsNil)
+	defer os.RemoveAll(tmpDir)
+	dir1 := path.Join(tmpDir, "dir1")
+
+	yamlConfig := `
+docker.io:
+  images:
+    nginx: ^1\.13\.[12]-alpine-perl$  # regex string test
+`
+	// the       ↑    regex strings always matches only 2 images
+	var nTags = 2
+	c.Assert(nTags, check.Not(check.Equals), 0)
+
+	yamlFile := path.Join(tmpDir, "registries.yaml")
+	ioutil.WriteFile(yamlFile, []byte(yamlConfig), 0644)
+	assertSkopeoSucceeds(c, "", "sync", "--scoped", "--src", "yaml", "--dest", "dir", yamlFile, dir1)
+
+	nManifests := 0
+	err = filepath.Walk(dir1, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() && info.Name() == "manifest.json" {
+			nManifests++
+			return filepath.SkipDir
+		}
+		return nil
+	})
+	c.Assert(err, check.IsNil)
+	c.Assert(nManifests, check.Equals, nTags)
+}
+
 func (s *SyncSuite) TestYaml2Dir(c *check.C) {
 	tmpDir, err := ioutil.TempDir("", "skopeo-sync-test")
 	c.Assert(err, check.IsNil)
@@ -270,7 +304,6 @@ docker.io:
     alpine:
       - edge
       - 3.8
-
     opensuse/leap:
       - latest
 
