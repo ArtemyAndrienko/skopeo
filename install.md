@@ -25,6 +25,12 @@ on alpine:
 $ sudo apk add skopeo
 ```
 
+on macOS:
+
+```sh
+$ brew install skopeo
+```
+
 Debian (10 and newer including Raspbian) and Ubuntu (18.04 and newer): Packages
 are available via the [Kubic][0] project repositories:
 
