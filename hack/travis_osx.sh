@@ -12,6 +12,6 @@ go version
 GO111MODULE=off go get -u github.com/cpuguy83/go-md2man golang.org/x/lint/golint
 
 cd ${_containers}/skopeo
-make validate-local test-unit-local binary-local
+make validate-local test-unit-local bin/skopeo
 sudo make install
 skopeo -v

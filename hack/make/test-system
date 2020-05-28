@@ -11,7 +11,7 @@ sed -i \
     /etc/containers/storage.conf
 
 # Build skopeo, install into /usr/bin
-make binary-local ${BUILDTAGS:+BUILDTAGS="$BUILDTAGS"}
+make bin/skopeo ${BUILDTAGS:+BUILDTAGS="$BUILDTAGS"}
 make install
 
 # Run tests

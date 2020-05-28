@@ -62,6 +62,9 @@ CONTAINER_RUN := $(CONTAINER_CMD) "$(IMAGE)"
 
 GIT_COMMIT := $(shell git rev-parse HEAD 2> /dev/null || true)
 
+EXTRA_LDFLAGS ?=
+LDFLAGS := -ldflags '-X main.gitCommit=${GIT_COMMIT} $(EXTRA_LDFLAGS)'
+
 MANPAGES_MD = $(wildcard docs/*.md)
 MANPAGES ?= $(MANPAGES_MD:%.md=%)
 
@@ -85,7 +88,7 @@ help:
 	@echo
 	@echo " * 'install' - Install binaries and documents to system locations"
 	@echo " * 'binary' - Build skopeo with a container"
-	@echo " * 'binary-local' - Build skopeo locally"
+	@echo " * 'bin/skopeo' - Build skopeo locally"
 	@echo " * 'test-unit' - Execute unit tests"
 	@echo " * 'test-integration' - Execute integration tests"
 	@echo " * 'validate' - Verify whether there is no conflict and all Go source files have been formatted, linted and vetted"
@@ -98,19 +101,18 @@ help:
 binary: cmd/skopeo
 	${CONTAINER_RUNTIME} build ${BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
 	${CONTAINER_RUNTIME} run --rm --security-opt label=disable -v $$(pwd):/src/github.com/containers/skopeo \
-		skopeobuildimage make binary-local $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
+		skopeobuildimage make bin/skopeo $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
 
-binary-static: cmd/skopeo
-	${CONTAINER_RUNTIME} build ${BUILD_ARGS} -f Dockerfile.build -t skopeobuildimage .
-	${CONTAINER_RUNTIME} run --rm --security-opt label=disable -v $$(pwd):/src/github.com/containers/skopeo \
-		skopeobuildimage make binary-local-static $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
+# Update nix/nixpkgs.json its latest master commit
+.PHONY: nixpkgs
+nixpkgs:
+	@nix run -f channel:nixpkgs-unstable nix-prefetch-git -c nix-prefetch-git \
+		--no-deepClone https://github.com/nixos/nixpkgs > nix/nixpkgs.json
 
 # Build w/o using containers
-binary-local:
-	$(GPGME_ENV) $(GO) build $(MOD_VENDOR) ${GO_DYN_FLAGS} -ldflags "-X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo
-
-binary-local-static:
-	$(GPGME_ENV) $(GO) build $(MOD_VENDOR) -ldflags "-extldflags \"-static\" -X main.gitCommit=${GIT_COMMIT}" -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o skopeo ./cmd/skopeo
+.PHONY: bin/skopeo
+bin/skopeo:
+	$(GPGME_ENV) $(GO) build $(MOD_VENDOR) ${GO_DYN_FLAGS} ${LDFLAGS} -gcflags "$(GOGCFLAGS)" -tags "$(BUILDTAGS)" -o $@ ./cmd/skopeo
 
 build-container:
 	${CONTAINER_RUNTIME} build ${BUILD_ARGS} -t "$(IMAGE)" .
@@ -126,7 +128,7 @@ docs-in-container:
 		skopeobuildimage make docs $(if $(DEBUG),DEBUG=$(DEBUG)) BUILDTAGS='$(BUILDTAGS)'
 
 clean:
-	rm -f skopeo docs/*.1
+	rm -f bin docs/*.1
 
 install: install-binary install-docs install-completions
 	install -d -m 755 ${SIGSTOREDIR}
@@ -135,9 +137,9 @@ install: install-binary install-docs install-completions
 	install -d -m 755 ${REGISTRIESDDIR}
 	install -m 644 default.yaml ${REGISTRIESDDIR}/default.yaml
 
-install-binary: ./skopeo
+install-binary: bin/skopeo
 	install -d -m 755 ${INSTALLDIR}
-	install -m 755 skopeo ${INSTALLDIR}/skopeo
+	install -m 755 bin/skopeo ${INSTALLDIR}/skopeo
 
 install-docs: docs
 	install -d -m 755 ${MANINSTALLDIR}/man1
