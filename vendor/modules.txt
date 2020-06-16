@@ -37,7 +37,7 @@ github.com/containerd/cgroups/stats/v1
 github.com/containerd/containerd/errdefs
 github.com/containerd/containerd/log
 github.com/containerd/containerd/platforms
-# github.com/containers/common v0.13.0
+# github.com/containers/common v0.13.1
 github.com/containers/common/pkg/auth
 # github.com/containers/image/v5 v5.4.4
 github.com/containers/image/v5/copy
@@ -279,7 +279,7 @@ github.com/sirupsen/logrus
 github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.5
 github.com/spf13/pflag
-# github.com/stretchr/testify v1.6.0
+# github.com/stretchr/testify v1.6.1
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
 # github.com/syndtr/gocapability v0.0.0-20180916011248-d98352740cb2
