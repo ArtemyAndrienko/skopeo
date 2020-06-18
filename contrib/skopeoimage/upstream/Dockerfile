@@ -29,7 +29,7 @@ mkdir /root/skopeo; \
 git clone https://github.com/containers/skopeo /root/skopeo/src/github.com/containers/skopeo; \
 export GOPATH=/root/skopeo; \
 cd /root/skopeo/src/github.com/containers/skopeo; \
-make binary-local;\
+make bin/skopeo;\
 make install;\
 rm -rf /root/skopeo/*; \
 yum -y remove git golang go-md2man make; \

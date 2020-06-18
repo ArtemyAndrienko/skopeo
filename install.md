@@ -114,7 +114,7 @@ Make sure to clone this repository in your `GOPATH` - otherwise compilation fail
 
 ```bash
 $ git clone https://github.com/containers/skopeo $GOPATH/src/github.com/containers/skopeo
-$ cd $GOPATH/src/github.com/containers/skopeo && make binary-local
+$ cd $GOPATH/src/github.com/containers/skopeo && make bin/skopeo
 ```
 
 ### Building in a container
