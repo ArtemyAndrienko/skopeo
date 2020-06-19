@@ -7,6 +7,8 @@ RUN dnf -y update && dnf install -y make git golang golang-github-cpuguy83-md2ma
 	# gpgme bindings deps
 	libassuan-devel gpgme-devel \
 	gnupg \
+	# htpasswd for system tests
+	httpd-tools \
 	# OpenShift deps
 	which tar wget hostname util-linux bsdtar socat ethtool device-mapper iptables tree findutils nmap-ncat e2fsprogs xfsprogs lsof docker iproute \
         bats jq podman runc \

@@ -314,8 +314,7 @@ start_registry() {
         fi
 
         if ! egrep -q "^$testuser:" $AUTHDIR/htpasswd; then
-            log_and_run $PODMAN run --rm --entrypoint htpasswd $REGISTRY_FQIN \
-                   -Bbn $testuser $testpassword >> $AUTHDIR/htpasswd
+            htpasswd -Bbn $testuser $testpassword >> $AUTHDIR/htpasswd
         fi
 
         reg_args+=(
