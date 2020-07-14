@@ -17,16 +17,19 @@ import (
 )
 
 type layersOptions struct {
-	global *globalOptions
-	image  *imageOptions
+	global    *globalOptions
+	image     *imageOptions
+	retryOpts *retryOptions
 }
 
 func layersCmd(global *globalOptions) *cobra.Command {
 	sharedFlags, sharedOpts := sharedImageFlags()
 	imageFlags, imageOpts := imageFlags(global, sharedOpts, "", "")
+	retryFlags, retryOpts := retryFlags()
 	opts := layersOptions{
-		global: global,
-		image:  imageOpts,
+		global:    global,
+		image:     imageOpts,
+		retryOpts: retryOpts,
 	}
 	cmd := &cobra.Command{
 		Hidden: true,
@@ -38,6 +41,7 @@ func layersCmd(global *globalOptions) *cobra.Command {
 	flags := cmd.Flags()
 	flags.AddFlagSet(&sharedFlags)
 	flags.AddFlagSet(&imageFlags)
+	flags.AddFlagSet(&retryFlags)
 	return cmd
 }
 
@@ -60,12 +64,20 @@ func (opts *layersOptions) run(args []string, stdout io.Writer) (retErr error) {
 		return err
 	}
 	cache := blobinfocache.DefaultCache(sys)
-	rawSource, err := parseImageSource(ctx, opts.image, imageName)
-	if err != nil {
+	var (
+		rawSource types.ImageSource
+		src       types.ImageCloser
+	)
+	if err = retryIfNecessary(ctx, func() error {
+		rawSource, err = parseImageSource(ctx, opts.image, imageName)
+		return err
+	}, opts.retryOpts); err != nil {
 		return err
 	}
-	src, err := image.FromSource(ctx, sys, rawSource)
-	if err != nil {
+	if err = retryIfNecessary(ctx, func() error {
+		src, err = image.FromSource(ctx, sys, rawSource)
+		return err
+	}, opts.retryOpts); err != nil {
 		if closeErr := rawSource.Close(); closeErr != nil {
 			return errors.Wrapf(err, " (close error: %v)", closeErr)
 		}
@@ -129,8 +141,14 @@ func (opts *layersOptions) run(args []string, stdout io.Writer) (retErr error) {
 	}()
 
 	for _, bd := range blobDigests {
-		r, blobSize, err := rawSource.GetBlob(ctx, types.BlobInfo{Digest: bd.digest, Size: -1}, cache)
-		if err != nil {
+		var (
+			r        io.ReadCloser
+			blobSize int64
+		)
+		if err = retryIfNecessary(ctx, func() error {
+			r, blobSize, err = rawSource.GetBlob(ctx, types.BlobInfo{Digest: bd.digest, Size: -1}, cache)
+			return err
+		}, opts.retryOpts); err != nil {
 			return err
 		}
 		if _, err := dest.PutBlob(ctx, r, types.BlobInfo{Digest: bd.digest, Size: blobSize}, cache, bd.isConfig); err != nil {
@@ -141,8 +159,11 @@ func (opts *layersOptions) run(args []string, stdout io.Writer) (retErr error) {
 		}
 	}
 
-	manifest, _, err := src.Manifest(ctx)
-	if err != nil {
+	var manifest []byte
+	if err = retryIfNecessary(ctx, func() error {
+		manifest, _, err = src.Manifest(ctx)
+		return err
+	}, opts.retryOpts); err != nil {
 		return err
 	}
 	if err := dest.PutManifest(ctx, manifest, nil); err != nil {

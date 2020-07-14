@@ -12,16 +12,19 @@ import (
 )
 
 type deleteOptions struct {
-	global *globalOptions
-	image  *imageOptions
+	global    *globalOptions
+	image     *imageOptions
+	retryOpts *retryOptions
 }
 
 func deleteCmd(global *globalOptions) *cobra.Command {
 	sharedFlags, sharedOpts := sharedImageFlags()
 	imageFlags, imageOpts := imageFlags(global, sharedOpts, "", "")
+	retryFlags, retryOpts := retryFlags()
 	opts := deleteOptions{
-		global: global,
-		image:  imageOpts,
+		global:    global,
+		image:     imageOpts,
+		retryOpts: retryOpts,
 	}
 	cmd := &cobra.Command{
 		Use:   "delete [command options] IMAGE-NAME",
@@ -38,6 +41,7 @@ See skopeo(1) section "IMAGE NAMES" for the expected format
 	flags := cmd.Flags()
 	flags.AddFlagSet(&sharedFlags)
 	flags.AddFlagSet(&imageFlags)
+	flags.AddFlagSet(&retryFlags)
 	return cmd
 }
 
@@ -63,5 +67,8 @@ func (opts *deleteOptions) run(args []string, stdout io.Writer) error {
 
 	ctx, cancel := opts.global.commandTimeoutContext()
 	defer cancel()
-	return ref.DeleteImage(ctx, sys)
+
+	return retryIfNecessary(ctx, func() error {
+		return ref.DeleteImage(ctx, sys)
+	}, opts.retryOpts)
 }
