@@ -28,11 +28,12 @@ type syncOptions struct {
 	global            *globalOptions    // Global (not command dependant) skopeo options
 	srcImage          *imageOptions     // Source image options
 	destImage         *imageDestOptions // Destination image options
-	removeSignatures  bool              // Do not copy signatures from the source image
-	signByFingerprint string            // Sign the image using a GPG key with the specified fingerprint
-	source            string            // Source repository name
-	destination       string            // Destination registry name
-	scoped            bool              // When true, namespace copied images at destination using the source repository name
+	retryOpts         *retryOptions
+	removeSignatures  bool   // Do not copy signatures from the source image
+	signByFingerprint string // Sign the image using a GPG key with the specified fingerprint
+	source            string // Source repository name
+	destination       string // Destination registry name
+	scoped            bool   // When true, namespace copied images at destination using the source repository name
 }
 
 // repoDescriptor contains information of a single repository used as a sync source.
@@ -65,11 +66,13 @@ func syncCmd(global *globalOptions) *cobra.Command {
 	sharedFlags, sharedOpts := sharedImageFlags()
 	srcFlags, srcOpts := dockerImageFlags(global, sharedOpts, "src-", "screds")
 	destFlags, destOpts := dockerImageFlags(global, sharedOpts, "dest-", "dcreds")
+	retryFlags, retryOpts := retryFlags()
 
 	opts := syncOptions{
 		global:    global,
 		srcImage:  srcOpts,
 		destImage: &imageDestOptions{imageOptions: destOpts},
+		retryOpts: retryOpts,
 	}
 
 	cmd := &cobra.Command{
@@ -95,6 +98,7 @@ See skopeo-sync(1) for details.
 	flags.AddFlagSet(&sharedFlags)
 	flags.AddFlagSet(&srcFlags)
 	flags.AddFlagSet(&destFlags)
+	flags.AddFlagSet(&retryFlags)
 	return cmd
 }
 
@@ -509,9 +513,15 @@ func (opts *syncOptions) run(args []string, stdout io.Writer) error {
 		return err
 	}
 
+	ctx, cancel := opts.global.commandTimeoutContext()
+	defer cancel()
+
 	sourceArg := args[0]
-	srcRepoList, err := imagesToCopy(sourceArg, opts.source, sourceCtx)
-	if err != nil {
+	var srcRepoList []repoDescriptor
+	if err = retryIfNecessary(ctx, func() error {
+		srcRepoList, err = imagesToCopy(sourceArg, opts.source, sourceCtx)
+		return err
+	}, opts.retryOpts); err != nil {
 		return err
 	}
 
@@ -520,9 +530,6 @@ func (opts *syncOptions) run(args []string, stdout io.Writer) error {
 	if err != nil {
 		return err
 	}
-
-	ctx, cancel := opts.global.commandTimeoutContext()
-	defer cancel()
 
 	imagesNumber := 0
 	options := copy.Options{
@@ -563,8 +570,10 @@ func (opts *syncOptions) run(args []string, stdout io.Writer) error {
 				"to":   transports.ImageName(destRef),
 			}).Infof("Copying image tag %d/%d", counter+1, len(srcRepo.TaggedImages))
 
-			_, err = copy.Image(ctx, policyContext, destRef, ref, &options)
-			if err != nil {
+			if err = retryIfNecessary(ctx, func() error {
+				_, err = copy.Image(ctx, policyContext, destRef, ref, &options)
+				return err
+			}, opts.retryOpts); err != nil {
 				return errors.Wrapf(err, "Error copying tag %q", transports.ImageName(ref))
 			}
 			imagesNumber++

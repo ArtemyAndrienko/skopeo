@@ -22,6 +22,7 @@ type copyOptions struct {
 	global            *globalOptions
 	srcImage          *imageOptions
 	destImage         *imageDestOptions
+	retryOpts         *retryOptions
 	additionalTags    []string       // For docker-archive: destinations, in addition to the name:tag specified as destination, also add these
 	removeSignatures  bool           // Do not copy signatures from the source image
 	signByFingerprint string         // Sign the image using a GPG key with the specified fingerprint
@@ -37,9 +38,11 @@ func copyCmd(global *globalOptions) *cobra.Command {
 	sharedFlags, sharedOpts := sharedImageFlags()
 	srcFlags, srcOpts := imageFlags(global, sharedOpts, "src-", "screds")
 	destFlags, destOpts := imageDestFlags(global, sharedOpts, "dest-", "dcreds")
+	retryFlags, retryOpts := retryFlags()
 	opts := copyOptions{global: global,
 		srcImage:  srcOpts,
 		destImage: destOpts,
+		retryOpts: retryOpts,
 	}
 	cmd := &cobra.Command{
 		Use:   "copy [command options] SOURCE-IMAGE DESTINATION-IMAGE",
@@ -59,6 +62,7 @@ See skopeo(1) section "IMAGE NAMES" for the expected format
 	flags.AddFlagSet(&sharedFlags)
 	flags.AddFlagSet(&srcFlags)
 	flags.AddFlagSet(&destFlags)
+	flags.AddFlagSet(&retryFlags)
 	flags.StringSliceVar(&opts.additionalTags, "additional-tag", []string{}, "additional tags (supports docker-archive)")
 	flags.BoolVarP(&opts.quiet, "quiet", "q", false, "Suppress output information when copying images")
 	flags.BoolVarP(&opts.all, "all", "a", false, "Copy all images if SOURCE-IMAGE is a list")
@@ -178,17 +182,19 @@ func (opts *copyOptions) run(args []string, stdout io.Writer) error {
 		decConfig = cc.DecryptConfig
 	}
 
-	_, err = copy.Image(ctx, policyContext, destRef, srcRef, &copy.Options{
-		RemoveSignatures:      opts.removeSignatures,
-		SignBy:                opts.signByFingerprint,
-		ReportWriter:          stdout,
-		SourceCtx:             sourceCtx,
-		DestinationCtx:        destinationCtx,
-		ForceManifestMIMEType: manifestType,
-		ImageListSelection:    imageListSelection,
-		OciDecryptConfig:      decConfig,
-		OciEncryptLayers:      encLayers,
-		OciEncryptConfig:      encConfig,
-	})
-	return err
+	return retryIfNecessary(ctx, func() error {
+		_, err = copy.Image(ctx, policyContext, destRef, srcRef, &copy.Options{
+			RemoveSignatures:      opts.removeSignatures,
+			SignBy:                opts.signByFingerprint,
+			ReportWriter:          stdout,
+			SourceCtx:             sourceCtx,
+			DestinationCtx:        destinationCtx,
+			ForceManifestMIMEType: manifestType,
+			ImageListSelection:    imageListSelection,
+			OciDecryptConfig:      decConfig,
+			OciEncryptLayers:      encLayers,
+			OciEncryptConfig:      encConfig,
+		})
+		return err
+	}, opts.retryOpts)
 }
