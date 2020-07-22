@@ -35,7 +35,7 @@ github.com/beorn7/perks/quantile
 github.com/containerd/cgroups/stats/v1
 # github.com/containerd/containerd v1.3.2
 github.com/containerd/containerd/errdefs
-# github.com/containers/common v0.16.0
+# github.com/containers/common v0.17.0
 github.com/containers/common/pkg/auth
 # github.com/containers/image/v5 v5.5.1
 github.com/containers/image/v5/copy
